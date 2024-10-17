@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=TODO: Template Plugin
-GenericName=TODO: Template Plugin
-Comment=TODO: add description what plugin does
+Name=Referencer Stereo
+GenericName=Referencer
+Comment=Referencer plugin allows you to load your preferred reference files and compare them with your mix
 Exec=lsp-plugins-referencer-stereo
 Icon=lsp-plugins
 Terminal=false

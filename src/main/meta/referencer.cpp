@@ -49,16 +49,6 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            INT_CONTROL("d_in", "Delay in samples", U_SAMPLES, referencer::SAMPLES),
-            DRY_GAIN(0.0f),
-            WET_GAIN(1.0f),
-            OUT_GAIN,
-            OPT_STRING("comment", "Comment", 128),
-
-            // Output controls
-            METER_MINMAX("d_out", "Delay time in milliseconds", U_MSEC, 0.0f, referencer::DELAY_OUT_MAX_TIME),
-            METER_GAIN("min", "Input gain", GAIN_AMP_P_48_DB),
-            METER_GAIN("mout", "Output gain", GAIN_AMP_P_48_DB),
 
             PORTS_END
         };
@@ -71,51 +61,39 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            INT_CONTROL("d_in", "Delay in samples", U_SAMPLES, referencer::SAMPLES),
-            DRY_GAIN(0.0f),
-            WET_GAIN(1.0f),
-            OUT_GAIN,
-            OPT_STRING("comment", "Comment", 128),
-
-            // Output controls
-            METER_MINMAX("d_out", "Delay time in milliseconds", U_MSEC, 0.0f, referencer::DELAY_OUT_MAX_TIME),
-            METER_GAIN("min_l", "Input gain left",  GAIN_AMP_P_48_DB),
-            METER_GAIN("mout_l", "Output gain left",  GAIN_AMP_P_48_DB),
-            METER_GAIN("min_r", "Input gain right",  GAIN_AMP_P_48_DB),
-            METER_GAIN("mout_r", "Output gain right", GAIN_AMP_P_48_DB),
 
             PORTS_END
         };
 
-        static const int plugin_classes[]       = { C_DELAY, -1 };
+        static const int plugin_classes[]       = { C_UTILITY, -1 };
         static const int clap_features_mono[]   = { CF_AUDIO_EFFECT, CF_UTILITY, CF_MONO, -1 };
         static const int clap_features_stereo[] = { CF_AUDIO_EFFECT, CF_UTILITY, CF_STEREO, -1 };
 
         const meta::bundle_t referencer_bundle =
         {
-            "referencer", // TODO: write proper bundle identifier
-            "Plugin Template", // TODO: write proper bundle name
+            "referencer",
+            "Referencer",
             B_UTILITIES,
             "", // TODO: provide ID of the video on YouTube
-            "Plugin Template" // TODO: write plugin description, should be the same to the english version in 'bundles.json'
+            "Referencer plugin allows you to load your preferred reference files and compare them with your mix"
         };
 
         const plugin_t referencer_mono =
         {
-            "Pluginschablone Mono",
-            "Plugin Template Mono",
-            "Plugin Template Mono",
-            "PS1M",
+            "Referencer Mono",
+            "Referencer Mono",
+            "Referencer Mono",
+            "R1M",
             &developers::v_sadovnikov,
             "referencer_mono",
             {
                 LSP_LV2_URI("referencer_mono"),
                 LSP_LV2UI_URI("referencer_mono"),
-                "xxxx",         // TODO: fill valid VST2 ID (4 letters/digits)
-                LSP_VST3_UID("ps1m    xxxx"),
-                LSP_VST3UI_UID("ps1m    xxxx"),
-                1,              // TODO: fill valid LADSPA identifier (positive decimal integer)
-                LSP_LADSPA_URI("referencer_mono"),
+                "rf1m",
+                LSP_VST3_UID("rf1m    rf1m"),
+                LSP_VST3UI_UID("rf1m    rf1m"),
+                0,
+                NULL,
                 LSP_CLAP_URI("referencer_mono"),
                 LSP_GST_UID("referencer_mono"),
             },
@@ -124,7 +102,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE,
             referencer_mono_ports,
-            "template/plugin.xml",
+            "utils/referencer.xml",
             NULL,
             mono_plugin_port_groups,
             &referencer_bundle
@@ -132,20 +110,20 @@ namespace lsp
 
         const plugin_t referencer_stereo =
         {
-            "Pluginschablone Stereo",
-            "Plugin Template Stereo",
-            "Plugin Template Stereo",
-            "PS1S",
+            "Referencer Stereo",
+            "Referencer Stereo",
+            "Referencer Stereo",
+            "R1S",
             &developers::v_sadovnikov,
             "referencer_stereo",
             {
                 LSP_LV2_URI("referencer_stereo"),
                 LSP_LV2UI_URI("referencer_stereo"),
-                "yyyy",         // TODO: fill valid VST2 ID (4 letters/digits)
-                LSP_VST3_UID("ps1s    yyyy"),
-                LSP_VST3UI_UID("ps1s    yyyy"),
-                2,              // TODO: fill valid LADSPA identifier (positive decimal integer)
-                LSP_LADSPA_URI("referencer_stereo"),
+                "rf1s",
+                LSP_VST3_UID("rf1s    rf1s"),
+                LSP_VST3UI_UID("rf1s    rf1s"),
+                0,
+                NULL,
                 LSP_CLAP_URI("referencer_stereo"),
                 LSP_GST_UID("referencer_stereo"),
             },
@@ -154,7 +132,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE,
             referencer_stereo_ports,
-            "template/plugin.xml",
+            "utils/referencer.xml",
             NULL,
             stereo_plugin_port_groups,
             &referencer_bundle
