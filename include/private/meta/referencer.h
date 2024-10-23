@@ -33,17 +33,15 @@ namespace lsp
     {
         typedef struct referencer
         {
-            static constexpr float  SAMPLES_MIN         = 0.0f;
-            static constexpr float  SAMPLES_MAX         = 10000.0f;
-            static constexpr float  SAMPLES_DFL         = 0.0f;
-            static constexpr float  SAMPLES_STEP        = 1.0f;
+            static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;         // Minimum length (s)
+            static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;      // Maximum sample length (s)
+            static constexpr float  SAMPLE_LENGTH_DFL   = 0.0f;         // Sample length (s)
+            static constexpr float  SAMPLE_LENGTH_STEP  = 0.1f;         // Sample step (s)
 
-            static constexpr float  TIME_MIN            = 0.0f;
-            static constexpr float  TIME_MAX            = 1000.0f;
-            static constexpr float  TIME_DFL            = 0.0f;
-            static constexpr float  TIME_STEP           = 0.01f;
-
-            static constexpr float  DELAY_OUT_MAX_TIME  = 10000.0f;
+            static constexpr float  SAMPLE_PLAYBACK_MIN = -1.0f;        // Minimum playback position (s)
+            static constexpr float  SAMPLE_PLAYBACK_MAX = 1000.0f;      // Maximum playback posotion (s)
+            static constexpr float  SAMPLE_PLAYBACK_DFL = -1.0f;        // Default playback position (s)
+            static constexpr float  SAMPLE_PLAYBACK_STEP = 0.1f;        // Playback step (s)
         } referencer;
 
         // Plugin type metadata
