@@ -40,80 +40,81 @@ namespace lsp
     {
         //-------------------------------------------------------------------------
         // Plugin metadata
-        static const port_item_t mode_selectors[] =
+        static const port_item_t source_selectors[] =
         {
-            { "Mix",        "referencer.mode.mix"               },
-            { "Reference",  "referencer.mode.reference"         },
-            { "Both",       "referencer.mode.both"              },
+            { "Mix",            "referencer.source.mix"             },
+            { "Reference",      "referencer.source.reference"       },
+            { "Both",           "referencer.source.both"            },
             { NULL, NULL }
         };
 
-        static const port_item_t image_selectors[] =
+        static const port_item_t mode_selectors[] =
         {
-            { "Stereo",         "referencer.image.stereo"       },
-            { "Mono",           "referencer.image.mono"         },
-            { "Side",           "referencer.image.side"         },
-            { "Sides",          "referencer.image.sides"        },
-            { "Left Only",      "referencer.image.left_only"    },
-            { "Left",           "referencer.image.left"         },
-            { "Right",          "referencer.image.right"        },
-            { "Right Only",     "referencer.image.right_only"   },
+            { "Stereo",         "referencer.mode.stereo"            },
+            { "Mono",           "referencer.mode.mono"              },
+            { "Side",           "referencer.mode.side"              },
+            { "Sides",          "referencer.mode.sides"             },
+            { "Left Only",      "referencer.mode.left_only"         },
+            { "Left",           "referencer.mode.left"              },
+            { "Right",          "referencer.mode.right"             },
+            { "Right Only",     "referencer.mode.right_only"        },
             { NULL, NULL }
         };
 
         static const port_item_t tab_selectors[] =
         {
-            { "Samples",    "referencer.tab.samples"        },
-            { "Spectrum",   "referencer.tab.spectrum"       },
-            { "Dynamics",   "referencer.tab.dynamics"       },
-            { "Stereo",     "referencer.tab.stereo"         },
+            { "Samples",        "referencer.tab.samples"            },
+            { "Spectrum",       "referencer.tab.spectrum"           },
+            { "Dynamics",       "referencer.tab.dynamics"           },
+            { "Stereo",         "referencer.tab.stereo"             },
             { NULL, NULL }
         };
 
         static const port_item_t sample_selectors[] =
         {
-            { "Sample 1",   "referencer.sample.1"           },
-            { "Sample 2",   "referencer.sample.2"           },
-            { "Sample 3",   "referencer.sample.3"           },
-            { "Sample 4",   "referencer.sample.4"           },
+            { "Sample 1",       "referencer.sample.1"               },
+            { "Sample 2",       "referencer.sample.2"               },
+            { "Sample 3",       "referencer.sample.3"               },
+            { "Sample 4",       "referencer.sample.4"               },
             { NULL, NULL }
         };
 
         static const port_item_t loop_selectors[] =
         {
-            { "Loop 1",     "referencer.loop.1"             },
-            { "Loop 2",     "referencer.loop.2"             },
-            { "Loop 3",     "referencer.loop.3"             },
-            { "Loop 4",     "referencer.loop.4"             },
+            { "Loop 1",         "referencer.loop.1"                 },
+            { "Loop 2",         "referencer.loop.2"                 },
+            { "Loop 3",         "referencer.loop.3"                 },
+            { "Loop 4",         "referencer.loop.4"                 },
             { NULL, NULL }
         };
 
         #define REF_LOOP(id, name) \
-            CONTROL("lb", name " loop region start" id, U_MSEC, referencer::SAMPLE_LENGTH), \
-            CONTROL("le", name " loop region end" id, U_MSEC, referencer::SAMPLE_LENGTH),  \
-            METER("lp", name " play position" id, U_MSEC, referencer::SAMPLE_PLAYBACK)
+            CONTROL("lb" id, name " start", U_MSEC, referencer::SAMPLE_LENGTH), \
+            CONTROL("le" id, name " end", U_MSEC, referencer::SAMPLE_LENGTH),  \
+            METER("pp" id, name " play position", U_MSEC, referencer::SAMPLE_PLAYBACK)
 
         #define REF_SAMPLE(id, name) \
             PATH("sf" id, name " file"), \
+            AMP_GAIN("sg" id, name " gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
             COMBO("ls" id, name " loop selector", 0, loop_selectors), \
-            REF_LOOP(id "_1", name), \
-            REF_LOOP(id "_2", name), \
-            REF_LOOP(id "_3", name), \
-            REF_LOOP(id "_4", name)
+            REF_LOOP(id "_1", name " loop 1"), \
+            REF_LOOP(id "_2", name " loop 2"), \
+            REF_LOOP(id "_3", name " loop 3"), \
+            REF_LOOP(id "_4", name " loop 4")
 
         #define REF_SAMPLES \
-            COMBO("ss", "Sample Selector", 0, sample_selectors), \
-            REF_SAMPLE("1", "Sample 1"), \
-            REF_SAMPLE("2", "Sample 2"), \
-            REF_SAMPLE("3", "Sample 3"), \
-            REF_SAMPLE("4", "Sample 4")
+            COMBO("ssel", "Sample Selector", 0, sample_selectors), \
+            REF_SAMPLE("_1", "Sample 1"), \
+            REF_SAMPLE("_2", "Sample 2"), \
+            REF_SAMPLE("_3", "Sample 3"), \
+            REF_SAMPLE("_4", "Sample 4")
 
         #define REF_COMMON \
-            COMBO("mode", "Comparison mode", 0, mode_selectors), \
-            COMBO("section", "Tab Section Selector", 0, tab_selectors)
+            COMBO("source", "Audio source", 0, source_selectors), \
+            COMBO("section", "Tab section selector", 0, tab_selectors)
 
         #define REF_COMMON_STEREO \
-            COMBO("image", "Stereo image", 0, image_selectors)
+            COMBO("mode", "Output mode", 0, mode_selectors)
 
         static const port_t referencer_mono_ports[] =
         {

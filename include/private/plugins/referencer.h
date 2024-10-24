@@ -44,6 +44,8 @@ namespace lsp
                     CD_X2_STEREO
                 };
 
+
+
                 typedef struct channel_t
                 {
                     // DSP processing modules

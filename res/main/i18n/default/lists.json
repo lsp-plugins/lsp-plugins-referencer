@@ -1,6 +1,12 @@
 {
 	"referencer": {
-		"image": {
+		"loop": {
+			"1": "Loop 1",
+			"2": "Loop 2",
+			"3": "Loop 3",
+			"4": "Loop 4"
+		},
+		"mode": {
 			"left": "Left",
 			"left_only": "Left Only",
 			"mono": "Mono",
@@ -10,22 +16,16 @@
 			"sides": "Sides",
 			"stereo": "Stereo"
 		},
-		"loop": {
-			"1": "Loop 1",
-			"2": "Loop 2",
-			"3": "Loop 3",
-			"4": "Loop 4"
-		},
-		"mode": {
-			"mix": "Mix",
-			"reference": "Reference",
-			"both": "Both"
-		},
 		"sample": {
 			"1": "Sample 1",
 			"2": "Sample 2",
 			"3": "Sample 3",
 			"4": "Sample 4"
+		},
+		"source": {
+			"mix": "Mix",
+			"reference": "Reference",
+			"both": "Both"
 		},
 		"tab": {
 			"dynamics": "Dynamics",

@@ -1,3 +1,85 @@
 <plugin resizable="true">
-	
+	<hbox>
+		<!-- Main panel -->
+		<vbox>
+            <!-- Switch between sources -->
+            <label text="labels.source" />
+            <ui:with id="source" hfill="true">
+            	<button text="lists.referencer.source.mix" value="0" />
+            	<button text="lists.referencer.source.reference" value="1" />
+            	<button text="lists.referencer.source.both" value="2" />
+            </ui:with>
+            
+			<!-- Mode for stereo version -->
+			<ui:if test="ex :mode">
+				<label text="labels.mode" />
+				<ui:with id="mode" hfill="true">
+					<button text="lists.referencer.mode.stereo" value="0" />
+					<button text="lists.referencer.mode.mono" value="1" />
+					<button text="lists.referencer.mode.side" value="2" />
+					<button text="lists.referencer.mode.sides" value="3" />
+					<button text="lists.referencer.mode.left_only" value="4" />
+					<button text="lists.referencer.mode.left" value="5" />
+					<button text="lists.referencer.mode.right" value="6" />
+					<button text="lists.referencer.mode.right_only" value="7" />
+				</ui:with>
+            </ui:if>
+            
+            <void vexpand="true" />
+            
+            <!-- TODO: playback matrix -->
+		</vbox>
+		
+		<!-- Tab control for different operations -->
+		<tabs id="section">
+			<!-- Samples -->
+			<cgroup id="ssel" expand="true">
+				<ui:for id="si" first="1" count="4">
+					<vbox>
+						<!-- Sample loader/editor -->
+						<asample
+							expand="true"
+							id="sf_${si}"
+							mesh_id="sm_${si}"
+							path_id="_ui_dlg_sample_path"
+							length=":fl_${si}"
+							status=":fs_${si}"
+							loop.enable="true"
+							loop.color="loop_color"
+							loop.border.color="loop_border_color"
+							loop.begin="(:ls_${si} igt 2) ? ((ls_${si} igt 3) ? :lb_${si}_4 : :lb_${si}_3) : ((ls_${si} igt 1) ? :lb_${si}_2 : :lb_${si}_1))"
+							loop.end="(:ls_${si} igt 2) ? ((ls_${si} igt 3) ? :le_${si}_4 : :le_${si}_3) : ((ls_${si} igt 1) ? :le_${si}_2 : :le_${si}_1))"
+							play.position="(:ls_${si} igt 2) ? ((ls_${si} igt 3) ? :pp_${si}_4 : :pp_${si}_3) : ((ls_${si} igt 1) ? :pp_${si}_2 : :pp_${si}_1))"
+							width.min="320"
+							height.min="160"
+							load.preview="true" />
+							
+						<grid rows="4" cols="9" transpose="true">
+							<cell rows="2" >
+								<label text="labels.gain" />
+							</cell>	
+							<knob id="sg_${si}" />
+							<value id="sg_${si}" />
+						
+							<ui:for id="li" first="1" count="4">
+								<cell cols="2">
+									<button id="ls_${si}" text="lists.referencer.loop.${li}" value="${:li - 1}" />
+								</cell>
+									
+								<label text="labels.sedit.loop_start" />
+								<knob id="lb_${si}_${li}" max="fl_${si}_${li}" />
+								<value id="lb_${si}_${li}" />
+								
+								<label text="labels.sedit.loop_end" />
+								<knob id="le_${si}_${li}" max="fl_${si}_${li}" />
+								<value id="le_${si}_${li}" />
+							</ui:for>
+						
+					
+						</grid>
+					</vbox>
+				</ui:for>
+			</cgroup>
+		</tabs>
+	</hbox>
 </plugin>
