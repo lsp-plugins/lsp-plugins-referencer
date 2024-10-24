@@ -50,6 +50,30 @@ namespace lsp
 
         static plug::Factory factory(plugin_factory, plugins, 2);
 
+        //-------------------------------------------------------------------------
+        referencer::AFLoader::AFLoader(referencer *link, afile_t *descr)
+        {
+            pLink       = link;
+            pFile       = descr;
+        }
+
+        referencer::AFLoader::~AFLoader()
+        {
+            pLink       = NULL;
+            pFile       = NULL;
+        }
+
+        status_t referencer::AFLoader::run()
+        {
+            return pLink->load_file(pFile);
+        };
+
+        void referencer::AFLoader::dump(dspu::IStateDumper *v) const
+        {
+            v->write("pLink", pLink);
+            v->write("pFile", pFile);
+        }
+
         //---------------------------------------------------------------------
         // Implementation
         referencer::referencer(const meta::plugin_t *meta):
@@ -64,7 +88,41 @@ namespace lsp
             // Initialize other parameters
             vChannels       = NULL;
 
+            pExecutor       = NULL;
+
             pBypass         = NULL;
+            pSource         = NULL;
+            pMode           = NULL;
+
+            for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af     = &vSamples[i];
+
+                af->pLoader     = NULL;
+                af->pSample     = NULL;
+                af->pLoaded     = NULL;
+                af->nStatus     = STATUS_UNSPECIFIED;
+                af->nLength     = 0;
+                af->bSync       = false;
+
+                for (size_t j=0; j<meta::referencer::CHANNELS_MAX; ++j)
+                    af->vThumbs[j]  = NULL;
+
+                for (size_t j=0; j < meta::referencer::AUDIO_SAMPLES; ++j)
+                {
+                    loop_t *al      = &af->vLoops[j];
+
+                    al->pStart      = NULL;
+                    al->pEnd        = NULL;
+                    al->pPlayPos    = NULL;
+                }
+
+                af->pFile       = NULL;
+                af->pStatus     = NULL;
+                af->pLength     = NULL;
+                af->pMesh       = NULL;
+                af->pGain       = NULL;
+            }
 
             pData           = NULL;
         }
@@ -78,6 +136,9 @@ namespace lsp
         {
             // Call parent class for initialization
             Module::init(wrapper, ports);
+
+            // Save executor service
+            pExecutor               = wrapper->executor();
 
             // Estimate the number of bytes to allocate
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
@@ -103,6 +164,18 @@ namespace lsp
                 c->pOut                 = NULL;
             }
 
+            // Initialize offline tasks
+            lsp_trace("Creating offline tasks");
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t  *af        = &vSamples[i];
+
+                // Create loader task
+                af->pLoader         = new AFLoader(this, af);
+                if (af->pLoader == NULL)
+                    return;
+            }
+
             // Bind ports
             lsp_trace("Binding ports");
             size_t port_id      = 0;
@@ -115,18 +188,67 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
                 BIND_PORT(vChannels[i].pOut);
 
-            // Bind bypass
+            // Bind common ports
+            lsp_trace("Binding common ports");
             BIND_PORT(pBypass);
+            BIND_PORT(pSource);
+            SKIP_PORT("Tab section selector");
+
+            if (nChannels > 0)
+            {
+                BIND_PORT(pMode);
+            }
+
+            // Bind sample-related ports
+            lsp_trace("Binding sample-related ports");
+            SKIP_PORT("Sample selector");
+
+            for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af     = &vSamples[i];
+
+                BIND_PORT(af->pFile);
+                BIND_PORT(af->pStatus);
+                BIND_PORT(af->pLength);
+                BIND_PORT(af->pMesh);
+                BIND_PORT(af->pGain);
+                SKIP_PORT("Loop selector");
+
+                for (size_t j=0; j < meta::referencer::AUDIO_SAMPLES; ++j)
+                {
+                    loop_t *al      = &af->vLoops[j];
+
+                    BIND_PORT(al->pStart);
+                    BIND_PORT(al->pEnd);
+                    BIND_PORT(al->pPlayPos);
+                }
+            }
         }
 
         void referencer::destroy()
         {
-            Module::destroy();
             do_destroy();
+            Module::destroy();
         }
 
         void referencer::do_destroy()
         {
+            // Destroy audio samples
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t  *af        = &vSamples[i];
+
+                // Destroy tasks
+                if (af->pLoader != NULL)
+                {
+                    delete af->pLoader;
+                    af->pLoader         = NULL;
+                }
+
+                // Destroy audio file
+                unload_afile(af);
+            }
+
             // Destroy channels
             if (vChannels != NULL)
             {
@@ -168,8 +290,180 @@ namespace lsp
             }
         }
 
+        void referencer::destroy_sample(dspu::Sample * &sample)
+        {
+            if (sample != NULL)
+            {
+                delete sample;
+                sample                  = NULL;
+            }
+        }
+
+        void referencer::unload_afile(afile_t *af)
+        {
+            // Destroy original sample if present
+            destroy_sample(af->pLoaded);
+
+            // Destroy pointer to thumbnails
+            if (af->vThumbs[0])
+            {
+                free(af->vThumbs[0]);
+                for (size_t i=0; i<meta::referencer::CHANNELS_MAX; ++i)
+                    af->vThumbs[i]              = NULL;
+            }
+        }
+
+        status_t referencer::load_file(afile_t *af)
+        {
+            // Load sample
+            lsp_trace("file = %p", af);
+
+            // Validate arguments
+            if ((af == NULL) || (af->pFile == NULL))
+                return STATUS_UNKNOWN_ERR;
+
+            unload_afile(af);
+
+            // Get path
+            plug::path_t *path      = af->pFile->buffer<plug::path_t>();
+            if (path == NULL)
+                return STATUS_UNKNOWN_ERR;
+
+            // Get file name
+            const char *fname   = path->path();
+            if (strlen(fname) <= 0)
+                return STATUS_UNSPECIFIED;
+
+            // Load audio file
+            dspu::Sample *source    = new dspu::Sample();
+            if (source == NULL)
+                return STATUS_NO_MEM;
+            lsp_trace("Allocated sample %p", source);
+            lsp_finally { destroy_sample(source); };
+
+            // Load sample
+            status_t status = source->load_ext(fname, meta::referencer::SAMPLE_LENGTH_MAX);
+            if (status != STATUS_OK)
+            {
+                lsp_trace("load failed: status=%d (%s)", status, get_status(status));
+                return status;
+            }
+            const size_t channels   = lsp_min(nChannels, source->channels());
+            if (!source->set_channels(channels))
+            {
+                lsp_trace("failed to resize source sample to %d channels", int(channels));
+                return status;
+            }
+
+            // Initialize and render thumbnails
+            float *thumbs           = static_cast<float *>(malloc(sizeof(float) * channels * meta::referencer::FILE_MESH_SIZE));
+            if (thumbs == NULL)
+                return STATUS_NO_MEM;
+
+            for (size_t i=0; i<channels; ++i)
+            {
+                af->vThumbs[i]          = thumbs;
+                thumbs                 += meta::referencer::FILE_MESH_SIZE;
+
+                // Render channel thumbnails
+                const float *src        = source->channel(i);
+                float *dst              = af->vThumbs[i];
+                const size_t len        = source->length();
+
+                for (size_t k=0; k<meta::referencer::FILE_MESH_SIZE; ++k)
+                {
+                    size_t first    = (k * len) / meta::referencer::FILE_MESH_SIZE;
+                    size_t last     = ((k + 1) * len) / meta::referencer::FILE_MESH_SIZE;
+                    if (first < last)
+                        dst[k]          = dsp::abs_max(&src[first], last - first);
+                    else if (first < len)
+                        dst[k]          = fabsf(src[first]);
+                    else
+                        dst[k]          = 0.0f;
+                }
+            }
+
+            // Commit the result
+            lsp_trace("file successfully loaded: %s", fname);
+            lsp::swap(af->pLoaded, source);
+
+            return STATUS_OK;
+        }
+
+        void referencer::process_file_requests()
+        {
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t  *af        = &vSamples[i];
+                if (af->pFile == NULL)
+                    continue;
+
+                // Get path
+                plug::path_t *path = af->pFile->buffer<plug::path_t>();
+                if (path == NULL)
+                    continue;
+
+                // If there is new load request and loader is idle, then wake up the loader
+                if ((path->pending()) && (af->pLoader->idle()))
+                {
+                    // Try to submit task
+                    if (pExecutor->submit(af->pLoader))
+                    {
+                        af->nStatus     = STATUS_LOADING;
+                        lsp_trace("successfully submitted loader task");
+                        path->accept();
+                    }
+                }
+                else if ((path->accepted()) && (af->pLoader->completed()))
+                {
+                    // Commit the result and trigger for sync
+                    lsp::swap(af->pLoaded, af->pSample);
+                    af->nStatus     = af->pLoader->code();
+                    af->nLength     = (af->nStatus == STATUS_OK) ? af->pSample->length() : 0;
+                    af->bSync       = true;
+
+                    // Now we can surely commit changes and reset task state
+                    path->commit();
+                    af->pLoader->reset();
+                }
+            }
+        }
+
+        void referencer::output_file_data()
+        {
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af         = &vSamples[i];
+
+                // Output information about the file
+                af->pLength->set_value(dspu::samples_to_seconds(fSampleRate, af->nLength));
+                af->pStatus->set_value(af->nStatus);
+
+                // Transfer file thumbnails to mesh
+                plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(af->pMesh->buffer());
+                if ((mesh == NULL) || (!mesh->isEmpty()) || (!af->bSync) || (!af->pLoader->idle()))
+                    continue;
+
+                const size_t channels   = (af->pSample != NULL) ? af->pSample->channels() : 0;
+                if (channels > 0)
+                {
+                    // Copy thumbnails
+                    for (size_t j=0; j<channels; ++j)
+                        dsp::copy(mesh->pvData[j], af->vThumbs[j], meta::referencer::FILE_MESH_SIZE);
+
+                    mesh->data(channels, meta::referencer::FILE_MESH_SIZE);
+                }
+                else
+                    mesh->data(0, 0);
+
+                af->bSync           = false;
+            }
+        }
+
         void referencer::process(size_t samples)
         {
+            process_file_requests();
+
             // Process each channel independently
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -183,11 +477,25 @@ namespace lsp
 
                 dsp::copy(out, in, samples);
             }
+
+            output_file_data();
+        }
+
+        void referencer::ui_activated()
+        {
+            // Mark all samples needed for synchronization
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af         = &vSamples[i];
+                af->bSync           = true;
+            }
         }
 
         void referencer::dump(dspu::IStateDumper *v) const
         {
             plug::Module::dump(v);
+
+            // TODO: write proper dump
 
             v->write("nChannels", nChannels);
             v->begin_array("vChannels", vChannels, nChannels);

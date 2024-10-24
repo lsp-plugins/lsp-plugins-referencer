@@ -19,6 +19,7 @@
  * along with lsp-plugins-referencer. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <lsp-plug.in/common/status.h>
 #include <lsp-plug.in/plug-fw/meta/ports.h>
 #include <lsp-plug.in/shared/meta/developers.h>
 #include <private/meta/referencer.h>
@@ -89,12 +90,15 @@ namespace lsp
         };
 
         #define REF_LOOP(id, name) \
-            CONTROL("lb" id, name " start", U_MSEC, referencer::SAMPLE_LENGTH), \
-            CONTROL("le" id, name " end", U_MSEC, referencer::SAMPLE_LENGTH),  \
-            METER("pp" id, name " play position", U_MSEC, referencer::SAMPLE_PLAYBACK)
+            CONTROL("lb" id, name " start", U_SEC, referencer::SAMPLE_LENGTH), \
+            CONTROL("le" id, name " end", U_SEC, referencer::SAMPLE_LENGTH),  \
+            METER("pp" id, name " play position", U_SEC, referencer::SAMPLE_PLAYBACK)
 
         #define REF_SAMPLE(id, name) \
             PATH("sf" id, name " file"), \
+            STATUS("fs" id, name " load status"), \
+            METER("fl" id, name " length", U_SEC, referencer::SAMPLE_LENGTH), \
+            MESH("fm" id, name " mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             AMP_GAIN("sg" id, name " gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
             COMBO("ls" id, name " loop selector", 0, loop_selectors), \
             REF_LOOP(id "_1", name " loop 1"), \
@@ -174,7 +178,7 @@ namespace lsp
             LSP_PLUGINS_REFERENCER_VERSION,
             plugin_classes,
             clap_features_mono,
-            E_DUMP_STATE,
+            E_DUMP_STATE | E_FILE_PREVIEW,
             referencer_mono_ports,
             "utils/referencer.xml",
             NULL,
@@ -204,7 +208,7 @@ namespace lsp
             LSP_PLUGINS_REFERENCER_VERSION,
             plugin_classes,
             clap_features_stereo,
-            E_DUMP_STATE,
+            E_DUMP_STATE | E_FILE_PREVIEW,
             referencer_stereo_ports,
             "utils/referencer.xml",
             NULL,
