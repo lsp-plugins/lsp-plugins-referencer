@@ -37,6 +37,14 @@ namespace lsp
         class referencer: public plug::Module
         {
             protected:
+                enum playback_t
+                {
+                    PB_OFF,                                                         // Sample is not playing
+                    PB_FADE_IN,                                                     // Sample is starting to play
+                    PB_FADE_OUT,                                                    // Sample is stopping to play
+                    PB_ACTIVE,                                                      // Sample is playing
+                };
+
                 struct afile_t;
 
                 class AFLoader: public ipc::ITask
@@ -56,9 +64,12 @@ namespace lsp
 
                 typedef struct loop_t
                 {
+                    playback_t          nState;                                     // Playback state
+                    uint32_t            nTransition;                                // For transition state, the current offset
                     int32_t             nStart;                                     // Start position of loop
                     int32_t             nEnd;                                       // End position of loop
                     int32_t             nPos;                                       // Current position of loop
+                    bool                bFirst;                                     // First loop (does not requre to cross-fade with tail)
 
                     plug::IPort        *pStart;                                     // Start position of loop
                     plug::IPort        *pEnd;                                       // Start position of loop
@@ -94,12 +105,20 @@ namespace lsp
                 } channel_t;
 
             protected:
-                size_t              nChannels;                                  // Number of channels
+                uint32_t            nChannels;                                  // Number of channels
+                uint32_t            nPlaySample;                                // Current sample index
+                uint32_t            nPlayLoop;                                  // Current loop index
+                uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
+                bool                bPlay;                                      // Play
+                bool                bSyncRange;                                 // Sync loop range
                 channel_t          *vChannels;                                  // Delay channels
                 ipc::IExecutor     *pExecutor;                                  // Executor service
                 afile_t             vSamples[meta::referencer::AUDIO_SAMPLES];  // Audio samples
 
                 plug::IPort        *pBypass;                                    // Bypass
+                plug::IPort        *pPlay;                                      // Play switch
+                plug::IPort        *pPlaySample;                                // Current sample index
+                plug::IPort        *pPlayLoop;                                  // Current loop index
                 plug::IPort        *pSource;                                    // Audio source
                 plug::IPort        *pMode;                                      // Output mode
 

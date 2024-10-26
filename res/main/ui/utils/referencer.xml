@@ -27,6 +27,20 @@
             
             <void vexpand="true" />
             
+            <grid rows="5" cols="5">
+            	<label text="labels.sedit.sample_num" />
+            	<cell cols="4">
+            		<label text="labels.sedit.loop" />
+            	</cell>
+            	
+            	<ui:for id="i" first="1" count="4">
+            		<label text="${i}" />
+            		<ui:for id="j" first="1" count="4">
+            			<button ui:id="play_matrix_${i}_${j}" text="${j}"/>
+            		</ui:for>
+            	</ui:for>
+            </grid>
+            
             <!-- TODO: playback matrix -->
 		</vbox>
 		

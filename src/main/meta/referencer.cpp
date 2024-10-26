@@ -114,6 +114,9 @@ namespace lsp
             REF_SAMPLE("_4", "Sample 4")
 
         #define REF_COMMON \
+            SWITCH("play", "Playback", 0), \
+            INT_CONTROL("pssel", "Playback sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
+            INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
             COMBO("source", "Audio source", 0, source_selectors), \
             COMBO("section", "Tab section selector", 0, tab_selectors)
 

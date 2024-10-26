@@ -81,6 +81,9 @@ namespace lsp
         {
             // Compute the number of audio channels by the number of inputs
             nChannels       = 0;
+            nPlaySample     = -1;
+            nPlayLoop       = -1;
+            nCrossfadeTime  = 0;
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
                     ++nChannels;
@@ -91,7 +94,12 @@ namespace lsp
             pExecutor       = NULL;
 
             pBypass         = NULL;
+            pPlay           = NULL;
+            pPlaySample     = NULL;
+            pPlayLoop       = NULL;
             pSource         = NULL;
+            bPlay           = false;
+            bSyncRange      = true;
             pMode           = NULL;
 
             for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
@@ -111,6 +119,13 @@ namespace lsp
                 for (size_t j=0; j < meta::referencer::AUDIO_SAMPLES; ++j)
                 {
                     loop_t *al      = &af->vLoops[j];
+
+                    al->nState      = PB_OFF;
+                    al->nTransition = 0;
+                    al->nStart      = -1;
+                    al->nEnd        = -1;
+                    al->nPos        = -1;
+                    al->bFirst      = true;
 
                     al->pStart      = NULL;
                     al->pEnd        = NULL;
@@ -191,6 +206,9 @@ namespace lsp
             // Bind common ports
             lsp_trace("Binding common ports");
             BIND_PORT(pBypass);
+            BIND_PORT(pPlay);
+            BIND_PORT(pPlaySample);
+            BIND_PORT(pPlayLoop);
             BIND_PORT(pSource);
             SKIP_PORT("Tab section selector");
 
@@ -270,6 +288,19 @@ namespace lsp
 
         void referencer::update_sample_rate(long sr)
         {
+            // Update cross-fade time and sync it with playbacks
+            nCrossfadeTime      = dspu::millis_to_samples(fSampleRate, meta::referencer::CROSSFADE_TIME);
+
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af             = &vSamples[i];
+                for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                {
+                    loop_t *al              = &af->vLoops[j];
+                    al->nTransition         = lsp_min(al->nTransition, nCrossfadeTime);
+                }
+            }
+
             // Update sample rate for the bypass processors
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -280,6 +311,76 @@ namespace lsp
 
         void referencer::update_settings()
         {
+            // Update playback state
+            bool play               = pPlay->value() > 0.5f;
+            uint32_t play_sample    = pPlaySample->value() - 1.0f;
+            uint32_t play_loop      = pPlayLoop->value() - 1.0f;
+            if ((play != bPlay) || (play_sample != nPlaySample) || (play_loop != nPlayLoop))
+            {
+                for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+                {
+                    afile_t *af             = &vSamples[i];
+
+                    for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                    {
+                        loop_t *al              = &af->vLoops[j];
+
+                        if ((play) && (play_sample == i) && (play_loop == j))
+                        {
+                            // Turn on sample playback or continue
+                            switch (al->nState)
+                            {
+                                case PB_FADE_OUT:
+                                    al->nState      = PB_FADE_IN;
+                                    al->nTransition = nCrossfadeTime - lsp_min(al->nTransition, nCrossfadeTime);
+                                    al->bFirst      = true;
+                                    break;
+
+                                case PB_OFF:
+                                    al->nState      = PB_FADE_IN;
+                                    al->nTransition = 0;
+                                    al->bFirst      = true;
+                                    break;
+
+                                case PB_FADE_IN:
+                                case PB_ACTIVE:
+                                default:
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // Turn off sample playback
+                            switch (al->nState)
+                            {
+                                case PB_FADE_IN:
+                                    al->nState      = PB_FADE_OUT;
+                                    al->nTransition = nCrossfadeTime - lsp_min(al->nTransition, nCrossfadeTime);
+                                    break;
+
+                                case PB_ACTIVE:
+                                    al->nState      = PB_FADE_OUT;
+                                    al->nTransition = 0;
+                                    break;
+
+                                case PB_FADE_OUT:
+                                case PB_OFF:
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                if ((nPlaySample != play_sample) && (nPlayLoop != play_loop))
+                    bSyncRange              = true;
+
+                bPlay                   = play;
+                nPlaySample             = play_sample;
+                nPlayLoop               = play_loop;
+            }
+
+            // Apply configuration to channels
             bool bypass             = pBypass->value() >= 0.5f;
 
             for (size_t i=0; i<nChannels; ++i)
@@ -484,6 +585,8 @@ namespace lsp
         void referencer::ui_activated()
         {
             // Mark all samples needed for synchronization
+            bSyncRange          = true;
+
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
             {
                 afile_t *af         = &vSamples[i];

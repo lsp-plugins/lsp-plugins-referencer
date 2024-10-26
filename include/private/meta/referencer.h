@@ -33,6 +33,12 @@ namespace lsp
     {
         typedef struct referencer
         {
+            static constexpr size_t CHANNELS_MAX        = 2;            // Maximum audio channels
+            static constexpr size_t AUDIO_SAMPLES       = 4;            // Number of samples
+            static constexpr size_t AUDIO_LOOPS         = 4;            // Number of loops per sample
+            static constexpr size_t FILE_MESH_SIZE      = 640;          // Audio file mesh size
+            static constexpr float  CROSSFADE_TIME      = 5.0f;         // Cross-fade time in milliseconds
+
             static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;         // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;      // Maximum sample length (s)
             static constexpr float  SAMPLE_LENGTH_DFL   = 0.0f;         // Sample length (s)
@@ -43,10 +49,15 @@ namespace lsp
             static constexpr float  SAMPLE_PLAYBACK_DFL = -1.0f;        // Default playback position (s)
             static constexpr float  SAMPLE_PLAYBACK_STEP = 0.01f;       // Playback step (s)
 
-            static constexpr size_t CHANNELS_MAX        = 2;            // Maximum audio channels
-            static constexpr size_t AUDIO_SAMPLES       = 4;            // Number of samples
-            static constexpr size_t AUDIO_LOOPS         = 4;            // Number of loops per sample
-            static constexpr size_t FILE_MESH_SIZE      = 640;          // Audio file mesh size
+            static constexpr size_t SAMPLE_SELECTOR_MIN = 1;            // Minimum sample selector
+            static constexpr size_t SAMPLE_SELECTOR_MAX = AUDIO_SAMPLES;// Maximum sample selector
+            static constexpr size_t SAMPLE_SELECTOR_DFL = SAMPLE_SELECTOR_MIN;// Default sample selector
+            static constexpr size_t SAMPLE_SELECTOR_STEP= 1;            // Sample selector step
+
+            static constexpr size_t LOOP_SELECTOR_MIN   = 1;            // Minimum loop selector
+            static constexpr size_t LOOP_SELECTOR_MAX   = AUDIO_LOOPS;  // Maximum loop selector
+            static constexpr size_t LOOP_SELECTOR_DFL   = LOOP_SELECTOR_MIN;// Default loop selector
+            static constexpr size_t LOOP_SELECTOR_STEP  = 1;            // Sample loop step
         } referencer;
 
         // Plugin type metadata
