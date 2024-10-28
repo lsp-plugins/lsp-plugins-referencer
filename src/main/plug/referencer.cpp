@@ -28,13 +28,12 @@
 
 #include <private/plugins/referencer.h>
 
-/* The size of temporary buffer for audio processing */
-#define BUFFER_SIZE         0x1000U
-
 namespace lsp
 {
     namespace plugins
     {
+        static constexpr size_t BUFFER_SIZE         = 0x400;
+
         //---------------------------------------------------------------------
         // Plugin factory
         static const meta::plugin_t *plugins[] =
@@ -84,6 +83,7 @@ namespace lsp
             nPlaySample     = -1;
             nPlayLoop       = -1;
             nCrossfadeTime  = 0;
+            vBuffer         = NULL;
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
                     ++nChannels;
@@ -111,6 +111,7 @@ namespace lsp
                 af->pLoaded     = NULL;
                 af->nStatus     = STATUS_UNSPECIFIED;
                 af->nLength     = 0;
+                af->fGain       = GAIN_AMP_0_DB;
                 af->bSync       = false;
 
                 for (size_t j=0; j<meta::referencer::CHANNELS_MAX; ++j)
@@ -157,7 +158,8 @@ namespace lsp
 
             // Estimate the number of bytes to allocate
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
-            size_t alloc            = szof_channels;
+            size_t szof_buf         = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
+            size_t alloc            = szof_channels + nChannels * szof_buf + szof_buf;
 
             // Allocate memory-aligned data
             uint8_t *ptr            = alloc_aligned<uint8_t>(pData, alloc, OPTIMAL_ALIGN);
@@ -166,6 +168,7 @@ namespace lsp
 
             // Initialize pointers to channels and temporary buffer
             vChannels               = advance_ptr_bytes<channel_t>(ptr, szof_channels);
+            vBuffer                 = advance_ptr_bytes<float>(ptr, szof_buf);
 
             for (size_t i=0; i < nChannels; ++i)
             {
@@ -173,6 +176,10 @@ namespace lsp
 
                 // Construct in-place DSP processors
                 c->sBypass.construct();
+                c->sMix.construct();
+                c->sReference.construct();
+
+                c->vReference           = advance_ptr_bytes<float>(ptr, szof_buf);
 
                 // Initialize fields
                 c->pIn                  = NULL;
@@ -306,13 +313,15 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
                 c->sBypass.init(sr);
+                c->sMix.init(sr);
+                c->sReference.init(sr);
             }
         }
 
         void referencer::update_settings()
         {
             // Update playback state
-            bool play               = pPlay->value() > 0.5f;
+            bool play               = pPlay->value() < 0.5f;
             uint32_t play_sample    = pPlaySample->value() - 1.0f;
             uint32_t play_loop      = pPlayLoop->value() - 1.0f;
             if ((play != bPlay) || (play_sample != nPlaySample) || (play_loop != nPlayLoop))
@@ -380,14 +389,34 @@ namespace lsp
                 nPlayLoop               = play_loop;
             }
 
+            // Update loop ranges
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af             = &vSamples[i];
+
+                for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                {
+                    loop_t *al              = &af->vLoops[j];
+
+                    const ssize_t first     = dspu::seconds_to_samples(fSampleRate, al->pStart->value());
+                    const ssize_t last      = dspu::seconds_to_samples(fSampleRate, al->pEnd->value());
+
+                    al->nStart              = lsp_min(first, last);
+                    al->nEnd                = lsp_max(first, last);
+                }
+            }
+
             // Apply configuration to channels
             bool bypass             = pBypass->value() >= 0.5f;
+            size_t source           = pSource->value();
 
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
 
                 c->sBypass.set_bypass(bypass);
+                c->sMix.set_bypass(source == SRC_REFERENCE);
+                c->sReference.set_bypass(source == SRC_MIX);
             }
         }
 
@@ -491,6 +520,18 @@ namespace lsp
             return STATUS_OK;
         }
 
+        void referencer::preprocess_audio_channels()
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                // Get input and output buffers
+                c->vIn                  = c->pIn->buffer<float>();
+                c->vOut                 = c->pOut->buffer<float>();
+            }
+        }
+
         void referencer::process_file_requests()
         {
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
@@ -536,6 +577,12 @@ namespace lsp
             {
                 afile_t *af         = &vSamples[i];
 
+                for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                {
+                    loop_t *al              = &af->vLoops[j];
+                    al->pPlayPos->set_value(dspu::samples_to_seconds(fSampleRate, al->nPos));
+                }
+
                 // Output information about the file
                 af->pLength->set_value(dspu::samples_to_seconds(fSampleRate, af->nLength));
                 af->pStatus->set_value(af->nStatus);
@@ -561,22 +608,163 @@ namespace lsp
             }
         }
 
-        void referencer::process(size_t samples)
+        void referencer::render_loop(afile_t *af, loop_t *al, size_t samples)
         {
-            process_file_requests();
+            // Update position to match the loop range
+            ssize_t to_process      = 0;
+            bool crossfade          = false;
+            const size_t length     = al->nEnd - al->nStart;
+            if (length < nCrossfadeTime * 2)
+                return;
 
-            // Process each channel independently
+            const size_t s_channels = af->pSample->channels();
+            const float gain        = af->fGain;
+            al->nPos                = lsp_limit(al->nPos, al->nStart, al->nEnd - 1);
+
+            // Process loop playback
+            for (size_t offset = 0; offset < samples; )
+            {
+                if (al->nState == PB_OFF)
+                    break;
+
+                ssize_t step_size   = (al->nState == PB_ACTIVE) ? samples - offset : lsp_min(nCrossfadeTime - al->nTransition, samples - offset);
+                to_process          = lsp_min(al->nEnd - al->nPos, step_size);
+
+                // Compute how many data we can do
+                if ((!al->bFirst) && (al->nPos < ssize_t(nCrossfadeTime)))
+                {
+                    // We need to render cross-fade first
+                    to_process          = lsp_min(nCrossfadeTime - al->nPos, to_process);
+                    crossfade           = true;
+                }
+                else
+                    crossfade           = false;
+
+                // Process each channel independently
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    // Obtain source and destination pointers
+                    float *dst          = &vChannels[i].vReference[offset];
+                    const float *src    = af->pSample->channel(i % s_channels, al->nPos);
+                    if (crossfade)
+                    {
+                        dsp::lin_inter_mul3(
+                            vBuffer, src,
+                            0, GAIN_AMP_M_INF_DB, nCrossfadeTime, GAIN_AMP_0_DB,
+                            al->nPos, to_process);
+                        dsp::lin_inter_fmadd2(
+                            vBuffer, &src[al->nEnd + al->nPos - nCrossfadeTime],
+                            0, GAIN_AMP_0_DB, nCrossfadeTime, GAIN_AMP_M_INF_DB,
+                            al->nPos, to_process);
+                        src                 = vBuffer;
+                    }
+
+                    // Now we can process the sample
+                    switch (al->nState)
+                    {
+                        case PB_FADE_OUT:
+                            dsp::lin_inter_fmadd2(
+                                dst, src,
+                                0, gain, nCrossfadeTime, GAIN_AMP_M_INF_DB,
+                                al->nTransition, to_process);
+                            break;
+
+                        case PB_FADE_IN:
+                            dsp::lin_inter_fmadd2(
+                                dst, src,
+                                0, GAIN_AMP_M_INF_DB, nCrossfadeTime, gain,
+                                al->nTransition, to_process);
+                            break;
+
+                        case PB_ACTIVE:
+                        default:
+                            dsp::mul_k3(dst, src, gain, to_process);
+                            break;
+                    }
+                }
+
+                // Update positions
+                switch (al->nState)
+                {
+                    case PB_FADE_OUT:
+                        al->nTransition += to_process;
+                        if (al->nTransition >= nCrossfadeTime)
+                            al->nState = PB_OFF;
+                        break;
+
+                    case PB_FADE_IN:
+                        al->nTransition += to_process;
+                        if (al->nTransition >= nCrossfadeTime)
+                            al->nState = PB_ACTIVE;
+                        break;
+
+                    default:
+                        break;
+                }
+
+                offset         += to_process;
+                al->nPos       += to_process;
+                if (al->nPos >= al->nEnd)
+                {
+                    al->nPos        = al->nStart;
+                    al->bFirst      = false;
+                }
+            }
+        }
+
+        void referencer::prepare_reference_signal(size_t samples)
+        {
+            // Cleanup buffers
             for (size_t i=0; i<nChannels; ++i)
             {
-                channel_t *c            = &vChannels[i];
+                channel_t *c = &vChannels[i];
+                dsp::fill_zero(c->vReference, samples);
+            }
 
-                // Get input and output buffers
-                const float *in         = c->pIn->buffer<float>();
-                float *out              = c->pOut->buffer<float>();
-                if ((in == NULL) || (out == NULL))
-                    continue;
+            // Process each loop depending on it's state
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                afile_t *af = &vSamples[i];
 
-                dsp::copy(out, in, samples);
+                for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                {
+                    loop_t *al = &af->vLoops[j];
+
+                    // Check that file contains sample
+                    if (af->pSample == NULL)
+                    {
+                        al->nPos        = -1;
+                        break;
+                    }
+
+                    // Render sample loop
+                    if (al->nState != PB_OFF)
+                        render_loop(af, al, samples);
+                }
+            }
+        }
+
+        void referencer::process(size_t samples)
+        {
+            preprocess_audio_channels();
+            process_file_requests();
+
+            for (size_t offset = 0; offset < samples; )
+            {
+                const size_t to_process = lsp_min(samples - offset, BUFFER_SIZE);
+
+                prepare_reference_signal(to_process);
+
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    channel_t *c = &vChannels[i];
+                    dsp::copy(c->vOut, c->vReference, to_process);
+
+                    c->vIn             += to_process;
+                    c->vOut            += to_process;
+                }
+
+                offset             += to_process;
             }
 
             output_file_data();

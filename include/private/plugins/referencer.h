@@ -45,6 +45,13 @@ namespace lsp
                     PB_ACTIVE,                                                      // Sample is playing
                 };
 
+                enum source_t
+                {
+                    SRC_MIX,
+                    SRC_REFERENCE,
+                    SRC_BOTH,
+                };
+
                 struct afile_t;
 
                 class AFLoader: public ipc::ITask
@@ -82,7 +89,8 @@ namespace lsp
                     dspu::Sample       *pSample;                                    // Loaded sample
                     dspu::Sample       *pLoaded;                                    // New loaded sample
                     status_t            nStatus;                                    // Loading status
-                    size_t              nLength;                                    // Audio sample length
+                    uint32_t            nLength;                                    // Audio sample length
+                    float               fGain;                                      // Audio file gain
                     bool                bSync;                                      // Sync sample with UI
                     float              *vThumbs[meta::referencer::CHANNELS_MAX];    // List of thumbnails
                     loop_t              vLoops[meta::referencer::AUDIO_LOOPS];      // Array of loops for this sample
@@ -98,6 +106,12 @@ namespace lsp
                 {
                     // DSP processing modules
                     dspu::Bypass        sBypass;                                    // Bypass
+                    dspu::Bypass        sMix;                                       // Mix signal bypass
+                    dspu::Bypass        sReference;                                 // Reference signal bypass
+
+                    float              *vIn;                                        // Input buffer
+                    float              *vOut;                                       // Output buffer
+                    float              *vReference;                                 // Reference signal buffer
 
                     // Input ports
                     plug::IPort        *pIn;                                        // Input port
@@ -109,6 +123,7 @@ namespace lsp
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
+                float              *vBuffer;                                    // Temporary buffer
                 bool                bPlay;                                      // Play
                 bool                bSyncRange;                                 // Sync loop range
                 channel_t          *vChannels;                                  // Delay channels
@@ -130,7 +145,10 @@ namespace lsp
             protected:
                 status_t            load_file(afile_t *file);
                 void                unload_afile(afile_t *file);
+                void                preprocess_audio_channels();
                 void                process_file_requests();
+                void                prepare_reference_signal(size_t samples);
+                void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                output_file_data();
                 void                do_destroy();
 

@@ -2,14 +2,14 @@
 	<hbox>
 		<!-- Main panel -->
 		<vbox>
-            <!-- Switch between sources -->
-            <label text="labels.source" />
-            <ui:with id="source" hfill="true">
-            	<button text="lists.referencer.source.mix" value="0" />
-            	<button text="lists.referencer.source.reference" value="1" />
-            	<button text="lists.referencer.source.both" value="2" />
-            </ui:with>
-            
+			<!-- Switch between sources -->
+			<label text="labels.source" />
+			<ui:with id="source" hfill="true">
+				<button text="lists.referencer.source.mix" value="0" />
+				<button text="lists.referencer.source.reference" value="1" />
+				<button text="lists.referencer.source.both" value="2" />
+			</ui:with>
+
 			<!-- Mode for stereo version -->
 			<ui:if test="ex :mode">
 				<label text="labels.mode" />
@@ -23,25 +23,30 @@
 					<button text="lists.referencer.mode.right" value="6" />
 					<button text="lists.referencer.mode.right_only" value="7" />
 				</ui:with>
-            </ui:if>
-            
-            <void vexpand="true" />
-            
-            <grid rows="5" cols="5">
-            	<label text="labels.sedit.sample_num" />
-            	<cell cols="4">
-            		<label text="labels.sedit.loop" />
-            	</cell>
-            	
-            	<ui:for id="i" first="1" count="4">
-            		<label text="${i}" />
-            		<ui:for id="j" first="1" count="4">
-            			<button ui:id="play_matrix_${i}_${j}" text="${j}"/>
-            		</ui:for>
-            	</ui:for>
-            </grid>
-            
-            <!-- TODO: playback matrix -->
+			</ui:if>
+			
+			<void vexpand="true" />
+
+			<!-- Playback control -->
+			<hbox>
+				<button id="play" text="icons.playback.play" font.name="lsp-icons" font.size="20" value="0" />
+				<button id="play" text="icons.playback.stop" font.name="lsp-icons" font.size="20" value="1" />
+				<void hexpand="true" />
+			</hbox>
+			<!-- Playback matrix -->
+			<grid rows="5" cols="5">
+				<label text="labels.sedit.sample_num" />
+				<cell cols="4">
+					<label text="labels.sedit.loop" />
+				</cell>
+				
+				<ui:for id="i" first="1" count="4">
+					<label text="${i}" />
+					<ui:for id="j" first="1" count="4">
+						<button ui:id="play_matrix_${i}_${j}" text="${j}"/>
+					</ui:for>
+				</ui:for>
+			</grid>
 		</vbox>
 		
 		<!-- Tab control for different operations -->
@@ -62,9 +67,9 @@
 								loop.enabled="true"
 								loop.color="loop_color"
 								loop.border.color="loop_border_color"
-								loop.begin="(:ls_${si} igt 2) ? ((:ls_${si} igt 3) ? :lb_${si}_4 : :lb_${si}_3) : ((:ls_${si} igt 1) ? :lb_${si}_2 : :lb_${si}_1)"
-								loop.end="(:ls_${si} igt 2) ? ((:ls_${si} igt 3) ? :le_${si}_4 : :le_${si}_3) : ((:ls_${si} igt 1) ? :le_${si}_2 : :le_${si}_1)"
-								play.position="(:ls_${si} igt 2) ? ((:ls_${si} igt 3) ? :pp_${si}_4 : :pp_${si}_3) : ((:ls_${si} igt 1) ? :pp_${si}_2 : :pp_${si}_1)"
+								loop.begin="(:ls_${si} ige 2) ? ((:ls_${si} ige 3) ? :lb_${si}_4 : :lb_${si}_3) : ((:ls_${si} ige 1) ? :lb_${si}_2 : :lb_${si}_1)"
+								loop.end="(:ls_${si} ige 2) ? ((:ls_${si} ige 3) ? :le_${si}_4 : :le_${si}_3) : ((:ls_${si} ige 1) ? :le_${si}_2 : :le_${si}_1)"
+								play.position="(:ls_${si} ige 2) ? ((:ls_${si} ige 3) ? :pp_${si}_4 : :pp_${si}_3) : ((:ls_${si} ige 1) ? :pp_${si}_2 : :pp_${si}_1)"
 								width.min="320"
 								height.min="160"
 								load.preview="true" />
