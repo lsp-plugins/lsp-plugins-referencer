@@ -117,7 +117,7 @@ namespace lsp
                 for (size_t j=0; j<meta::referencer::CHANNELS_MAX; ++j)
                     af->vThumbs[j]  = NULL;
 
-                for (size_t j=0; j < meta::referencer::AUDIO_SAMPLES; ++j)
+                for (size_t j=0; j < meta::referencer::AUDIO_LOOPS; ++j)
                 {
                     loop_t *al      = &af->vLoops[j];
 
@@ -219,7 +219,7 @@ namespace lsp
             BIND_PORT(pSource);
             SKIP_PORT("Tab section selector");
 
-            if (nChannels > 0)
+            if (nChannels > 1)
             {
                 BIND_PORT(pMode);
             }
