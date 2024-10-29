@@ -79,68 +79,79 @@ namespace lsp
             Module(meta)
         {
             // Compute the number of audio channels by the number of inputs
-            nChannels       = 0;
-            nPlaySample     = -1;
-            nPlayLoop       = -1;
-            nCrossfadeTime  = 0;
-            vBuffer         = NULL;
+            nChannels           = 0;
+            nPlaySample         = -1;
+            nPlayLoop           = -1;
+            nCrossfadeTime      = 0;
+            vBuffer             = NULL;
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
                     ++nChannels;
 
             // Initialize other parameters
-            vChannels       = NULL;
+            vChannels           = NULL;
 
-            pExecutor       = NULL;
+            sMix.fGain           = GAIN_AMP_M_INF_DB;
+            sMix.fOldGain        = GAIN_AMP_M_INF_DB;
+            sMix.fNewGain        = GAIN_AMP_M_INF_DB;
+            sMix.nTransition     = 0;
 
-            pBypass         = NULL;
-            pPlay           = NULL;
-            pPlaySample     = NULL;
-            pPlayLoop       = NULL;
-            pSource         = NULL;
-            bPlay           = false;
-            bSyncRange      = true;
-            pMode           = NULL;
+            sRef.fGain           = GAIN_AMP_M_INF_DB;
+            sRef.fOldGain        = GAIN_AMP_M_INF_DB;
+            sRef.fNewGain        = GAIN_AMP_M_INF_DB;
+            sRef.nTransition     = 0;
+
+
+            pExecutor           = NULL;
+
+            pBypass             = NULL;
+            pPlay               = NULL;
+            pPlaySample         = NULL;
+            pPlayLoop           = NULL;
+            pSource             = NULL;
+            bPlay               = false;
+            bSyncRange          = true;
+            pMode               = NULL;
 
             for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
             {
-                afile_t *af     = &vSamples[i];
+                afile_t *af         = &vSamples[i];
 
-                af->pLoader     = NULL;
-                af->pSample     = NULL;
-                af->pLoaded     = NULL;
-                af->nStatus     = STATUS_UNSPECIFIED;
-                af->nLength     = 0;
-                af->fGain       = GAIN_AMP_0_DB;
-                af->bSync       = false;
+                af->pLoader         = NULL;
+                af->pSample         = NULL;
+                af->pLoaded         = NULL;
+                af->nStatus         = STATUS_UNSPECIFIED;
+                af->nLength         = 0;
+                af->fGain           = GAIN_AMP_0_DB;
+                af->bSync           = false;
 
                 for (size_t j=0; j<meta::referencer::CHANNELS_MAX; ++j)
-                    af->vThumbs[j]  = NULL;
+                    af->vThumbs[j]      = NULL;
 
                 for (size_t j=0; j < meta::referencer::AUDIO_LOOPS; ++j)
                 {
-                    loop_t *al      = &af->vLoops[j];
+                    loop_t *al          = &af->vLoops[j];
 
-                    al->nState      = PB_OFF;
-                    al->nTransition = 0;
-                    al->nStart      = -1;
-                    al->nEnd        = -1;
-                    al->nPos        = -1;
-                    al->bFirst      = true;
+                    al->nState          = PB_OFF;
+                    al->nTransition     = 0;
+                    al->nStart          = -1;
+                    al->nEnd            = -1;
+                    al->nPos            = -1;
+                    al->bFirst          = true;
 
-                    al->pStart      = NULL;
-                    al->pEnd        = NULL;
-                    al->pPlayPos    = NULL;
+                    al->pStart          = NULL;
+                    al->pEnd            = NULL;
+                    al->pPlayPos        = NULL;
                 }
 
-                af->pFile       = NULL;
-                af->pStatus     = NULL;
-                af->pLength     = NULL;
-                af->pMesh       = NULL;
-                af->pGain       = NULL;
+                af->pFile           = NULL;
+                af->pStatus         = NULL;
+                af->pLength         = NULL;
+                af->pMesh           = NULL;
+                af->pGain           = NULL;
             }
 
-            pData           = NULL;
+            pData               = NULL;
         }
 
         referencer::~referencer()
@@ -176,8 +187,6 @@ namespace lsp
 
                 // Construct in-place DSP processors
                 c->sBypass.construct();
-                c->sMix.construct();
-                c->sReference.construct();
 
                 c->vReference           = advance_ptr_bytes<float>(ptr, szof_buf);
 
@@ -298,6 +307,14 @@ namespace lsp
             // Update cross-fade time and sync it with playbacks
             nCrossfadeTime      = dspu::millis_to_samples(fSampleRate, meta::referencer::CROSSFADE_TIME);
 
+            sMix.fGain          = sMix.fNewGain;
+            sMix.fOldGain       = sMix.fNewGain;
+            sMix.nTransition    = nCrossfadeTime;
+
+            sRef.fGain          = sRef.fNewGain;
+            sRef.fOldGain       = sRef.fNewGain;
+            sRef.nTransition    = nCrossfadeTime;
+
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
             {
                 afile_t *af             = &vSamples[i];
@@ -311,10 +328,8 @@ namespace lsp
             // Update sample rate for the bypass processors
             for (size_t i=0; i<nChannels; ++i)
             {
-                channel_t *c    = &vChannels[i];
+                channel_t *c        = &vChannels[i];
                 c->sBypass.init(sr);
-                c->sMix.init(sr);
-                c->sReference.init(sr);
             }
         }
 
@@ -393,6 +408,7 @@ namespace lsp
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
             {
                 afile_t *af             = &vSamples[i];
+                af->fGain               = af->pGain->value();
 
                 for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
                 {
@@ -415,8 +431,40 @@ namespace lsp
                 channel_t *c            = &vChannels[i];
 
                 c->sBypass.set_bypass(bypass);
-                c->sMix.set_bypass(source == SRC_REFERENCE);
-                c->sReference.set_bypass(source == SRC_MIX);
+            }
+
+            switch (source)
+            {
+                case SRC_MIX:
+                    sMix.fOldGain           = sMix.fGain;
+                    sMix.fNewGain           = GAIN_AMP_0_DB;
+                    sMix.nTransition        = 0;
+
+                    sRef.fOldGain           = sRef.fGain;
+                    sRef.fNewGain           = GAIN_AMP_M_INF_DB;
+                    sRef.nTransition        = 0;
+                    break;
+
+                case SRC_REFERENCE:
+                    sMix.fOldGain           = sMix.fGain;
+                    sMix.fNewGain           = GAIN_AMP_M_INF_DB;
+                    sMix.nTransition        = 0;
+
+                    sRef.fOldGain           = sRef.fGain;
+                    sRef.fNewGain           = GAIN_AMP_0_DB;
+                    sRef.nTransition        = 0;
+                    break;
+
+                case SRC_BOTH:
+                default:
+                    sMix.fOldGain           = sMix.fGain;
+                    sMix.fNewGain           = GAIN_AMP_M_6_DB;
+                    sMix.nTransition        = 0;
+
+                    sRef.fOldGain           = sRef.fGain;
+                    sRef.fNewGain           = GAIN_AMP_M_6_DB;
+                    sRef.nTransition        = 0;
+                    break;
             }
         }
 
@@ -744,6 +792,60 @@ namespace lsp
             }
         }
 
+        void referencer::mix_channels(size_t samples)
+        {
+            // Process reference signal first
+            if (sRef.nTransition < nCrossfadeTime)
+            {
+                size_t to_process   = lsp_min(nCrossfadeTime - sRef.nTransition, samples);
+                const float gain    = sRef.fOldGain + (sRef.nTransition * (sRef.fNewGain - sRef.fOldGain)) / nCrossfadeTime;
+
+                // Apply envelope
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    float *dst = vChannels[i].vReference;
+
+                    dsp::lramp1(dst, sRef.fGain, gain, to_process);
+                    if (to_process < samples)
+                        dsp::mul_k2(&dst[to_process], gain, samples - to_process);
+                }
+
+                sRef.nTransition       += to_process;
+                sRef.fGain              = (sRef.nTransition >= nCrossfadeTime) ? sRef.fNewGain : gain;
+            }
+            else
+            {
+                for (size_t i=0; i<nChannels; ++i)
+                    dsp::mul_k2(vChannels[i].vReference, sRef.fGain, samples);
+            }
+
+            // Now process mix signal
+            if (sMix.nTransition < nCrossfadeTime)
+            {
+                size_t to_process   = lsp_min(nCrossfadeTime - sMix.nTransition, samples);
+                const float gain    = sMix.fOldGain + (sMix.nTransition * (sMix.fNewGain - sMix.fOldGain)) / nCrossfadeTime;
+
+                // Apply envelope
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    float *dst = vChannels[i].vReference;
+                    const float *src = vChannels[i].vIn;
+
+                    dsp::lramp_add2(dst, src, sMix.fGain, gain, to_process);
+                    if (to_process < samples)
+                        dsp::fmadd_k3(&dst[to_process], &src[to_process], gain, samples - to_process);
+                }
+
+                sMix.nTransition       += to_process;
+                sMix.fGain              = (sMix.nTransition >= nCrossfadeTime) ? sMix.fNewGain : gain;
+            }
+            else
+            {
+                for (size_t i=0; i<nChannels; ++i)
+                    dsp::fmadd_k3(vChannels[i].vReference, vChannels[i].vIn, sMix.fGain, samples);
+            }
+        }
+
         void referencer::process(size_t samples)
         {
             preprocess_audio_channels();
@@ -754,6 +856,7 @@ namespace lsp
                 const size_t to_process = lsp_min(samples - offset, BUFFER_SIZE);
 
                 prepare_reference_signal(to_process);
+                mix_channels(to_process);
 
                 for (size_t i=0; i<nChannels; ++i)
                 {

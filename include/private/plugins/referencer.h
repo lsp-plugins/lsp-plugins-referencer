@@ -69,6 +69,14 @@ namespace lsp
                         void                    dump(dspu::IStateDumper *v) const;
                 };
 
+                typedef struct asource_t
+                {
+                    float               fGain;                                      // Current gain
+                    float               fOldGain;                                   // Previous gain value
+                    float               fNewGain;                                   // New gain
+                    uint32_t            nTransition;                                // Gain transition
+                } asource_t;
+
                 typedef struct loop_t
                 {
                     playback_t          nState;                                     // Playback state
@@ -106,8 +114,6 @@ namespace lsp
                 {
                     // DSP processing modules
                     dspu::Bypass        sBypass;                                    // Bypass
-                    dspu::Bypass        sMix;                                       // Mix signal bypass
-                    dspu::Bypass        sReference;                                 // Reference signal bypass
 
                     float              *vIn;                                        // Input buffer
                     float              *vOut;                                       // Output buffer
@@ -127,6 +133,8 @@ namespace lsp
                 bool                bPlay;                                      // Play
                 bool                bSyncRange;                                 // Sync loop range
                 channel_t          *vChannels;                                  // Delay channels
+                asource_t           sMix;                                       // Mix signal characteristics
+                asource_t           sRef;                                       // Reference signal characteristics
                 ipc::IExecutor     *pExecutor;                                  // Executor service
                 afile_t             vSamples[meta::referencer::AUDIO_SAMPLES];  // Audio samples
 
@@ -148,6 +156,7 @@ namespace lsp
                 void                preprocess_audio_channels();
                 void                process_file_requests();
                 void                prepare_reference_signal(size_t samples);
+                void                mix_channels(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                output_file_data();
                 void                do_destroy();

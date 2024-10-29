@@ -52,6 +52,7 @@ namespace lsp
         static const port_item_t mode_selectors[] =
         {
             { "Stereo",         "referencer.mode.stereo"            },
+            { "Inverse Stereo", "referencer.mode.inverse_stereo"    },
             { "Mono",           "referencer.mode.mono"              },
             { "Side",           "referencer.mode.side"              },
             { "Sides",          "referencer.mode.sides"             },

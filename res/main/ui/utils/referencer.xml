@@ -15,13 +15,14 @@
 				<label text="labels.mode" />
 				<ui:with id="mode" hfill="true">
 					<button text="lists.referencer.mode.stereo" value="0" />
-					<button text="lists.referencer.mode.mono" value="1" />
-					<button text="lists.referencer.mode.side" value="2" />
-					<button text="lists.referencer.mode.sides" value="3" />
-					<button text="lists.referencer.mode.left_only" value="4" />
-					<button text="lists.referencer.mode.left" value="5" />
-					<button text="lists.referencer.mode.right" value="6" />
-					<button text="lists.referencer.mode.right_only" value="7" />
+					<button text="lists.referencer.mode.inverse_stereo" value="1" />
+					<button text="lists.referencer.mode.mono" value="2" />
+					<button text="lists.referencer.mode.side" value="3" />
+					<button text="lists.referencer.mode.sides" value="4" />
+					<button text="lists.referencer.mode.left_only" value="5" />
+					<button text="lists.referencer.mode.left" value="6" />
+					<button text="lists.referencer.mode.right" value="7" />
+					<button text="lists.referencer.mode.right_only" value="8" />
 				</ui:with>
 			</ui:if>
 			
