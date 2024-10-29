@@ -448,7 +448,7 @@ namespace lsp
             // Apply configuration to channels
             bool bypass             = pBypass->value() >= 0.5f;
             size_t source           = pSource->value();
-            enMode                  = decode_stereo_mode(pMode->value());
+            enMode                  = (pMode != NULL) ? decode_stereo_mode(pMode->value()) : SM_MONO;
 
             for (size_t i=0; i<nChannels; ++i)
             {
