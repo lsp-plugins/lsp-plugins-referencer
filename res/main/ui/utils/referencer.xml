@@ -19,10 +19,12 @@
 					<button text="lists.referencer.mode.mono" value="2" />
 					<button text="lists.referencer.mode.side" value="3" />
 					<button text="lists.referencer.mode.sides" value="4" />
-					<button text="lists.referencer.mode.left_only" value="5" />
-					<button text="lists.referencer.mode.left" value="6" />
-					<button text="lists.referencer.mode.right" value="7" />
-					<button text="lists.referencer.mode.right_only" value="8" />
+					<button text="lists.referencer.mode.mid_side" value="5" />
+					<button text="lists.referencer.mode.side_mid" value="6" />
+					<button text="lists.referencer.mode.left_only" value="7" />
+					<button text="lists.referencer.mode.left" value="8" />
+					<button text="lists.referencer.mode.right" value="9" />
+					<button text="lists.referencer.mode.right_only" value="10" />
 				</ui:with>
 			</ui:if>
 			

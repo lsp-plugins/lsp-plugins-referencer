@@ -52,6 +52,21 @@ namespace lsp
                     SRC_BOTH,
                 };
 
+                enum stereo_mode_t
+                {
+                    SM_STEREO,
+                    SM_INVERSE_STEREO,
+                    SM_MONO,
+                    SM_SIDE,
+                    SM_SIDES,
+                    SM_MID_SIDE,
+                    SM_SIDE_MID,
+                    SM_LEFT_ONLY,
+                    SM_LEFT,
+                    SM_RIGHT,
+                    SM_RIGHT_ONLY,
+                };
+
                 struct afile_t;
 
                 class AFLoader: public ipc::ITask
@@ -129,6 +144,7 @@ namespace lsp
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
+                stereo_mode_t       enMode;                                     // Stereo mode
                 float              *vBuffer;                                    // Temporary buffer
                 bool                bPlay;                                      // Play
                 bool                bSyncRange;                                 // Sync loop range
@@ -152,11 +168,13 @@ namespace lsp
 
             protected:
                 status_t            load_file(afile_t *file);
+                stereo_mode_t       decode_stereo_mode(size_t mode);
                 void                unload_afile(afile_t *file);
                 void                preprocess_audio_channels();
                 void                process_file_requests();
                 void                prepare_reference_signal(size_t samples);
                 void                mix_channels(size_t samples);
+                void                apply_stereo_mode(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                output_file_data();
                 void                do_destroy();

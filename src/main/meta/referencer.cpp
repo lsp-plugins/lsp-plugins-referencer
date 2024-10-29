@@ -56,6 +56,8 @@ namespace lsp
             { "Mono",           "referencer.mode.mono"              },
             { "Side",           "referencer.mode.side"              },
             { "Sides",          "referencer.mode.sides"             },
+            { "Mid/Side",       "referencer.mode.mid_side"          },
+            { "Side/Mid",       "referencer.mode.side_mid"          },
             { "Left Only",      "referencer.mode.left_only"         },
             { "Left",           "referencer.mode.left"              },
             { "Right",          "referencer.mode.right"             },

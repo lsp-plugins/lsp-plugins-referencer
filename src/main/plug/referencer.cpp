@@ -90,16 +90,17 @@ namespace lsp
 
             // Initialize other parameters
             vChannels           = NULL;
+            enMode              = (nChannels > 1) ? SM_STEREO : SM_MONO;
 
-            sMix.fGain           = GAIN_AMP_M_INF_DB;
-            sMix.fOldGain        = GAIN_AMP_M_INF_DB;
-            sMix.fNewGain        = GAIN_AMP_M_INF_DB;
-            sMix.nTransition     = 0;
+            sMix.fGain          = GAIN_AMP_M_INF_DB;
+            sMix.fOldGain       = GAIN_AMP_M_INF_DB;
+            sMix.fNewGain       = GAIN_AMP_M_INF_DB;
+            sMix.nTransition    = 0;
 
-            sRef.fGain           = GAIN_AMP_M_INF_DB;
-            sRef.fOldGain        = GAIN_AMP_M_INF_DB;
-            sRef.fNewGain        = GAIN_AMP_M_INF_DB;
-            sRef.nTransition     = 0;
+            sRef.fGain          = GAIN_AMP_M_INF_DB;
+            sRef.fOldGain       = GAIN_AMP_M_INF_DB;
+            sRef.fNewGain       = GAIN_AMP_M_INF_DB;
+            sRef.nTransition    = 0;
 
 
             pExecutor           = NULL;
@@ -333,6 +334,28 @@ namespace lsp
             }
         }
 
+        referencer::stereo_mode_t referencer::decode_stereo_mode(size_t mode)
+        {
+            switch (mode)
+            {
+                case 0: return SM_STEREO;
+                case 1: return SM_INVERSE_STEREO;
+                case 2: return SM_MONO;
+                case 3: return SM_SIDE;
+                case 4: return SM_SIDES;
+                case 5: return SM_MID_SIDE;
+                case 6: return SM_SIDE_MID;
+                case 7: return SM_LEFT_ONLY;
+                case 8: return SM_LEFT;
+                case 9: return SM_RIGHT;
+                case 10: return SM_RIGHT_ONLY;
+                default:
+                    break;
+            }
+
+            return (nChannels > 1) ? SM_STEREO : SM_MONO;
+        }
+
         void referencer::update_settings()
         {
             // Update playback state
@@ -425,6 +448,7 @@ namespace lsp
             // Apply configuration to channels
             bool bypass             = pBypass->value() >= 0.5f;
             size_t source           = pSource->value();
+            enMode                  = decode_stereo_mode(pMode->value());
 
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -846,6 +870,50 @@ namespace lsp
             }
         }
 
+        void referencer::apply_stereo_mode(size_t samples)
+        {
+            switch (enMode)
+            {
+                case SM_STEREO:
+                    break;
+                case SM_INVERSE_STEREO:
+                    lsp::swap(vChannels[0].vReference, vChannels[1].vReference);
+                    break;
+                case SM_MONO:
+                    dsp::lr_to_mid(vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    dsp::copy(vChannels[1].vReference, vChannels[0].vReference, samples);
+                    break;
+                case SM_SIDE:
+                    dsp::lr_to_side(vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    dsp::copy(vChannels[1].vReference, vChannels[0].vReference, samples);
+                    break;
+                case SM_SIDES:
+                    dsp::lr_to_side(vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    dsp::mul_k3(vChannels[1].vReference, vChannels[0].vReference, -1.0f, samples);
+                    break;
+                case SM_MID_SIDE:
+                    dsp::lr_to_ms(vChannels[0].vReference, vChannels[1].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    break;
+                case SM_SIDE_MID:
+                    dsp::lr_to_ms(vChannels[1].vReference, vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    break;
+                case SM_LEFT:
+                    dsp::copy(vChannels[1].vReference, vChannels[0].vReference, samples);
+                    break;
+                case SM_LEFT_ONLY:
+                    dsp::fill_zero(vChannels[1].vReference, samples);
+                    break;
+                case SM_RIGHT_ONLY:
+                    dsp::fill_zero(vChannels[0].vReference, samples);
+                    break;
+                case SM_RIGHT:
+                    dsp::copy(vChannels[0].vReference, vChannels[1].vReference, samples);
+                    break;
+                default:
+                    break;
+            }
+        }
+
         void referencer::process(size_t samples)
         {
             preprocess_audio_channels();
@@ -857,6 +925,9 @@ namespace lsp
 
                 prepare_reference_signal(to_process);
                 mix_channels(to_process);
+
+                if (nChannels > 1)
+                    apply_stereo_mode(to_process);
 
                 for (size_t i=0; i<nChannels; ++i)
                 {

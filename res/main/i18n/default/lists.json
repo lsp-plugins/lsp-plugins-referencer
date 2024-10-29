@@ -10,10 +10,12 @@
 			"inverse_stereo": "Inverse Stereo",
 			"left": "Left",
 			"left_only": "Left Only",
+			"mid_side": "Mid/Side",
 			"mono": "Mono",
 			"right": "Right",
 			"right_only": "Right Only",
 			"side": "Side",
+			"side_mid": "Side/Mid",
 			"sides": "Sides",
 			"stereo": "Stereo"
 		},
