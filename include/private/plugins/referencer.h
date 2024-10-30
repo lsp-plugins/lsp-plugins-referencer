@@ -147,7 +147,7 @@ namespace lsp
                 stereo_mode_t       enMode;                                     // Stereo mode
                 float              *vBuffer;                                    // Temporary buffer
                 bool                bPlay;                                      // Play
-                bool                bSyncRange;                                 // Sync loop range
+                bool                bSyncLoopMesh;                              // Sync loop mesh
                 channel_t          *vChannels;                                  // Delay channels
                 asource_t           sMix;                                       // Mix signal characteristics
                 asource_t           sRef;                                       // Reference signal characteristics
@@ -159,12 +159,16 @@ namespace lsp
                 plug::IPort        *pPlaySample;                                // Current sample index
                 plug::IPort        *pPlayLoop;                                  // Current loop index
                 plug::IPort        *pSource;                                    // Audio source
+                plug::IPort        *pLoopMesh;                                  // Loop mesh
+                plug::IPort        *pLoopLen;                                   // Loop length
+                plug::IPort        *pLoopPos;                                   // Loop play position
                 plug::IPort        *pMode;                                      // Output mode
 
                 uint8_t            *pData;                                      // Allocated data
 
             protected:
                 static void         destroy_sample(dspu::Sample * &sample);
+                static void         make_thumbnail(float *dst, const float *src, size_t len);
 
             protected:
                 status_t            load_file(afile_t *file);
@@ -177,6 +181,7 @@ namespace lsp
                 void                apply_stereo_mode(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                output_file_data();
+                void                output_loop_data();
                 void                do_destroy();
 
             public:

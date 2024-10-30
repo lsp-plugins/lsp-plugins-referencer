@@ -110,8 +110,11 @@ namespace lsp
             pPlaySample         = NULL;
             pPlayLoop           = NULL;
             pSource             = NULL;
+            pLoopMesh           = NULL;
+            pLoopLen            = NULL;
+            pLoopPos            = NULL;
             bPlay               = false;
-            bSyncRange          = true;
+            bSyncLoopMesh       = true;
             pMode               = NULL;
 
             for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
@@ -228,6 +231,9 @@ namespace lsp
             BIND_PORT(pPlayLoop);
             BIND_PORT(pSource);
             SKIP_PORT("Tab section selector");
+            BIND_PORT(pLoopMesh);
+            BIND_PORT(pLoopLen);
+            BIND_PORT(pLoopPos);
 
             if (nChannels > 1)
             {
@@ -419,8 +425,8 @@ namespace lsp
                     }
                 }
 
-                if ((nPlaySample != play_sample) && (nPlayLoop != play_loop))
-                    bSyncRange              = true;
+                if ((nPlaySample != play_sample) || (nPlayLoop != play_loop))
+                    bSyncLoopMesh           = true;
 
                 bPlay                   = play;
                 nPlaySample             = play_sample;
@@ -439,9 +445,18 @@ namespace lsp
 
                     const ssize_t first     = dspu::seconds_to_samples(fSampleRate, al->pStart->value());
                     const ssize_t last      = dspu::seconds_to_samples(fSampleRate, al->pEnd->value());
+                    const ssize_t l_start   = al->nStart;
+                    const ssize_t l_end     = al->nEnd;
 
                     al->nStart              = lsp_min(first, last);
                     al->nEnd                = lsp_max(first, last);
+
+                    // Check if we need to syncrhonize loop mesh
+                    if ((i == nPlaySample) && (j == nPlayLoop))
+                    {
+                        if ((al->nStart != l_start) || (al->nEnd != l_end))
+                            bSyncLoopMesh           = true;
+                    }
                 }
             }
 
@@ -515,6 +530,21 @@ namespace lsp
             }
         }
 
+        void referencer::make_thumbnail(float *dst, const float *src, size_t len)
+        {
+            for (size_t i=0; i<meta::referencer::FILE_MESH_SIZE; ++i)
+            {
+                size_t first    = (i * len) / meta::referencer::FILE_MESH_SIZE;
+                size_t last     = ((i + 1) * len) / meta::referencer::FILE_MESH_SIZE;
+                if (first < last)
+                    dst[i]          = dsp::abs_max(&src[first], last - first);
+                else if (first < len)
+                    dst[i]          = fabsf(src[first]);
+                else
+                    dst[i]          = 0.0f;
+            }
+        }
+
         status_t referencer::load_file(afile_t *af)
         {
             // Load sample
@@ -566,23 +596,7 @@ namespace lsp
             {
                 af->vThumbs[i]          = thumbs;
                 thumbs                 += meta::referencer::FILE_MESH_SIZE;
-
-                // Render channel thumbnails
-                const float *src        = source->channel(i);
-                float *dst              = af->vThumbs[i];
-                const size_t len        = source->length();
-
-                for (size_t k=0; k<meta::referencer::FILE_MESH_SIZE; ++k)
-                {
-                    size_t first    = (k * len) / meta::referencer::FILE_MESH_SIZE;
-                    size_t last     = ((k + 1) * len) / meta::referencer::FILE_MESH_SIZE;
-                    if (first < last)
-                        dst[k]          = dsp::abs_max(&src[first], last - first);
-                    else if (first < len)
-                        dst[k]          = fabsf(src[first]);
-                    else
-                        dst[k]          = 0.0f;
-                }
+                make_thumbnail(af->vThumbs[i], source->channel(i), source->length());
             }
 
             // Commit the result
@@ -636,6 +650,9 @@ namespace lsp
                     af->nLength     = (af->nStatus == STATUS_OK) ? af->pSample->length() : 0;
                     af->bSync       = true;
 
+                    if (i == nPlaySample)
+                        bSyncLoopMesh   = true;
+
                     // Now we can surely commit changes and reset task state
                     path->commit();
                     af->pLoader->reset();
@@ -678,6 +695,43 @@ namespace lsp
 
                 af->bSync           = false;
             }
+        }
+
+        void referencer::output_loop_data()
+        {
+            afile_t *af             = &vSamples[nPlaySample];
+            loop_t *al              = &af->vLoops[nPlayLoop];
+
+            const ssize_t limit     = (af->pSample != NULL) ? af->pSample->length() : 0;
+            const size_t channels   = (af->pSample != NULL) ? af->pSample->channels() : 0;
+
+            const ssize_t start     = lsp_limit(al->nStart, 0, limit);
+            const ssize_t end       = lsp_limit(al->nEnd, 0, limit);
+            const size_t len        = ((al->nEnd >= 0) && (al->nStart >= 0)) ? end - start : 0;
+
+            pLoopLen->set_value(dspu::samples_to_seconds(fSampleRate, len));
+            pLoopPos->set_value(dspu::samples_to_seconds(fSampleRate, al->nPos - al->nStart));
+
+            if (!bSyncLoopMesh)
+                return;
+
+            // Transfer file thumbnails to mesh
+            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pLoopMesh->buffer());
+            if ((mesh == NULL) || (!mesh->isEmpty()))
+                return;
+
+            if ((channels > 0) && (al->nEnd >= 0) && (al->nStart >= 0))
+            {
+                // Copy thumbnails
+                for (size_t i=0; i<channels; ++i)
+                    make_thumbnail(mesh->pvData[i], af->pSample->channel(i, start), len);
+
+                mesh->data(channels, meta::referencer::FILE_MESH_SIZE);
+            }
+            else
+                mesh->data(0, 0);
+
+            bSyncLoopMesh           = false;
         }
 
         void referencer::render_loop(afile_t *af, loop_t *al, size_t samples)
@@ -942,12 +996,13 @@ namespace lsp
             }
 
             output_file_data();
+            output_loop_data();
         }
 
         void referencer::ui_activated()
         {
             // Mark all samples needed for synchronization
-            bSyncRange          = true;
+            bSyncLoopMesh       = true;
 
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
             {

@@ -121,7 +121,10 @@ namespace lsp
             INT_CONTROL("pssel", "Playback sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
             INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
             COMBO("source", "Audio source", 0, source_selectors), \
-            COMBO("section", "Tab section selector", 0, tab_selectors)
+            COMBO("section", "Tab section selector", 0, tab_selectors), \
+            MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
+            METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
+            METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK)
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors)

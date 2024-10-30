@@ -50,15 +50,33 @@
 					</ui:for>
 				</ui:for>
 			</grid>
+			
+			<!-- Playback loop -->
+			<ui:for id="si" first="1" count="4">
+				<asample
+					active="false"
+					hexpand="true"
+					id="sf_${si}"
+					mesh_id="loop_m"
+					length=":loop_l"
+					status="0"
+					loop.enabled="false"
+					play.position=":loop_p"
+					width.min="192"
+					height.min="96"
+					load.preview="true"
+					visibility=":pssel ieq ${si}" />
+				/>
+			</ui:for>
 		</vbox>
 		
 		<!-- Tab control for different operations -->
-		<tabs id="section">
+		<tabs id="section" expand="true">
 			<!-- Samples -->
 			<cgroup id="ssel" expand="true">
 				<ui:for id="si" first="1" count="4">
 					<vbox>
-						<hbox width.min="650" height.min="256">
+						<hbox width.min="650" height.min="256" expand="true">
 							<!-- Sample loader/editor -->
 							<asample
 								expand="true"
@@ -124,8 +142,6 @@
 								<knob id="le_${si}_${li}" max=":fl_${si}" />
 								<value id="le_${si}_${li}" />
 							</ui:for>
-						
-					
 						</grid>
 					</vbox>
 				</ui:for>
