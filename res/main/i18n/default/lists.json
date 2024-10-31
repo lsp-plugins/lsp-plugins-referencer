@@ -1,5 +1,14 @@
 {
 	"referencer": {
+		"filter": {
+			"bass": "Bass",
+			"high": "High",
+			"high_mid": "High Mid",
+			"low_mid": "Low Mid",
+			"mid": "Mid",
+			"off": "Off",
+			"sub_bass": "Sub Bass"
+		},
 		"loop": {
 			"1": "Loop 1",
 			"2": "Loop 2",

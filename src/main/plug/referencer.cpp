@@ -117,6 +117,13 @@ namespace lsp
             bSyncLoopMesh       = true;
             pMode               = NULL;
 
+            pPostMode           = NULL;
+            pPostSlope          = NULL;
+            pPostSel            = NULL;
+
+            for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
+                pPostSplit[i]       = NULL;
+
             for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
             {
                 afile_t *af         = &vSamples[i];
@@ -191,6 +198,11 @@ namespace lsp
 
                 // Construct in-place DSP processors
                 c->sBypass.construct();
+                c->sPostFilter.construct();
+
+                // Initialize DSP processors
+                c->sPostFilter.init(1, meta::referencer::EQ_RANK);
+                c->sPostFilter.set_smooth(true);
 
                 c->vReference           = advance_ptr_bytes<float>(ptr, szof_buf);
 
@@ -234,6 +246,13 @@ namespace lsp
             BIND_PORT(pLoopMesh);
             BIND_PORT(pLoopLen);
             BIND_PORT(pLoopPos);
+
+            // Post-filter controls
+            BIND_PORT(pPostMode);
+            BIND_PORT(pPostSlope);
+            BIND_PORT(pPostSel);
+            for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
+                BIND_PORT(pPostSplit[i]);
 
             if (nChannels > 1)
             {
@@ -297,6 +316,7 @@ namespace lsp
                 {
                     channel_t *c    = &vChannels[i];
                     c->sBypass.destroy();
+                    c->sPostFilter.destroy();
                 }
                 vChannels   = NULL;
             }
@@ -337,6 +357,7 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
                 c->sBypass.init(sr);
+                c->sPostFilter.set_sample_rate(sr);
             }
         }
 
@@ -360,6 +381,21 @@ namespace lsp
             }
 
             return (nChannels > 1) ? SM_STEREO : SM_MONO;
+        }
+
+        dspu::equalizer_mode_t referencer::decode_equalizer_mode(size_t mode)
+        {
+            switch (mode)
+            {
+                case 0: return dspu::EQM_IIR;
+                case 1: return dspu::EQM_FIR;
+                case 2: return dspu::EQM_FFT;
+                case 3: return dspu::EQM_SPM;
+                default:
+                    break;
+            }
+
+            return dspu::EQM_BYPASS;
         }
 
         void referencer::update_settings()
@@ -458,6 +494,58 @@ namespace lsp
                             bSyncLoopMesh           = true;
                     }
                 }
+            }
+
+            // Apply post-filter settings
+            dspu::equalizer_mode_t post_mode  = decode_equalizer_mode(pPostMode->value());
+            const size_t post_slope = pPostSlope->value();
+            const size_t post_sel   = pPostSel->value();
+            const float post_hpf    = (post_sel >= PF_BASS) ? pPostSplit[post_sel - PF_BASS]->value() : -1.0f;
+            const float post_lpf    = ((post_sel >= PF_SUB_BASS) && (post_sel < PF_HIGH)) ? pPostSplit[post_sel - PF_SUB_BASS]->value() : -1.0f;
+
+            dspu::filter_params_t fp;
+            fp.nSlope               = post_slope * 2;
+            fp.fGain                = 1.0f;
+            fp.fQuality             = 0.0f;
+
+            if (post_hpf > 0.0f)
+            {
+                if (post_lpf > 0.0f)
+                {
+                    fp.nType            = dspu::FLT_BT_BWC_BANDPASS;
+                    fp.fFreq            = post_hpf;
+                    fp.fFreq2           = post_lpf;
+                }
+                else // post_lpf <= 0.0f
+                {
+                    fp.nType            = dspu::FLT_BT_BWC_HIPASS;
+                    fp.fFreq            = post_hpf;
+                    fp.fFreq2           = post_hpf;
+                }
+            }
+            else // post_hpf <= 0.0f
+            {
+                if (post_lpf > 0.0f)
+                {
+                    fp.nType            = dspu::FLT_BT_BWC_LOPASS;
+                    fp.fFreq            = post_lpf;
+                    fp.fFreq2           = post_lpf;
+                }
+                else // post_lpf <= 0.0f
+                {
+                    fp.nType            = dspu::FLT_NONE;
+                    fp.fFreq            = post_hpf;
+                    fp.fFreq2           = post_lpf;
+                    post_mode           = dspu::EQM_BYPASS;
+                }
+            }
+
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c            = &vChannels[i];
+
+                c->sPostFilter.set_params(0, &fp);
+                c->sPostFilter.set_mode(post_mode);
             }
 
             // Apply configuration to channels
@@ -870,6 +958,15 @@ namespace lsp
             }
         }
 
+        void referencer::apply_post_filters(size_t samples)
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c = &vChannels[i];
+                c->sPostFilter.process(c->vReference, c->vReference, samples);
+            }
+        }
+
         void referencer::mix_channels(size_t samples)
         {
             // Process reference signal first
@@ -979,6 +1076,7 @@ namespace lsp
 
                 prepare_reference_signal(to_process);
                 mix_channels(to_process);
+                apply_post_filters(to_process);
 
                 if (nChannels > 1)
                     apply_stereo_mode(to_process);

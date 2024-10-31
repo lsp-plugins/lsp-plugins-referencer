@@ -25,6 +25,8 @@
 #include <lsp-plug.in/plug-fw/meta/types.h>
 #include <lsp-plug.in/plug-fw/const.h>
 
+#include <lsp-plug.in/stdlib/math.h>
+
 namespace lsp
 {
     //-------------------------------------------------------------------------
@@ -33,31 +35,64 @@ namespace lsp
     {
         typedef struct referencer
         {
-            static constexpr size_t CHANNELS_MAX        = 2;            // Maximum audio channels
-            static constexpr size_t AUDIO_SAMPLES       = 4;            // Number of samples
-            static constexpr size_t AUDIO_LOOPS         = 4;            // Number of loops per sample
-            static constexpr size_t FILE_MESH_SIZE      = 640;          // Audio file mesh size
-            static constexpr float  CROSSFADE_TIME      = 5.0f;         // Cross-fade time in milliseconds
+//            static constexpr inline float post_step(float min, float max)
+//            {
+//                return logf(max/min) * 0.001f;
+//            }
 
-            static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;         // Minimum length (s)
-            static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;      // Maximum sample length (s)
-            static constexpr float  SAMPLE_LENGTH_DFL   = 0.0f;         // Sample length (s)
-            static constexpr float  SAMPLE_LENGTH_STEP  = 0.01f;        // Sample step (s)
+            static constexpr size_t CHANNELS_MAX        = 2;                    // Maximum audio channels
+            static constexpr size_t AUDIO_SAMPLES       = 4;                    // Number of samples
+            static constexpr size_t AUDIO_LOOPS         = 4;                    // Number of loops per sample
+            static constexpr size_t FILE_MESH_SIZE      = 640;                  // Audio file mesh size
+            static constexpr size_t POST_BANDS          = 6;                    // Number of post-filter bands
+            static constexpr size_t POST_SPLITS         = POST_BANDS - 1;       // Number of post-filter frequency splits
+            static constexpr size_t EQ_RANK             = 12;                   // Equalizer rank
+            static constexpr float  CROSSFADE_TIME      = 5.0f;                 // Cross-fade time in milliseconds
 
-            static constexpr float  SAMPLE_PLAYBACK_MIN = -1.0f;        // Minimum playback position (s)
-            static constexpr float  SAMPLE_PLAYBACK_MAX = 1000.0f;      // Maximum playback posotion (s)
-            static constexpr float  SAMPLE_PLAYBACK_DFL = -1.0f;        // Default playback position (s)
-            static constexpr float  SAMPLE_PLAYBACK_STEP = 0.01f;       // Playback step (s)
+            static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;                 // Minimum length (s)
+            static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;              // Maximum sample length (s)
+            static constexpr float  SAMPLE_LENGTH_DFL   = 0.0f;                 // Sample length (s)
+            static constexpr float  SAMPLE_LENGTH_STEP  = 0.01f;                // Sample step (s)
 
-            static constexpr size_t SAMPLE_SELECTOR_MIN = 1;            // Minimum sample selector
-            static constexpr size_t SAMPLE_SELECTOR_MAX = AUDIO_SAMPLES;// Maximum sample selector
+            static constexpr float  SAMPLE_PLAYBACK_MIN = -1.0f;                // Minimum playback position (s)
+            static constexpr float  SAMPLE_PLAYBACK_MAX = 1000.0f;              // Maximum playback posotion (s)
+            static constexpr float  SAMPLE_PLAYBACK_DFL = -1.0f;                // Default playback position (s)
+            static constexpr float  SAMPLE_PLAYBACK_STEP = 0.01f;               // Playback step (s)
+
+            static constexpr size_t SAMPLE_SELECTOR_MIN = 1;                    // Minimum sample selector
+            static constexpr size_t SAMPLE_SELECTOR_MAX = AUDIO_SAMPLES;        // Maximum sample selector
             static constexpr size_t SAMPLE_SELECTOR_DFL = SAMPLE_SELECTOR_MIN;// Default sample selector
-            static constexpr size_t SAMPLE_SELECTOR_STEP= 1;            // Sample selector step
+            static constexpr size_t SAMPLE_SELECTOR_STEP= 1;                    // Sample selector step
 
-            static constexpr size_t LOOP_SELECTOR_MIN   = 1;            // Minimum loop selector
-            static constexpr size_t LOOP_SELECTOR_MAX   = AUDIO_LOOPS;  // Maximum loop selector
+            static constexpr size_t LOOP_SELECTOR_MIN   = 1;                    // Minimum loop selector
+            static constexpr size_t LOOP_SELECTOR_MAX   = AUDIO_LOOPS;          // Maximum loop selector
             static constexpr size_t LOOP_SELECTOR_DFL   = LOOP_SELECTOR_MIN;// Default loop selector
-            static constexpr size_t LOOP_SELECTOR_STEP  = 1;            // Sample loop step
+            static constexpr size_t LOOP_SELECTOR_STEP  = 1;                    // Sample loop step
+
+            static constexpr float  POST_SUB_BASS_MIN   = 20.0f;                // Sub-bass minimium frequency
+            static constexpr float  POST_SUB_BASS_MAX   = 80.0f;                // Sub-bass maximium frequency
+            static constexpr float  POST_SUB_BASS_DFL   = 60.0f;                // Sub-bass default frequency
+            static constexpr float  POST_SUB_BASS_STEP  = 0.00139f;             // post_step(POST_SUB_BASS_MIN, POST_SUB_BASS_MAX);
+
+            static constexpr float  POST_BASS_MIN       = POST_SUB_BASS_MAX;    // Bass minimium frequency
+            static constexpr float  POST_BASS_MAX       = 350.0f;               // Bass maximium frequency
+            static constexpr float  POST_BASS_DFL       = 250.0f;               // Bass default frequency
+            static constexpr float  POST_BASS_STEP      = 0.00148f;             // post_step(POST_BASS_MIN, POST_BASS_MAX);
+
+            static constexpr float  POST_LOW_MID_MIN    = POST_BASS_MAX;        // Low-mid minimium frequency
+            static constexpr float  POST_LOW_MID_MAX    = 1000.0f;              // Low-mid maximium frequency
+            static constexpr float  POST_LOW_MID_DFL    = 500.0f;               // Low-mid default frequency
+            static constexpr float  POST_LOW_MID_STEP   = 0.00105f;             // post_step(POST_LOW_MID_MIN, POST_LOW_MID_MAX);
+
+            static constexpr float  POST_MID_MIN        = POST_LOW_MID_MAX;     // Mid minimium frequency
+            static constexpr float  POST_MID_MAX        = 4000.0f;              // Mid maximium frequency
+            static constexpr float  POST_MID_DFL        = 2000.0f;              // Mid default frequency
+            static constexpr float  POST_MID_STEP       = 0.00139f;             // post_step(POST_MID_MIN, POST_MID_MAX);
+
+            static constexpr float  POST_HIGH_MID_MIN   = POST_MID_MAX;         // High-mid minimium frequency
+            static constexpr float  POST_HIGH_MID_MAX   = 12000.0f;             // High-mid maximium frequency
+            static constexpr float  POST_HIGH_MID_DFL   = 6000.0f;              // High-mid default frequency
+            static constexpr float  POST_HIGH_MID_STEP  = 0.00110f;             // post_step(POST_HIGH_MID_MIN, POST_HIGH_MID_MAX);
         } referencer;
 
         // Plugin type metadata

@@ -23,6 +23,7 @@
 #define PRIVATE_PLUGINS_REFERENCER_H_
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
+#include <lsp-plug.in/dsp-units/filters/Equalizer.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 #include <private/meta/referencer.h>
@@ -65,6 +66,17 @@ namespace lsp
                     SM_LEFT,
                     SM_RIGHT,
                     SM_RIGHT_ONLY,
+                };
+
+                enum post_filter_t
+                {
+                    PF_OFF,
+                    PF_SUB_BASS,
+                    PF_BASS,
+                    PF_LOW_MID,
+                    PF_MID,
+                    PF_HIGH_MID,
+                    PF_HIGH,
                 };
 
                 struct afile_t;
@@ -129,6 +141,7 @@ namespace lsp
                 {
                     // DSP processing modules
                     dspu::Bypass        sBypass;                                    // Bypass
+                    dspu::Equalizer     sPostFilter;                                // Post-filter
 
                     float              *vIn;                                        // Input buffer
                     float              *vOut;                                       // Output buffer
@@ -163,12 +176,17 @@ namespace lsp
                 plug::IPort        *pLoopLen;                                   // Loop length
                 plug::IPort        *pLoopPos;                                   // Loop play position
                 plug::IPort        *pMode;                                      // Output mode
+                plug::IPort        *pPostMode;                                  // Post-filter mode
+                plug::IPort        *pPostSlope;                                 // Post-filter slope
+                plug::IPort        *pPostSel;                                   // Post-filter selector
+                plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
 
                 uint8_t            *pData;                                      // Allocated data
 
             protected:
                 static void         destroy_sample(dspu::Sample * &sample);
                 static void         make_thumbnail(float *dst, const float *src, size_t len);
+                static dspu::equalizer_mode_t decode_equalizer_mode(size_t mode);
 
             protected:
                 status_t            load_file(afile_t *file);
@@ -178,6 +196,7 @@ namespace lsp
                 void                process_file_requests();
                 void                prepare_reference_signal(size_t samples);
                 void                mix_channels(size_t samples);
+                void                apply_post_filters(size_t samples);
                 void                apply_stereo_mode(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                output_file_data();

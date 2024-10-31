@@ -92,6 +92,40 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t post_filter_slopes[] =
+        {
+            { "12 dB/oct",      "eq.slope.12dbo"                    },
+            { "24 dB/oct",      "eq.slope.24dbo"                    },
+            { "36 dB/oct",      "eq.slope.36dbo"                    },
+            { "48 dB/oct",      "eq.slope.48dbo"                    },
+            { "60 dB/oct",      "eq.slope.60dbo"                    },
+            { "72 dB/oct",      "eq.slope.72dbo"                    },
+            { "84 dB/oct",      "eq.slope.84dbo"                    },
+            { "96 dB/oct",      "eq.slope.96dbo"                    },
+            { NULL, NULL }
+        };
+
+        static const port_item_t post_filter_modes[] =
+        {
+            { "IIR",            "eq.type.iir"                       },
+            { "FIR",            "eq.type.fir"                       },
+            { "FFT",            "eq.type.fft"                       },
+            { "SPM",            "eq.type.spm"                       },
+            { NULL, NULL }
+        };
+
+        static const port_item_t post_filter_selector[] =
+        {
+            { "Off",            "referencer.filter.off"             },
+            { "Sub Bass",       "referencer.filter.sub_bass"        },
+            { "Bass",           "referencer.filter.bass"            },
+            { "Low Mid",        "referencer.filter.low_mid"         },
+            { "Mid",            "referencer.filter.mid"             },
+            { "High Mid",       "referencer.filter.high_mid"        },
+            { "High",           "referencer.filter.high"            },
+            { NULL, NULL }
+        };
+
         #define REF_LOOP(id, name) \
             CONTROL("lb" id, name " start", U_SEC, referencer::SAMPLE_LENGTH), \
             CONTROL("le" id, name " end", U_SEC, referencer::SAMPLE_LENGTH),  \
@@ -124,7 +158,15 @@ namespace lsp
             COMBO("section", "Tab section selector", 0, tab_selectors), \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
-            METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK)
+            METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK), \
+            COMBO("pfmode", "Post-filter mode", 0, post_filter_modes), \
+            COMBO("pfslope", "Post-filter slope", 3, post_filter_slopes), \
+            COMBO("pfsel", "Post-filter selector", 0, post_filter_selector), \
+            LOG_CONTROL("pfsub", "Post-filter sub-bass high frequency", U_HZ, referencer::POST_SUB_BASS), \
+            LOG_CONTROL("pfbass", "Post-filter bass high frequency", U_HZ, referencer::POST_BASS), \
+            LOG_CONTROL("pflomid", "Post-filter low-mid frequency", U_HZ, referencer::POST_LOW_MID), \
+            LOG_CONTROL("pfmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
+            LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID)
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors)
