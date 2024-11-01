@@ -126,6 +126,16 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t dynamics_modes[] =
+        {
+            { "Peak",           "referencer.dynamics.peak"          },
+            { "True Peak",      "referencer.dynamics.true_peak"     },
+            { "RMS",            "referencer.dynamics.rms"           },
+            { "LUFS",           "referencer.dynamics.lufs"          },
+            { "PSR",            "referencer.dynamics.psr"           },
+            { NULL, NULL }
+        };
+
         #define REF_LOOP(id, name) \
             CONTROL("lb" id, name " start", U_SEC, referencer::SAMPLE_LENGTH), \
             CONTROL("le" id, name " end", U_SEC, referencer::SAMPLE_LENGTH),  \
@@ -156,9 +166,11 @@ namespace lsp
             INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
             COMBO("source", "Audio source", 0, source_selectors), \
             COMBO("section", "Tab section selector", 0, tab_selectors), \
+            /* playback loop display */ \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
             METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK), \
+            /* post-filter */ \
             COMBO("pfmode", "Post-filter mode", 0, post_filter_modes), \
             COMBO("pfslope", "Post-filter slope", 3, post_filter_slopes), \
             COMBO("pfsel", "Post-filter selector", 0, post_filter_selector), \
@@ -166,7 +178,12 @@ namespace lsp
             LOG_CONTROL("pfbass", "Post-filter bass high frequency", U_HZ, referencer::POST_BASS), \
             LOG_CONTROL("pflomid", "Post-filter low-mid frequency", U_HZ, referencer::POST_LOW_MID), \
             LOG_CONTROL("pfmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
-            LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID)
+            LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
+            /* dynamics meters */ \
+            COMBO("dmsel", "Dynamics display source", 2, source_selectors), \
+            COMBO("dmmode", "Dynamics display mode", 4, dynamics_modes), \
+            CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
+            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4)
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors)

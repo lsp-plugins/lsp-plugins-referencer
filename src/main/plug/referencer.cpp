@@ -83,6 +83,7 @@ namespace lsp
             nPlaySample         = -1;
             nPlayLoop           = -1;
             nCrossfadeTime      = 0;
+            nMeterType          = DM_PSR;
             vBuffer             = NULL;
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
@@ -123,6 +124,10 @@ namespace lsp
 
             for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
                 pPostSplit[i]       = NULL;
+
+            pDynaMode           = NULL;
+            pDynaTime           = NULL;
+            pDynaMesh           = NULL;
 
             for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
             {
@@ -201,7 +206,8 @@ namespace lsp
                 c->sPostFilter.construct();
 
                 // Initialize DSP processors
-                c->sPostFilter.init(1, meta::referencer::EQ_RANK);
+                if (!c->sPostFilter.init(1, meta::referencer::EQ_RANK))
+                    return;
                 c->sPostFilter.set_smooth(true);
 
                 c->vReference           = advance_ptr_bytes<float>(ptr, szof_buf);
@@ -209,6 +215,42 @@ namespace lsp
                 // Initialize fields
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
+            }
+
+            // Initialize meters
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+
+                if (!dm->sRMSMeter.init(nChannels, dspu::bs::LUFS_MEASURE_PERIOD_MS))
+                    return;
+
+                dm->sRMSMeter.set_mode(dspu::SCM_RMS);
+                dm->sRMSMeter.set_stereo_mode(dspu::SCSM_STEREO);
+                dm->sRMSMeter.set_source(dspu::SCS_MIDDLE);
+                dm->sRMSMeter.set_gain(GAIN_AMP_0_DB);
+                dm->sRMSMeter.set_reactivity(dspu::bs::LUFS_MEASURE_PERIOD_MS);
+
+                if (!dm->sTPMeter.init())
+                    return;
+
+                if (dm->sLUFSMeter.init(nChannels, dspu::bs::LUFS_MEASURE_PERIOD_MS) != STATUS_OK)
+                    return;
+
+                dm->sLUFSMeter.set_period(dspu::bs::LUFS_MEASURE_PERIOD_MS);
+                dm->sLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
+                if (nChannels > 1)
+                {
+                    dm->sLUFSMeter.set_active(0, true);
+                    dm->sLUFSMeter.set_active(1, true);
+                    dm->sLUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                    dm->sLUFSMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+                }
+                else
+                {
+                    dm->sLUFSMeter.set_active(0, true);
+                    dm->sLUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+                }
             }
 
             // Initialize offline tasks
@@ -358,6 +400,28 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
                 c->sBypass.init(sr);
                 c->sPostFilter.set_sample_rate(sr);
+            }
+
+            // Update dynamics meters
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+
+                const size_t latency    = dspu::millis_to_samples(sr, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.5f);
+
+                dm->sTPDelay.init(latency);
+                dm->sPeakDelay.init(latency);
+
+                dm->sRMSMeter.set_sample_rate(sr);
+                dm->sTPMeter.set_sample_rate(sr);
+                dm->sLUFSMeter.set_sample_rate(sr);
+
+                dm->sPeakDelay.set_delay(latency);
+                dm->sTPDelay.set_delay(latency - dm->sTPMeter.latency());
+
+                const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MIN / meta::referencer::DYNA_MESH_SIZE);
+                for (size_t j=0; j<DM_TOTAL; ++j)
+                    dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, period);
             }
         }
 
@@ -618,12 +682,12 @@ namespace lsp
             }
         }
 
-        void referencer::make_thumbnail(float *dst, const float *src, size_t len)
+        void referencer::make_thumbnail(float *dst, const float *src, size_t len, size_t dst_len)
         {
-            for (size_t i=0; i<meta::referencer::FILE_MESH_SIZE; ++i)
+            for (size_t i=0; i<dst_len; ++i)
             {
-                size_t first    = (i * len) / meta::referencer::FILE_MESH_SIZE;
-                size_t last     = ((i + 1) * len) / meta::referencer::FILE_MESH_SIZE;
+                size_t first    = (i * len) / dst_len;
+                size_t last     = ((i + 1) * len) / dst_len;
                 if (first < last)
                     dst[i]          = dsp::abs_max(&src[first], last - first);
                 else if (first < len)
@@ -684,7 +748,7 @@ namespace lsp
             {
                 af->vThumbs[i]          = thumbs;
                 thumbs                 += meta::referencer::FILE_MESH_SIZE;
-                make_thumbnail(af->vThumbs[i], source->channel(i), source->length());
+                make_thumbnail(af->vThumbs[i], source->channel(i), source->length(), meta::referencer::FILE_MESH_SIZE);
             }
 
             // Commit the result
@@ -812,7 +876,7 @@ namespace lsp
             {
                 // Copy thumbnails
                 for (size_t i=0; i<channels; ++i)
-                    make_thumbnail(mesh->pvData[i], af->pSample->channel(i, start), len);
+                    make_thumbnail(mesh->pvData[i], af->pSample->channel(i, start), len, meta::referencer::FILE_MESH_SIZE);
 
                 mesh->data(channels, meta::referencer::FILE_MESH_SIZE);
             }

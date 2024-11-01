@@ -24,7 +24,12 @@
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
+#include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
+#include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
+#include <lsp-plug.in/dsp-units/util/Delay.h>
+#include <lsp-plug.in/dsp-units/util/MeterGraph.h>
+#include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 #include <private/meta/referencer.h>
 
@@ -77,6 +82,17 @@ namespace lsp
                     PF_MID,
                     PF_HIGH_MID,
                     PF_HIGH,
+                };
+
+                enum dmtype_t
+                {
+                    DM_PEAK,
+                    DM_TRUE_PEAK,
+                    DM_RMS,
+                    DM_LUFS,
+                    DM_PSR,
+
+                    DM_TOTAL
                 };
 
                 struct afile_t;
@@ -152,11 +168,23 @@ namespace lsp
                     plug::IPort        *pOut;                                       // Output port
                 } channel_t;
 
+                typedef struct dyna_meters_t
+                {
+                    dspu::Delay         sPeakDelay;                                 // Peak delay
+                    dspu::Sidechain     sRMSMeter;                                  // RMS meter
+                    dspu::TruePeakMeter sTPMeter;                                   // True Peak meter
+                    dspu::Delay         sTPDelay;                                   // True Peak delay
+                    dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
+
+                    dspu::MeterGraph    vGraphs[DM_TOTAL];                          // Output graphs
+                } dyna_meters_t;
+
             protected:
                 uint32_t            nChannels;                                  // Number of channels
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
+                uint32_t            nMeterType;                                 // Dynamics meter type
                 stereo_mode_t       enMode;                                     // Stereo mode
                 float              *vBuffer;                                    // Temporary buffer
                 bool                bPlay;                                      // Play
@@ -166,6 +194,7 @@ namespace lsp
                 asource_t           sRef;                                       // Reference signal characteristics
                 ipc::IExecutor     *pExecutor;                                  // Executor service
                 afile_t             vSamples[meta::referencer::AUDIO_SAMPLES];  // Audio samples
+                dyna_meters_t       vDynaMeters[2];                             // Dynamic meters for mix and reference
 
                 plug::IPort        *pBypass;                                    // Bypass
                 plug::IPort        *pPlay;                                      // Play switch
@@ -180,12 +209,15 @@ namespace lsp
                 plug::IPort        *pPostSlope;                                 // Post-filter slope
                 plug::IPort        *pPostSel;                                   // Post-filter selector
                 plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
+                plug::IPort        *pDynaMode;                                  // Currently selected dynamics metering mode
+                plug::IPort        *pDynaTime;                                  // Maximum dynamics display time on the graph
+                plug::IPort        *pDynaMesh;                                  // Mesh for data output
 
                 uint8_t            *pData;                                      // Allocated data
 
             protected:
                 static void         destroy_sample(dspu::Sample * &sample);
-                static void         make_thumbnail(float *dst, const float *src, size_t len);
+                static void         make_thumbnail(float *dst, const float *src, size_t len, size_t dst_len);
                 static dspu::equalizer_mode_t decode_equalizer_mode(size_t mode);
 
             protected:
