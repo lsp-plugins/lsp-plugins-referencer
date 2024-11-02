@@ -1,5 +1,12 @@
 {
 	"referencer": {
+		"dynamics": {
+			"lufs": "LUFS",
+			"peak": "Пик",
+			"psr" : "PSR",
+			"rms": "СКЗ",
+			"true_peak": "Ист пик"
+		},
 		"filter": {
 			"bass": "Бас",
 			"high": "Верх",

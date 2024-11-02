@@ -161,7 +161,7 @@ namespace lsp
 
                     float              *vIn;                                        // Input buffer
                     float              *vOut;                                       // Output buffer
-                    float              *vReference;                                 // Reference signal buffer
+                    float              *vBuffer;                                    // Signal buffer
 
                     // Input ports
                     plug::IPort        *pIn;                                        // Input port
@@ -172,7 +172,7 @@ namespace lsp
                 {
                     dspu::Delay         sPeakDelay;                                 // Peak delay
                     dspu::Sidechain     sRMSMeter;                                  // RMS meter
-                    dspu::TruePeakMeter sTPMeter;                                   // True Peak meter
+                    dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
 
@@ -184,7 +184,8 @@ namespace lsp
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
-                uint32_t            nMeterType;                                 // Dynamics meter type
+                uint32_t            nDynaMode;                                  // Dynamics meter type mode
+                float               fDynaTime;                                  // Dynamics time
                 stereo_mode_t       enMode;                                     // Stereo mode
                 float              *vBuffer;                                    // Temporary buffer
                 bool                bPlay;                                      // Play
@@ -211,7 +212,7 @@ namespace lsp
                 plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
                 plug::IPort        *pDynaMode;                                  // Currently selected dynamics metering mode
                 plug::IPort        *pDynaTime;                                  // Maximum dynamics display time on the graph
-                plug::IPort        *pDynaMesh;                                  // Mesh for data output
+                plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
 
                 uint8_t            *pData;                                      // Allocated data
 
@@ -231,8 +232,10 @@ namespace lsp
                 void                apply_post_filters(size_t samples);
                 void                apply_stereo_mode(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
+                void                perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
                 void                output_file_data();
                 void                output_loop_data();
+                void                output_dyna_meters();
                 void                do_destroy();
 
             public:

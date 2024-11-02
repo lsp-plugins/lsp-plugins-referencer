@@ -1,5 +1,12 @@
 {
 	"referencer": {
+		"dynamics": {
+			"lufs": "LUFS",
+			"peak": "Peak",
+			"psr" : "PSR",
+			"rms": "RMS",
+			"true_peak": "True Peak"
+		},
 		"filter": {
 			"bass": "Bass",
 			"high": "High",

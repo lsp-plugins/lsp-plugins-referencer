@@ -83,7 +83,8 @@ namespace lsp
             nPlaySample         = -1;
             nPlayLoop           = -1;
             nCrossfadeTime      = 0;
-            nMeterType          = DM_PSR;
+            nDynaMode           = DM_PSR;
+            fDynaTime           = 0.0f;
             vBuffer             = NULL;
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
@@ -186,7 +187,7 @@ namespace lsp
             // Estimate the number of bytes to allocate
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
             size_t szof_buf         = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
-            size_t alloc            = szof_channels + nChannels * szof_buf + szof_buf;
+            size_t alloc            = szof_channels + nChannels * szof_buf + szof_buf * 2;
 
             // Allocate memory-aligned data
             uint8_t *ptr            = alloc_aligned<uint8_t>(pData, alloc, OPTIMAL_ALIGN);
@@ -195,7 +196,7 @@ namespace lsp
 
             // Initialize pointers to channels and temporary buffer
             vChannels               = advance_ptr_bytes<channel_t>(ptr, szof_channels);
-            vBuffer                 = advance_ptr_bytes<float>(ptr, szof_buf);
+            vBuffer                 = advance_ptr_bytes<float>(ptr, szof_buf * 2);
 
             for (size_t i=0; i < nChannels; ++i)
             {
@@ -210,7 +211,7 @@ namespace lsp
                     return;
                 c->sPostFilter.set_smooth(true);
 
-                c->vReference           = advance_ptr_bytes<float>(ptr, szof_buf);
+                c->vBuffer              = advance_ptr_bytes<float>(ptr, szof_buf);
 
                 // Initialize fields
                 c->pIn                  = NULL;
@@ -231,7 +232,9 @@ namespace lsp
                 dm->sRMSMeter.set_gain(GAIN_AMP_0_DB);
                 dm->sRMSMeter.set_reactivity(dspu::bs::LUFS_MEASURE_PERIOD_MS);
 
-                if (!dm->sTPMeter.init())
+                if (!dm->sTPMeter[0].init())
+                    return;
+                if (!dm->sTPMeter[1].init())
                     return;
 
                 if (dm->sLUFSMeter.init(nChannels, dspu::bs::LUFS_MEASURE_PERIOD_MS) != STATUS_OK)
@@ -296,6 +299,12 @@ namespace lsp
             for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
                 BIND_PORT(pPostSplit[i]);
 
+            // Dynamics meters
+            SKIP_PORT("Dynamics display source");
+            BIND_PORT(pDynaMode);
+            BIND_PORT(pDynaTime);
+            BIND_PORT(pDynaMesh);
+
             if (nChannels > 1)
             {
                 BIND_PORT(pMode);
@@ -349,6 +358,20 @@ namespace lsp
 
                 // Destroy audio file
                 unload_afile(af);
+            }
+
+            // Destroy meters
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+
+                dm->sPeakDelay.destroy();
+                dm->sRMSMeter.destroy();
+                dm->sTPMeter[0].destroy();
+                dm->sTPMeter[1].destroy();
+                dm->sLUFSMeter.destroy();
+                for (size_t j=0; j<DM_TOTAL; ++j)
+                    dm->vGraphs[j].destroy();
             }
 
             // Destroy channels
@@ -413,15 +436,17 @@ namespace lsp
                 dm->sPeakDelay.init(latency);
 
                 dm->sRMSMeter.set_sample_rate(sr);
-                dm->sTPMeter.set_sample_rate(sr);
+                dm->sTPMeter[0].set_sample_rate(sr);
+                dm->sTPMeter[1].set_sample_rate(sr);
                 dm->sLUFSMeter.set_sample_rate(sr);
 
                 dm->sPeakDelay.set_delay(latency);
-                dm->sTPDelay.set_delay(latency - dm->sTPMeter.latency());
+                dm->sTPDelay.set_delay(latency - dm->sTPMeter[0].latency());
 
                 const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MIN / meta::referencer::DYNA_MESH_SIZE);
+                const size_t history    = meta::referencer::DYNA_MESH_SIZE * meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_TIME_MIN;
                 for (size_t j=0; j<DM_TOTAL; ++j)
-                    dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, period);
+                    dm->vGraphs[j].init(history, period);
             }
         }
 
@@ -611,6 +636,9 @@ namespace lsp
                 c->sPostFilter.set_params(0, &fp);
                 c->sPostFilter.set_mode(post_mode);
             }
+
+            nDynaMode               = pDynaMode->value();
+            fDynaTime               = pDynaTime->value();
 
             // Apply configuration to channels
             bool bypass             = pBypass->value() >= 0.5f;
@@ -922,7 +950,7 @@ namespace lsp
                 for (size_t i=0; i<nChannels; ++i)
                 {
                     // Obtain source and destination pointers
-                    float *dst          = &vChannels[i].vReference[offset];
+                    float *dst          = &vChannels[i].vBuffer[offset];
                     const float *src    = af->pSample->channel(i % s_channels, al->nPos);
                     if (crossfade)
                     {
@@ -996,7 +1024,7 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c = &vChannels[i];
-                dsp::fill_zero(c->vReference, samples);
+                dsp::fill_zero(c->vBuffer, samples);
             }
 
             // Process each loop depending on it's state
@@ -1027,7 +1055,7 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c = &vChannels[i];
-                c->sPostFilter.process(c->vReference, c->vReference, samples);
+                c->sPostFilter.process(c->vBuffer, c->vBuffer, samples);
             }
         }
 
@@ -1042,7 +1070,7 @@ namespace lsp
                 // Apply envelope
                 for (size_t i=0; i<nChannels; ++i)
                 {
-                    float *dst = vChannels[i].vReference;
+                    float *dst = vChannels[i].vBuffer;
 
                     dsp::lramp1(dst, sRef.fGain, gain, to_process);
                     if (to_process < samples)
@@ -1055,7 +1083,7 @@ namespace lsp
             else
             {
                 for (size_t i=0; i<nChannels; ++i)
-                    dsp::mul_k2(vChannels[i].vReference, sRef.fGain, samples);
+                    dsp::mul_k2(vChannels[i].vBuffer, sRef.fGain, samples);
             }
 
             // Now process mix signal
@@ -1067,7 +1095,7 @@ namespace lsp
                 // Apply envelope
                 for (size_t i=0; i<nChannels; ++i)
                 {
-                    float *dst = vChannels[i].vReference;
+                    float *dst = vChannels[i].vBuffer;
                     const float *src = vChannels[i].vIn;
 
                     dsp::lramp_add2(dst, src, sMix.fGain, gain, to_process);
@@ -1081,7 +1109,7 @@ namespace lsp
             else
             {
                 for (size_t i=0; i<nChannels; ++i)
-                    dsp::fmadd_k3(vChannels[i].vReference, vChannels[i].vIn, sMix.fGain, samples);
+                    dsp::fmadd_k3(vChannels[i].vBuffer, vChannels[i].vIn, sMix.fGain, samples);
             }
         }
 
@@ -1092,41 +1120,106 @@ namespace lsp
                 case SM_STEREO:
                     break;
                 case SM_INVERSE_STEREO:
-                    lsp::swap(vChannels[0].vReference, vChannels[1].vReference);
+                    lsp::swap(vChannels[0].vBuffer, vChannels[1].vBuffer);
                     break;
                 case SM_MONO:
-                    dsp::lr_to_mid(vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
-                    dsp::copy(vChannels[1].vReference, vChannels[0].vReference, samples);
+                    dsp::lr_to_mid(vChannels[0].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, samples);
+                    dsp::copy(vChannels[1].vBuffer, vChannels[0].vBuffer, samples);
                     break;
                 case SM_SIDE:
-                    dsp::lr_to_side(vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
-                    dsp::copy(vChannels[1].vReference, vChannels[0].vReference, samples);
+                    dsp::lr_to_side(vChannels[0].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, samples);
+                    dsp::copy(vChannels[1].vBuffer, vChannels[0].vBuffer, samples);
                     break;
                 case SM_SIDES:
-                    dsp::lr_to_side(vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
-                    dsp::mul_k3(vChannels[1].vReference, vChannels[0].vReference, -1.0f, samples);
+                    dsp::lr_to_side(vChannels[0].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, samples);
+                    dsp::mul_k3(vChannels[1].vBuffer, vChannels[0].vBuffer, -1.0f, samples);
                     break;
                 case SM_MID_SIDE:
-                    dsp::lr_to_ms(vChannels[0].vReference, vChannels[1].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, samples);
                     break;
                 case SM_SIDE_MID:
-                    dsp::lr_to_ms(vChannels[1].vReference, vChannels[0].vReference, vChannels[0].vReference, vChannels[1].vReference, samples);
+                    dsp::lr_to_ms(vChannels[1].vBuffer, vChannels[0].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, samples);
                     break;
                 case SM_LEFT:
-                    dsp::copy(vChannels[1].vReference, vChannels[0].vReference, samples);
+                    dsp::copy(vChannels[1].vBuffer, vChannels[0].vBuffer, samples);
                     break;
                 case SM_LEFT_ONLY:
-                    dsp::fill_zero(vChannels[1].vReference, samples);
+                    dsp::fill_zero(vChannels[1].vBuffer, samples);
                     break;
                 case SM_RIGHT_ONLY:
-                    dsp::fill_zero(vChannels[0].vReference, samples);
+                    dsp::fill_zero(vChannels[0].vBuffer, samples);
                     break;
                 case SM_RIGHT:
-                    dsp::copy(vChannels[0].vReference, vChannels[1].vReference, samples);
+                    dsp::copy(vChannels[0].vBuffer, vChannels[1].vBuffer, samples);
                     break;
                 default:
                     break;
             }
+        }
+
+        void referencer::perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples)
+        {
+            float *b1       = vBuffer;
+            float *b2       = &vBuffer[BUFFER_SIZE];
+            float *in[2];
+            in[0]           = const_cast<float *>(l);
+            in[1]           = const_cast<float *>(r);
+
+            if (nChannels > 1)
+            {
+                // Compute Peak values
+                dsp::pamax3(b1, l, r, samples);
+                dm->sPeakDelay.process(b1, b1, samples);
+                dm->vGraphs[DM_PEAK].process(b1, samples);
+
+                // Compute True Peak values
+                dm->sTPMeter[0].process(b1, l, samples);
+                dm->sTPMeter[1].process(b2, r, samples);
+                dsp::pmax2(b1, b2, samples);
+                dm->sTPDelay.process(b1, b1, samples);
+                dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
+
+                // Compute RMS values
+                dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
+                dm->vGraphs[DM_RMS].process(b2, samples);
+
+                // Compute LUFS value
+                dm->sLUFSMeter.bind(0, NULL, l, 0);
+                dm->sLUFSMeter.bind(1, NULL, r, 0);
+                dm->sLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+                dm->vGraphs[DM_LUFS].process(b2, samples);
+            }
+            else
+            {
+                // Compute Peak values
+                dsp::abs2(b1, l, samples);
+                dm->sPeakDelay.process(b1, b1, samples);
+                dm->vGraphs[DM_PEAK].process(b1, samples);
+
+                // Compute True Peak values
+                dm->sTPMeter[0].process(b1, l, samples);
+                dm->sTPDelay.process(b1, b1, samples);
+                dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
+
+                // Compute RMS values
+                dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
+                dm->vGraphs[DM_RMS].process(b2, samples);
+
+                // Compute LUFS value
+                dm->sLUFSMeter.bind(0, NULL, l, 0);
+                dm->sLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+                dm->vGraphs[DM_LUFS].process(b2, samples);
+            }
+
+            // Now b1 contains True Peak value and b2 contains LUFS value
+            // Compute the PSR value as True Peak / LUFS
+            for (size_t i=0; i<samples; ++i)
+            {
+                const float peak    = b1[i];
+                const float lufs    = b2[i];
+                b1[i]               = (lufs >= GAIN_AMP_M_72_DB) ? peak / lufs : 0.0f;
+            }
+            dm->vGraphs[DM_PSR].process(b1, samples);
         }
 
         void referencer::process(size_t samples)
@@ -1139,6 +1232,19 @@ namespace lsp
                 const size_t to_process = lsp_min(samples - offset, BUFFER_SIZE);
 
                 prepare_reference_signal(to_process);
+
+                // Measure input and reference signal parameters
+                perform_metering(
+                    &vDynaMeters[0],
+                    vChannels[0].vIn,
+                    (nChannels > 1) ? vChannels[1].vIn : NULL,
+                    to_process);
+                perform_metering(
+                    &vDynaMeters[1],
+                    vChannels[0].vBuffer,
+                    (nChannels > 1) ? vChannels[1].vBuffer : NULL,
+                    to_process);
+
                 mix_channels(to_process);
                 apply_post_filters(to_process);
 
@@ -1148,7 +1254,7 @@ namespace lsp
                 for (size_t i=0; i<nChannels; ++i)
                 {
                     channel_t *c = &vChannels[i];
-                    dsp::copy(c->vOut, c->vReference, to_process);
+                    dsp::copy(c->vOut, c->vBuffer, to_process);
 
                     c->vIn             += to_process;
                     c->vOut            += to_process;
@@ -1159,6 +1265,57 @@ namespace lsp
 
             output_file_data();
             output_loop_data();
+            output_dyna_meters();
+        }
+
+        void referencer::output_dyna_meters()
+        {
+            // Check that mesh is ready for receiving data
+            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pDynaMesh->buffer());
+            if ((mesh == NULL) || (!mesh->isEmpty()))
+                return;
+
+            // Generate timestamp
+            float *t = mesh->pvData[0];
+            float *s = mesh->pvData[1];
+            float *r = mesh->pvData[2];
+
+            dsp::lramp_set1(&t[2], fDynaTime, 0.0f, meta::referencer::DYNA_MESH_SIZE);
+
+            // Output graphs
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+                dspu::MeterGraph *mg    = &dm->vGraphs[nDynaMode];
+                const float *graph      = mg->data();
+                const size_t frames     = mg->get_frames();
+                const size_t length     = frames * (fDynaTime / meta::referencer::DYNA_TIME_MAX);
+                const size_t offset     = frames - length;
+
+                make_thumbnail(&mesh->pvData[i + 1][2], &graph[offset], length, meta::referencer::DYNA_MESH_SIZE);
+            }
+
+            // Generate end points
+            t[1]    = t[2] + 0.5f;
+            t[0]    = t[1];
+            s[1]    = s[0];
+            s[0]    = GAIN_AMP_M_INF_DB;
+            r[1]    = r[0];
+            r[0]    = GAIN_AMP_M_INF_DB;
+
+            t     += meta::referencer::DYNA_MESH_SIZE + 2;
+            s     += meta::referencer::DYNA_MESH_SIZE + 2;
+            r     += meta::referencer::DYNA_MESH_SIZE + 2;
+
+            t[0]    = t[-1] - 0.5f;
+            t[1]    = t[0];
+            s[0]    = s[-1];
+            s[1]    = GAIN_AMP_M_INF_DB;
+            r[0]    = r[-1];
+            r[1]    = GAIN_AMP_M_INF_DB;
+
+            // Commit data to mesh
+            mesh->data(3, meta::referencer::DYNA_MESH_SIZE + 4);
         }
 
         void referencer::ui_activated()
