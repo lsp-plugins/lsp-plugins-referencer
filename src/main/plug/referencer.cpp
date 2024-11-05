@@ -443,10 +443,9 @@ namespace lsp
                 dm->sPeakDelay.set_delay(latency);
                 dm->sTPDelay.set_delay(latency - dm->sTPMeter[0].latency());
 
-                const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MIN / meta::referencer::DYNA_MESH_SIZE);
-                const size_t history    = meta::referencer::DYNA_MESH_SIZE * meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_TIME_MIN;
+                const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_MESH_SIZE);
                 for (size_t j=0; j<DM_TOTAL; ++j)
-                    dm->vGraphs[j].init(history, period);
+                    dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, meta::referencer::DYNA_SUBSAMPLING, period);
             }
         }
 
@@ -639,6 +638,15 @@ namespace lsp
 
             nDynaMode               = pDynaMode->value();
             fDynaTime               = pDynaTime->value();
+            const size_t period     = dspu::seconds_to_samples(fSampleRate, fDynaTime / float(meta::referencer::DYNA_MESH_SIZE));
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+                for (size_t j=0; j<DM_TOTAL; ++j)
+                {
+                    dm->vGraphs[j].set_period(period);
+                }
+            }
 
             // Apply configuration to channels
             bool bypass             = pBypass->value() >= 0.5f;
@@ -1286,28 +1294,23 @@ namespace lsp
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
-                dspu::MeterGraph *mg    = &dm->vGraphs[nDynaMode];
-                const float *graph      = mg->data();
-                const size_t frames     = mg->get_frames();
-                const size_t length     = frames * (fDynaTime / meta::referencer::DYNA_TIME_MAX);
-                const size_t offset     = frames - length;
-
-                make_thumbnail(&mesh->pvData[i + 1][2], &graph[offset], length, meta::referencer::DYNA_MESH_SIZE);
+                dspu::ScaledMeterGraph *mg    = &dm->vGraphs[nDynaMode];
+                mg->read(&mesh->pvData[i + 1][2], meta::referencer::DYNA_MESH_SIZE);
             }
 
             // Generate end points
-            t[1]    = t[2] + 0.5f;
-            t[0]    = t[1];
-            s[1]    = s[0];
+            t[0]    = meta::referencer::DYNA_TIME_MAX + 0.5f;
+            t[1]    = t[0];
             s[0]    = GAIN_AMP_M_INF_DB;
-            r[1]    = r[0];
+            s[1]    = s[2];
             r[0]    = GAIN_AMP_M_INF_DB;
+            r[1]    = r[2];
 
             t     += meta::referencer::DYNA_MESH_SIZE + 2;
             s     += meta::referencer::DYNA_MESH_SIZE + 2;
             r     += meta::referencer::DYNA_MESH_SIZE + 2;
 
-            t[0]    = t[-1] - 0.5f;
+            t[0]    = - 0.5f;
             t[1]    = t[0];
             s[0]    = s[-1];
             s[1]    = GAIN_AMP_M_INF_DB;

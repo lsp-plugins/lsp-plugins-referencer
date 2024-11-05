@@ -45,6 +45,7 @@ namespace lsp
             static constexpr size_t AUDIO_LOOPS         = 4;                    // Number of loops per sample
             static constexpr size_t FILE_MESH_SIZE      = 640;                  // Audio file mesh size
             static constexpr size_t DYNA_MESH_SIZE      = 640;                  // Dynamics graph mesh size
+            static constexpr size_t DYNA_SUBSAMPLING    = 64;                   // Dynamics graph mesh sub-sampling
             static constexpr size_t POST_BANDS          = 6;                    // Number of post-filter bands
             static constexpr size_t POST_SPLITS         = POST_BANDS - 1;       // Number of post-filter frequency splits
             static constexpr size_t EQ_RANK             = 12;                   // Equalizer rank
@@ -98,7 +99,7 @@ namespace lsp
             static constexpr float  DYNA_TIME_MIN       = 2.0f;                 // Minimum dynamics time
             static constexpr float  DYNA_TIME_MAX       = 20.0f;                // Maximum dynamics time
             static constexpr float  DYNA_TIME_DFL       = 5.0f;                 // Default dynamics time
-            static constexpr float  DYNA_TIME_STEP      = 0.05f;                // Dynamics time step
+            static constexpr float  DYNA_TIME_STEP      = 0.01f;                // Dynamics time step
         } referencer;
 
         // Plugin type metadata

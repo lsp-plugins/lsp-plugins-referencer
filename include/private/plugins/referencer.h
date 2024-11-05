@@ -28,7 +28,7 @@
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
-#include <lsp-plug.in/dsp-units/util/MeterGraph.h>
+#include <lsp-plug.in/dsp-units/util/ScaledMeterGraph.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/plug.h>
 #include <private/meta/referencer.h>
@@ -176,7 +176,7 @@ namespace lsp
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
 
-                    dspu::MeterGraph    vGraphs[DM_TOTAL];                          // Output graphs
+                    dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
                 } dyna_meters_t;
 
             protected:
