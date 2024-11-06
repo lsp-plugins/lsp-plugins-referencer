@@ -169,11 +169,27 @@ namespace lsp
             }
 
             pData               = NULL;
+
+//            const size_t sr = 48000;
+//            in.init(2, sr * 30, 0);
+//            lufs.init(2, sr * 30, 0);
+//            tp.init(2, sr * 30, 0);
+//            psr.init(2, sr * 30, 0);
+//
+//            in.set_sample_rate(sr);
+//            lufs.set_sample_rate(sr);
+//            tp.set_sample_rate(sr);
+//            psr.set_sample_rate(sr);
         }
 
         referencer::~referencer()
         {
             do_destroy();
+
+//            in.save("test-in.wav");
+//            lufs.save("test-lufs.wav");
+//            tp.save("test-tpeak.wav");
+//            psr.save("test-psr.wav");
         }
 
         void referencer::init(plug::IWrapper *wrapper, plug::IPort **ports)
@@ -242,6 +258,7 @@ namespace lsp
 
                 dm->sLUFSMeter.set_period(dspu::bs::LUFS_MEASURE_PERIOD_MS);
                 dm->sLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
+
                 if (nChannels > 1)
                 {
                     dm->sLUFSMeter.set_active(0, true);
@@ -365,11 +382,13 @@ namespace lsp
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
 
-                dm->sPeakDelay.destroy();
                 dm->sRMSMeter.destroy();
                 dm->sTPMeter[0].destroy();
                 dm->sTPMeter[1].destroy();
+                dm->sTPDelay.destroy();
                 dm->sLUFSMeter.destroy();
+//                dm->sLUFSDelay.destroy();
+
                 for (size_t j=0; j<DM_TOTAL; ++j)
                     dm->vGraphs[j].destroy();
             }
@@ -430,18 +449,17 @@ namespace lsp
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
 
-                const size_t latency    = dspu::millis_to_samples(sr, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.5f);
-
-                dm->sTPDelay.init(latency);
-                dm->sPeakDelay.init(latency);
-
                 dm->sRMSMeter.set_sample_rate(sr);
                 dm->sTPMeter[0].set_sample_rate(sr);
                 dm->sTPMeter[1].set_sample_rate(sr);
                 dm->sLUFSMeter.set_sample_rate(sr);
 
-                dm->sPeakDelay.set_delay(latency);
-                dm->sTPDelay.set_delay(latency - dm->sTPMeter[0].latency());
+                const size_t delay      = dspu::millis_to_samples(fSampleRate, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.25f);
+                dm->sTPDelay.init(delay + BUFFER_SIZE);
+                dm->sTPDelay.set_delay(delay - dm->sTPMeter[0].latency());
+
+//                dm->sLUFSDelay.init(dm->sTPMeter[0].latency());
+//                dm->sLUFSDelay.set_delay(dm->sTPMeter[0].latency());
 
                 const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_MESH_SIZE);
                 for (size_t j=0; j<DM_TOTAL; ++j)
@@ -1177,15 +1195,14 @@ namespace lsp
             {
                 // Compute Peak values
                 dsp::pamax3(b1, l, r, samples);
-                dm->sPeakDelay.process(b1, b1, samples);
                 dm->vGraphs[DM_PEAK].process(b1, samples);
 
                 // Compute True Peak values
                 dm->sTPMeter[0].process(b1, l, samples);
                 dm->sTPMeter[1].process(b2, r, samples);
                 dsp::pmax2(b1, b2, samples);
-                dm->sTPDelay.process(b1, b1, samples);
                 dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
+                dm->sTPDelay.process(b1, b1, samples);
 
                 // Compute RMS values
                 dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
@@ -1195,19 +1212,35 @@ namespace lsp
                 dm->sLUFSMeter.bind(0, NULL, l, 0);
                 dm->sLUFSMeter.bind(1, NULL, r, 0);
                 dm->sLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+//                dm->sLUFSDelay.process(b2, b2, samples);
                 dm->vGraphs[DM_LUFS].process(b2, samples);
+
+//                if (dm == &vDynaMeters[0])
+//                {
+//                    size_t offset = this->in.length();
+//                    this->in.append(samples);
+//                    dsp::copy(this->in.channel(0, offset), l, samples);
+//                    dsp::copy(this->in.channel(1, offset), r, samples);
+//
+//                    offset = lufs.length();
+//                    lufs.append(samples);
+//                    dsp::copy(lufs.channel(0, offset), b2, samples);
+//
+//                    offset = tp.length();
+//                    tp.append(samples);
+//                    dsp::copy(tp.channel(0, offset), b1, samples);
+//                }
             }
             else
             {
                 // Compute Peak values
                 dsp::abs2(b1, l, samples);
-                dm->sPeakDelay.process(b1, b1, samples);
                 dm->vGraphs[DM_PEAK].process(b1, samples);
 
                 // Compute True Peak values
                 dm->sTPMeter[0].process(b1, l, samples);
-                dm->sTPDelay.process(b1, b1, samples);
                 dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
+                dm->sTPDelay.process(b1, b1, samples);
 
                 // Compute RMS values
                 dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
@@ -1216,6 +1249,7 @@ namespace lsp
                 // Compute LUFS value
                 dm->sLUFSMeter.bind(0, NULL, l, 0);
                 dm->sLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+//                dm->sLUFSDelay.process(b2, b2, samples);
                 dm->vGraphs[DM_LUFS].process(b2, samples);
             }
 
@@ -1225,8 +1259,16 @@ namespace lsp
             {
                 const float peak    = b1[i];
                 const float lufs    = b2[i];
-                b1[i]               = (lufs >= GAIN_AMP_M_72_DB) ? peak / lufs : 0.0f;
+                b1[i]               = (lufs >= GAIN_AMP_M_60_DB) ? peak / lufs : 0.0f;
             }
+
+//            if (dm == &vDynaMeters[0])
+//            {
+//                size_t offset = psr.length();
+//                psr.append(samples);
+//                dsp::copy(psr.channel(0, offset), b1, samples);
+//            }
+
             dm->vGraphs[DM_PSR].process(b1, samples);
         }
 

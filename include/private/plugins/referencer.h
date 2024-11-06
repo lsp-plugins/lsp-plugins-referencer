@@ -170,11 +170,11 @@ namespace lsp
 
                 typedef struct dyna_meters_t
                 {
-                    dspu::Delay         sPeakDelay;                                 // Peak delay
                     dspu::Sidechain     sRMSMeter;                                  // RMS meter
                     dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
+//                    dspu::Delay         sLUFSDelay;                                 // LUFS delay
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
                 } dyna_meters_t;
@@ -215,6 +215,8 @@ namespace lsp
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
 
                 uint8_t            *pData;                                      // Allocated data
+
+//                dspu::Sample        in, lufs, tp, psr;
 
             protected:
                 static void         destroy_sample(dspu::Sample * &sample);
