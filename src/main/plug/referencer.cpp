@@ -84,8 +84,16 @@ namespace lsp
             nPlayLoop           = -1;
             nCrossfadeTime      = 0;
             nDynaMode           = DM_PSR;
+            nFftPeriod          = 0;
+            nFftFrame           = 0;
+            nFftHistory         = 0;
             fDynaTime           = 0.0f;
             vBuffer             = NULL;
+            vFftFreqs           = NULL;
+            vFftInds            = NULL;
+            vFftWindow          = NULL;
+            vFftEnvelope        = NULL;
+
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
                     ++nChannels;
@@ -104,7 +112,6 @@ namespace lsp
             sRef.fNewGain       = GAIN_AMP_M_INF_DB;
             sRef.nTransition    = 0;
 
-
             pExecutor           = NULL;
 
             pBypass             = NULL;
@@ -117,6 +124,7 @@ namespace lsp
             pLoopPos            = NULL;
             bPlay               = false;
             bSyncLoopMesh       = true;
+            bUpdFft             = true;
             pMode               = NULL;
 
             pPostMode           = NULL;
@@ -129,6 +137,23 @@ namespace lsp
             pDynaMode           = NULL;
             pDynaTime           = NULL;
             pDynaMesh           = NULL;
+
+            for (size_t i=0; i < 2; ++i)
+            {
+                fft_meters_t *fm    = &vFftMeters[i];
+
+                fm->vHistory[0]     = NULL;
+                fm->vHistory[1]     = NULL;
+
+                for (size_t j=0; j < FG_TOTAL; ++j)
+                {
+                    fft_graph_t *fg     = &fm->vGraphs[i];
+
+                    fg->vCurr           = NULL;
+                    fg->vMin            = NULL;
+                    fg->vMax            = NULL;
+                }
+            }
 
             for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
             {
@@ -201,9 +226,31 @@ namespace lsp
             pExecutor               = wrapper->executor();
 
             // Estimate the number of bytes to allocate
+            const size_t num_graphs = (nChannels > 1) ? FG_TOTAL : 1;
+            const size_t szof_fft   = sizeof(float) << meta::referencer::SPC_MAX_RANK;
+            const size_t szof_spc   = align_size(sizeof(float) * meta::referencer::SPC_MESH_SIZE, OPTIMAL_ALIGN);
+            const size_t szof_ind   = align_size(sizeof(uint16_t) * meta::referencer::SPC_MESH_SIZE, OPTIMAL_ALIGN);
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
             size_t szof_buf         = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
-            size_t alloc            = szof_channels + nChannels * szof_buf + szof_buf * 2;
+            size_t szof_global_buf  = lsp_max(szof_buf * 2, szof_fft * 2 * 3);
+            size_t alloc            =
+                szof_channels +     // vChannels
+                szof_global_buf +   // vBuffer
+                szof_spc +          // vFftFreqs
+                szof_ind +          // vFftInds
+                szof_fft +          // vFftWindow
+                szof_spc +          // vFftEnvelope
+                nChannels * (
+                    szof_buf            // vBuffer
+                ) +
+                2 * (               // vFftMeters
+                    szof_fft * nChannels + // vHistory
+                    num_graphs * (      // vGraphs
+                        szof_spc +         // vCurr
+                        szof_spc +         // vMin
+                        szof_spc           // vMax
+                    )
+                );
 
             // Allocate memory-aligned data
             uint8_t *ptr            = alloc_aligned<uint8_t>(pData, alloc, OPTIMAL_ALIGN);
@@ -212,8 +259,13 @@ namespace lsp
 
             // Initialize pointers to channels and temporary buffer
             vChannels               = advance_ptr_bytes<channel_t>(ptr, szof_channels);
-            vBuffer                 = advance_ptr_bytes<float>(ptr, szof_buf * 2);
+            vBuffer                 = advance_ptr_bytes<float>(ptr, szof_global_buf);
+            vFftFreqs               = advance_ptr_bytes<float>(ptr, szof_spc);
+            vFftInds                = advance_ptr_bytes<uint16_t>(ptr, szof_ind);
+            vFftWindow              = advance_ptr_bytes<float>(ptr, szof_fft);
+            vFftEnvelope            = advance_ptr_bytes<float>(ptr, szof_spc);
 
+            // Initialize audio channels
             for (size_t i=0; i < nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
@@ -227,14 +279,33 @@ namespace lsp
                     return;
                 c->sPostFilter.set_smooth(true);
 
+                // Initialize fields
                 c->vBuffer              = advance_ptr_bytes<float>(ptr, szof_buf);
 
-                // Initialize fields
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
             }
 
-            // Initialize meters
+            // Initialize FFT meters
+            for (size_t i=0; i < 2; ++i)
+            {
+                fft_meters_t *fm    = &vFftMeters[i];
+
+                fm->vHistory[0]     = advance_ptr_bytes<float>(ptr, szof_fft);
+                if (nChannels > 0)
+                    fm->vHistory[1]     = advance_ptr_bytes<float>(ptr, szof_fft);
+
+                for (size_t j=0; j < num_graphs; ++j)
+                {
+                    fft_graph_t *fg     = &fm->vGraphs[j];
+
+                    fg->vCurr           = advance_ptr_bytes<float>(ptr, szof_spc);
+                    fg->vMin            = advance_ptr_bytes<float>(ptr, szof_spc);
+                    fg->vMax            = advance_ptr_bytes<float>(ptr, szof_spc);
+                }
+            }
+
+            // Initialize dynamics meters
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
@@ -417,6 +488,10 @@ namespace lsp
         {
             // Update cross-fade time and sync it with playbacks
             nCrossfadeTime      = dspu::millis_to_samples(fSampleRate, meta::referencer::CROSSFADE_TIME);
+            nFftPeriod          = dspu::hz_to_samples(fSampleRate, meta::referencer::SPC_REFRESH_RATE);
+            nFftFrame           = 0;
+            nFftHistory         = 0;
+            bUpdFft             = true;
 
             sMix.fGain          = sMix.fNewGain;
             sMix.fOldGain       = sMix.fNewGain;
@@ -437,12 +512,37 @@ namespace lsp
             }
 
             // Update sample rate for the bypass processors
-            for (size_t i=0; i<nChannels; ++i)
+            for (size_t i=0; i < nChannels; ++i)
             {
                 channel_t *c        = &vChannels[i];
                 c->sBypass.init(sr);
                 c->sPostFilter.set_sample_rate(sr);
             }
+
+            // Cleanup FFT buffers
+            const size_t num_graphs = (nChannels > 1) ? FG_TOTAL : 1;
+            for (size_t i=0; i < 2; ++i)
+            {
+                fft_meters_t *fm    = &vFftMeters[i];
+
+                dsp::fill_zero(fm->vHistory[0], meta::referencer::SPC_MESH_SIZE);
+                if (nChannels > 1)
+                    dsp::fill_zero(fm->vHistory[1], meta::referencer::SPC_MESH_SIZE);
+
+                for (size_t j=0; j < num_graphs; ++j)
+                {
+                    fft_graph_t *fg     = &fm->vGraphs[j];
+
+                    dsp::fill_zero(fg->vCurr, meta::referencer::SPC_MESH_SIZE);
+                    dsp::fill_zero(fg->vMin, meta::referencer::SPC_MESH_SIZE);
+                    dsp::fill_zero(fg->vMax, meta::referencer::SPC_MESH_SIZE);
+                }
+            }
+
+            // Initialize FFT frequencies
+            const float f_norm      = logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN) / (meta::referencer::SPC_MESH_SIZE - 1);
+            for (size_t i=0; i<meta::referencer::SPC_MESH_SIZE; ++i)
+                vFftFreqs[i]            = SPEC_FREQ_MIN * expf(i * f_norm);
 
             // Update dynamics meters
             for (size_t i=0; i<2; ++i)
@@ -1183,6 +1283,11 @@ namespace lsp
             }
         }
 
+        void referencer::perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples)
+        {
+            // TODO
+        }
+
         void referencer::perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples)
         {
             float *b1       = vBuffer;
@@ -1284,6 +1389,17 @@ namespace lsp
                 prepare_reference_signal(to_process);
 
                 // Measure input and reference signal parameters
+                perform_fft_analysis(
+                    &vFftMeters[0],
+                    vChannels[0].vIn,
+                    (nChannels > 1) ? vChannels[1].vIn : NULL,
+                    to_process);
+                perform_fft_analysis(
+                    &vFftMeters[1],
+                    vChannels[0].vBuffer,
+                    (nChannels > 1) ? vChannels[1].vBuffer : NULL,
+                    to_process);
+
                 perform_metering(
                     &vDynaMeters[0],
                     vChannels[0].vIn,

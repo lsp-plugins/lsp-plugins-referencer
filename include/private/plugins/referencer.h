@@ -95,6 +95,18 @@ namespace lsp
                     DM_TOTAL
                 };
 
+                enum fgraph_t
+                {
+                    FG_LEFT,
+                    FG_RIGHT,
+                    FG_MID,
+                    FG_SIDE,
+                    FG_DIFF,
+                    FG_CORR,
+
+                    FG_TOTAL
+                };
+
                 struct afile_t;
 
                 class AFLoader: public ipc::ITask
@@ -168,13 +180,25 @@ namespace lsp
                     plug::IPort        *pOut;                                       // Output port
                 } channel_t;
 
+                typedef struct fft_graph_t
+                {
+                    float              *vCurr;                                      // Current actual value
+                    float              *vMin;                                       // Minimum value
+                    float              *vMax;                                       // Maximum value
+                } fft_graph_t;
+
+                typedef struct fft_meters_t
+                {
+                    float              *vHistory[2];                                // History for left and right channels
+                    fft_graph_t         vGraphs[FG_TOTAL];                          // List of graphs
+                } fft_meters_t;
+
                 typedef struct dyna_meters_t
                 {
                     dspu::Sidechain     sRMSMeter;                                  // RMS meter
                     dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
-//                    dspu::Delay         sLUFSDelay;                                 // LUFS delay
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
                 } dyna_meters_t;
@@ -185,17 +209,26 @@ namespace lsp
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
                 uint32_t            nDynaMode;                                  // Dynamics meter type mode
+                uint32_t            nFftPeriod;                                 // FFT analysis period
+                uint32_t            nFftFrame;                                  // Current FFT frame
+                uint32_t            nFftHistory;                                // Current FFT per channel history write position
                 float               fDynaTime;                                  // Dynamics time
                 stereo_mode_t       enMode;                                     // Stereo mode
                 float              *vBuffer;                                    // Temporary buffer
+                float              *vFftFreqs;                                  // FFT frequencies
+                uint16_t           *vFftInds;                                   // FFT indices
+                float              *vFftWindow;                                 // FFT window
+                float              *vFftEnvelope;                               // FFT envelope
                 bool                bPlay;                                      // Play
                 bool                bSyncLoopMesh;                              // Sync loop mesh
+                bool                bUpdFft;                                    // Update FFT-related data
                 channel_t          *vChannels;                                  // Delay channels
                 asource_t           sMix;                                       // Mix signal characteristics
                 asource_t           sRef;                                       // Reference signal characteristics
                 ipc::IExecutor     *pExecutor;                                  // Executor service
                 afile_t             vSamples[meta::referencer::AUDIO_SAMPLES];  // Audio samples
                 dyna_meters_t       vDynaMeters[2];                             // Dynamic meters for mix and reference
+                fft_meters_t        vFftMeters[2];                              // FFT meters
 
                 plug::IPort        *pBypass;                                    // Bypass
                 plug::IPort        *pPlay;                                      // Play switch
@@ -234,6 +267,7 @@ namespace lsp
                 void                apply_post_filters(size_t samples);
                 void                apply_stereo_mode(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
+                void                perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples);
                 void                perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
                 void                output_file_data();
                 void                output_loop_data();

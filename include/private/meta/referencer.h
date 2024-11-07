@@ -50,6 +50,9 @@ namespace lsp
             static constexpr size_t POST_SPLITS         = POST_BANDS - 1;       // Number of post-filter frequency splits
             static constexpr size_t EQ_RANK             = 12;                   // Equalizer rank
             static constexpr float  CROSSFADE_TIME      = 5.0f;                 // Cross-fade time in milliseconds
+            static constexpr size_t SPC_MAX_RANK        = 14;
+            static constexpr size_t SPC_MESH_SIZE       = 640;
+            static constexpr size_t SPC_REFRESH_RATE    = 20;
 
             static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;              // Maximum sample length (s)
