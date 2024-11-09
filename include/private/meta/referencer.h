@@ -22,9 +22,10 @@
 #ifndef PRIVATE_META_REFERENCER_H_
 #define PRIVATE_META_REFERENCER_H_
 
+#include <lsp-plug.in/dsp-units/misc/envelope.h>
+#include <lsp-plug.in/dsp-units/misc/windows.h>
 #include <lsp-plug.in/plug-fw/meta/types.h>
 #include <lsp-plug.in/plug-fw/const.h>
-
 #include <lsp-plug.in/stdlib/math.h>
 
 namespace lsp
@@ -52,7 +53,10 @@ namespace lsp
             static constexpr float  CROSSFADE_TIME      = 5.0f;                 // Cross-fade time in milliseconds
             static constexpr size_t SPC_MAX_RANK        = 14;
             static constexpr size_t SPC_MESH_SIZE       = 640;
+            static constexpr size_t SPC_HISTORY_SIZE    = 1 << (SPC_MAX_RANK + 1);
             static constexpr size_t SPC_REFRESH_RATE    = 20;
+            static constexpr size_t FFT_WND_DFL         = dspu::windows::HANN;
+            static constexpr size_t FFT_ENV_DFL         = dspu::envelope::PINK_NOISE;
 
             static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;              // Maximum sample length (s)
@@ -103,6 +107,16 @@ namespace lsp
             static constexpr float  DYNA_TIME_MAX       = 20.0f;                // Maximum dynamics time
             static constexpr float  DYNA_TIME_DFL       = 5.0f;                 // Default dynamics time
             static constexpr float  DYNA_TIME_STEP      = 0.01f;                // Dynamics time step
+
+            static constexpr size_t FFT_RANK_MIN        = 10;                   // Minimum FFT rank
+            static constexpr size_t FFT_RANK_DFL        = 12;                   // Default FFT rank
+            static constexpr size_t FFT_RANK_MAX        = 14;                   // Maximum FFT rank
+
+            static constexpr float  FFT_REACT_TIME_MIN  = 0.000f;               // Spectrum analysis reactivity min
+            static constexpr float  FFT_REACT_TIME_MAX  = 1.000f;               // Spectrum analysis reactivity max
+            static constexpr float  FFT_REACT_TIME_DFL  = 0.200f;               // Spectrum analysis reactivity default value
+            static constexpr float  FFT_REACT_TIME_STEP = 0.001f;               // Spectrum analysis reactivity step
+
         } referencer;
 
         // Plugin type metadata

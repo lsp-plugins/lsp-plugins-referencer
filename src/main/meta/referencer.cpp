@@ -136,6 +136,18 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t fft_tolerance[] =
+        {
+            { "1024", NULL },
+            { "2048", NULL },
+            { "4096", NULL },
+            { "8192", NULL },
+            { "16384", NULL },
+            { NULL, NULL }
+        };
+
+
+
         #define REF_LOOP(id, name) \
             CONTROL("lb" id, name " start", U_SEC, referencer::SAMPLE_LENGTH), \
             CONTROL("le" id, name " end", U_SEC, referencer::SAMPLE_LENGTH),  \
@@ -183,7 +195,13 @@ namespace lsp
             COMBO("dmsel", "Dynamics display source", 2, source_selectors), \
             COMBO("dmmode", "Dynamics display mode", 4, dynamics_modes), \
             CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
-            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4)
+            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
+            /* FFT analysis */ \
+            COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
+            COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
+            COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
+            LOG_CONTROL("fftrct", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
+            MESH("fftgr", "FFT Analysis mesh", 5, referencer::SPC_MESH_SIZE + 4)
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors)

@@ -84,15 +84,17 @@ namespace lsp
             nPlayLoop           = -1;
             nCrossfadeTime      = 0;
             nDynaMode           = DM_PSR;
-            nFftPeriod          = 0;
-            nFftFrame           = 0;
-            nFftHistory         = 0;
             fDynaTime           = 0.0f;
             vBuffer             = NULL;
             vFftFreqs           = NULL;
             vFftInds            = NULL;
             vFftWindow          = NULL;
             vFftEnvelope        = NULL;
+            nFftRank            = 0;
+            nFftWindow          = -1;
+            nFftEnvelope        = -1;
+            fFftReactivity      = 0.0f;
+            fFftTau             = 0.0f;
 
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
@@ -138,12 +140,22 @@ namespace lsp
             pDynaTime           = NULL;
             pDynaMesh           = NULL;
 
+            pFftRank            = NULL;
+            pFftWindow          = NULL;
+            pFftEnvelope        = NULL;
+            pFftReactivity      = NULL;
+            pFftMesh            = NULL;
+
             for (size_t i=0; i < 2; ++i)
             {
                 fft_meters_t *fm    = &vFftMeters[i];
 
                 fm->vHistory[0]     = NULL;
                 fm->vHistory[1]     = NULL;
+
+                fm->nFftPeriod      = 0;
+                fm->nFftFrame       = 0;
+                fm->nFftHistory     = 0;
 
                 for (size_t j=0; j < FG_TOTAL; ++j)
                 {
@@ -230,6 +242,7 @@ namespace lsp
             const size_t szof_fft   = sizeof(float) << meta::referencer::SPC_MAX_RANK;
             const size_t szof_spc   = align_size(sizeof(float) * meta::referencer::SPC_MESH_SIZE, OPTIMAL_ALIGN);
             const size_t szof_ind   = align_size(sizeof(uint16_t) * meta::referencer::SPC_MESH_SIZE, OPTIMAL_ALIGN);
+            const size_t szof_history = align_size(sizeof(float) * meta::referencer::SPC_HISTORY_SIZE, OPTIMAL_ALIGN);
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
             size_t szof_buf         = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
             size_t szof_global_buf  = lsp_max(szof_buf * 2, szof_fft * 2 * 3);
@@ -244,7 +257,7 @@ namespace lsp
                     szof_buf            // vBuffer
                 ) +
                 2 * (               // vFftMeters
-                    szof_fft * nChannels + // vHistory
+                    szof_history * nChannels + // vHistory
                     num_graphs * (      // vGraphs
                         szof_spc +         // vCurr
                         szof_spc +         // vMin
@@ -291,9 +304,9 @@ namespace lsp
             {
                 fft_meters_t *fm    = &vFftMeters[i];
 
-                fm->vHistory[0]     = advance_ptr_bytes<float>(ptr, szof_fft);
-                if (nChannels > 0)
-                    fm->vHistory[1]     = advance_ptr_bytes<float>(ptr, szof_fft);
+                fm->vHistory[0]     = advance_ptr_bytes<float>(ptr, szof_history);
+                if (nChannels > 1)
+                    fm->vHistory[1]     = advance_ptr_bytes<float>(ptr, szof_history);
 
                 for (size_t j=0; j < num_graphs; ++j)
                 {
@@ -393,6 +406,13 @@ namespace lsp
             BIND_PORT(pDynaTime);
             BIND_PORT(pDynaMesh);
 
+            // FFT metering
+            BIND_PORT(pFftRank);
+            BIND_PORT(pFftWindow);
+            BIND_PORT(pFftEnvelope);
+            BIND_PORT(pFftReactivity);
+            BIND_PORT(pFftMesh);
+
             if (nChannels > 1)
             {
                 BIND_PORT(pMode);
@@ -488,9 +508,6 @@ namespace lsp
         {
             // Update cross-fade time and sync it with playbacks
             nCrossfadeTime      = dspu::millis_to_samples(fSampleRate, meta::referencer::CROSSFADE_TIME);
-            nFftPeriod          = dspu::hz_to_samples(fSampleRate, meta::referencer::SPC_REFRESH_RATE);
-            nFftFrame           = 0;
-            nFftHistory         = 0;
             bUpdFft             = true;
 
             sMix.fGain          = sMix.fNewGain;
@@ -525,9 +542,9 @@ namespace lsp
             {
                 fft_meters_t *fm    = &vFftMeters[i];
 
-                dsp::fill_zero(fm->vHistory[0], meta::referencer::SPC_MESH_SIZE);
-                if (nChannels > 1)
-                    dsp::fill_zero(fm->vHistory[1], meta::referencer::SPC_MESH_SIZE);
+                fm->nFftPeriod      = dspu::hz_to_samples(fSampleRate, meta::referencer::SPC_REFRESH_RATE);
+                fm->nFftFrame       = 0;
+                fm->nFftHistory     = 0;
 
                 for (size_t j=0; j < num_graphs; ++j)
                 {
@@ -764,6 +781,60 @@ namespace lsp
                 {
                     dm->vGraphs[j].set_period(period);
                 }
+            }
+
+            // Apply FFT analysis settings
+            const float fft_react   = pFftReactivity->value();
+            const size_t fft_rank   = meta::referencer::FFT_RANK_MIN + pFftRank->value();
+            const size_t fft_window = pFftWindow->value();
+            const size_t fft_env    = pFftEnvelope->value();
+            const size_t fft_size   = 1 << fft_rank;
+
+            fFftTau                 = 1.0f - expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_react));
+            if (nFftRank != fft_rank)
+            {
+                nFftRank                = fft_rank;
+                nFftWindow              = -1;
+                nFftEnvelope            = -1;
+                bUpdFft                 = true;
+            }
+
+            if (bUpdFft)
+            {
+                const float norm        = logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN) / (meta::referencer::SPC_MESH_SIZE - 1);
+                const float scale       = float(fft_size) / float(fSampleRate);
+                const float fft_csize   = fft_size >> 1;
+
+                for (size_t i=0; i<meta::referencer::SPC_MESH_SIZE; ++i)
+                {
+                    float f                 = SPEC_FREQ_MIN * expf(float(i) * norm);
+                    size_t ix               = lsp_min(size_t(scale * f), fft_csize);
+
+                    vFftFreqs[i]            = f;
+                    vFftInds[i]             = ix;
+                }
+
+                for (size_t i=0; i<2; ++i)
+                {
+                    fft_meters_t *fm    = &vFftMeters[i];
+                    dsp::fill_zero(fm->vHistory[0], meta::referencer::SPC_HISTORY_SIZE);
+                    if (nChannels > 1)
+                        dsp::fill_zero(fm->vHistory[1], meta::referencer::SPC_HISTORY_SIZE);
+                }
+                bUpdFft                 = false;
+            }
+
+            if (nFftWindow != fft_window)
+            {
+                nFftWindow              = fft_window;
+                dspu::windows::window(vFftWindow, fft_size, dspu::windows::window_t(nFftWindow));
+            }
+            if (nFftEnvelope != fft_env)
+            {
+                nFftEnvelope            = fft_env;
+                dspu::envelope::reverse_noise(vBuffer, fft_size + 1, dspu::envelope::envelope_t(nFftEnvelope));
+                reduce_spectrum(vFftEnvelope, vBuffer);
+                dsp::mul_k2(vFftEnvelope, GAIN_AMP_P_12_DB / fft_size, meta::referencer::SPC_MESH_SIZE);
             }
 
             // Apply configuration to channels
@@ -1283,9 +1354,99 @@ namespace lsp
             }
         }
 
+        void referencer::reduce_spectrum(float *dst, const float *src)
+        {
+            for (size_t i=0; i<meta::referencer::SPC_MESH_SIZE; ++i)
+                dst[i]      = src[vFftInds[i]];
+        }
+
+        void referencer::process_fft_frame(fft_meters_t *fm)
+        {
+            const size_t fft_size           = 1 << nFftRank;
+            const size_t fft_xsize          = fft_size << 1;
+            const size_t fft_csize          = (fft_size >> 1) + 1;
+            const size_t head               = (fm->nFftHistory + meta::referencer::SPC_HISTORY_SIZE - fft_size) % meta::referencer::SPC_HISTORY_SIZE;
+            const size_t split              = meta::referencer::SPC_HISTORY_SIZE - head;
+
+            if (nChannels > 1)
+            {
+                // Stereo processing
+                float *fl       = vBuffer;
+                float *fl_r     = &fl[fft_size];
+                float *fr       = &fl[fft_xsize];
+                float *fr_r     = &fr[fft_size];
+                float *ft       = &fr[fft_xsize];
+
+                // Prepare buffers
+                if (split >= fft_size)
+                {
+                    dsp::mul3(fl_r, &fm->vHistory[0][head], &vFftWindow[0], fft_size);
+                    dsp::mul3(fr_r, &fm->vHistory[1][head], &vFftWindow[0], fft_size);
+                }
+                else
+                {
+                    dsp::mul3(fl_r, &fm->vHistory[0][head], &vFftWindow[0], split);
+                    dsp::mul3(&fl_r[split], &fm->vHistory[0][0], &vFftWindow[split], fft_size - split);
+
+                    dsp::mul3(fr_r, &fm->vHistory[1][head], &vFftWindow[0], split);
+                    dsp::mul3(&fr_r[split], &fm->vHistory[1][0], &vFftWindow[split], fft_size - split);
+                }
+
+                // Perform FFT transform
+                dsp::pcomplex_r2c(fl, fl_r, fft_size);
+                dsp::pcomplex_r2c(fr, fr_r, fft_size);
+                dsp::packed_direct_fft(fl, fl, nFftRank);
+                dsp::packed_direct_fft(fr, fr, nFftRank);
+
+                dsp::pcomplex_mod(ft, fl, fft_csize);
+                reduce_spectrum(fl, ft);
+                dsp::pcomplex_mod(ft, fr, fft_csize);
+                reduce_spectrum(fr, ft);
+
+                // Compute average, minimum and maximum
+                dsp::mix2(fm->vGraphs[FG_LEFT].vCurr, fl, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_LEFT].vMax, fl, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_LEFT].vMax, fm->vGraphs[FG_LEFT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
+                dsp::mix2(fm->vGraphs[FG_RIGHT].vCurr, fr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_RIGHT].vMax, fr, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_RIGHT].vMax, fm->vGraphs[FG_RIGHT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+            }
+            else
+            {
+                // Mono processing
+            }
+        }
+
         void referencer::perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples)
         {
-            // TODO
+            for (size_t offset = 0; offset < samples; )
+            {
+                // Determine how many samples to process
+                size_t tail_size    = meta::referencer::SPC_HISTORY_SIZE - fm->nFftHistory;
+                size_t strobe       = fm->nFftPeriod - fm->nFftFrame;
+                size_t to_do        = lsp_min(tail_size, strobe, samples - offset);
+
+                // Append samples to history
+                dsp::copy(&fm->vHistory[0][fm->nFftHistory], l, to_do);
+                l                  += to_do;
+                if (nChannels > 1)
+                {
+                    dsp::copy(&fm->vHistory[1][fm->nFftHistory], r, to_do);
+                    r                  += to_do;
+                }
+                fm->nFftHistory     = (fm->nFftHistory + to_do) % meta::referencer::SPC_HISTORY_SIZE;
+
+                // Perform FFT if necessary
+                fm->nFftFrame      += to_do;
+                if (fm->nFftFrame >= fm->nFftPeriod)
+                {
+                    process_fft_frame(fm);
+                    fm->nFftFrame      %= fm->nFftPeriod;
+                }
+
+                offset             += to_do;
+            }
         }
 
         void referencer::perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples)
@@ -1432,6 +1593,7 @@ namespace lsp
             output_file_data();
             output_loop_data();
             output_dyna_meters();
+            output_spectrum_analysis();
         }
 
         void referencer::output_dyna_meters()
@@ -1477,6 +1639,57 @@ namespace lsp
 
             // Commit data to mesh
             mesh->data(3, meta::referencer::DYNA_MESH_SIZE + 4);
+        }
+
+        void referencer::output_spectrum_analysis()
+        {
+            // Check that mesh is ready for receiving data
+            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pFftMesh->buffer());
+            if ((mesh == NULL) || (!mesh->isEmpty()))
+                return;
+
+            size_t rows = 0;
+
+            // Frequencies
+            float *t =  mesh->pvData[rows++];
+            dsp::copy(&t[2], vFftFreqs, meta::referencer::SPC_MESH_SIZE);
+            t[0]    = SPEC_FREQ_MIN * 0.5f;
+            t[1]    = SPEC_FREQ_MIN * 0.5f;
+            t      += meta::referencer::SPC_MESH_SIZE + 2;
+            t[0]    = SPEC_FREQ_MAX * 2.0f;
+            t[1]    = SPEC_FREQ_MAX * 2.0f;
+
+            for (size_t i=0; i<2; ++i)
+            {
+                fft_meters_t *fm = &vFftMeters[i];
+
+                if (nChannels > 1)
+                {
+                    // Left channel
+                    t =  mesh->pvData[rows++];
+                    dsp::mul3(&t[2], fm->vGraphs[FG_LEFT].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[1]    = t[2];
+                    t      += meta::referencer::SPC_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = GAIN_AMP_M_INF_DB;
+
+                    // Right channel
+                    t =  mesh->pvData[rows++];
+                    dsp::mul3(&t[2], fm->vGraphs[FG_RIGHT].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[1]    = t[2];
+                    t      += meta::referencer::SPC_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = GAIN_AMP_M_INF_DB;
+                }
+                else
+                {
+                    // TODO
+                }
+            }
+
+            mesh->data(rows, meta::referencer::SPC_MESH_SIZE + 4);
         }
 
         void referencer::ui_activated()

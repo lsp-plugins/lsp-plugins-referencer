@@ -190,6 +190,11 @@ namespace lsp
                 typedef struct fft_meters_t
                 {
                     float              *vHistory[2];                                // History for left and right channels
+
+                    uint32_t            nFftPeriod;                                 // FFT analysis period
+                    uint32_t            nFftFrame;                                  // Current FFT frame
+                    uint32_t            nFftHistory;                                // Current FFT per channel history write position
+
                     fft_graph_t         vGraphs[FG_TOTAL];                          // List of graphs
                 } fft_meters_t;
 
@@ -209,11 +214,14 @@ namespace lsp
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
                 uint32_t            nDynaMode;                                  // Dynamics meter type mode
-                uint32_t            nFftPeriod;                                 // FFT analysis period
-                uint32_t            nFftFrame;                                  // Current FFT frame
-                uint32_t            nFftHistory;                                // Current FFT per channel history write position
                 float               fDynaTime;                                  // Dynamics time
                 stereo_mode_t       enMode;                                     // Stereo mode
+                uint32_t            nFftRank;                                   // FFT rank
+                uint32_t            nFftWindow;                                 // FFT window
+                uint32_t            nFftEnvelope;                               // FFT envelope
+                float               fFftReactivity;                             // FFT reactivity
+                float               fFftTau;                                    // FFT smooth coefficient
+
                 float              *vBuffer;                                    // Temporary buffer
                 float              *vFftFreqs;                                  // FFT frequencies
                 uint16_t           *vFftInds;                                   // FFT indices
@@ -246,6 +254,11 @@ namespace lsp
                 plug::IPort        *pDynaMode;                                  // Currently selected dynamics metering mode
                 plug::IPort        *pDynaTime;                                  // Maximum dynamics display time on the graph
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
+                plug::IPort        *pFftRank;                                   // FFT rank
+                plug::IPort        *pFftWindow;                                 // FFT window
+                plug::IPort        *pFftEnvelope;                               // FFT envelope
+                plug::IPort        *pFftReactivity;                             // FFT reactivity
+                plug::IPort        *pFftMesh;                                   // FFT mesh
 
                 uint8_t            *pData;                                      // Allocated data
 
@@ -268,10 +281,13 @@ namespace lsp
                 void                apply_stereo_mode(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples);
+                void                process_fft_frame(fft_meters_t *fm);
                 void                perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
                 void                output_file_data();
                 void                output_loop_data();
                 void                output_dyna_meters();
+                void                output_spectrum_analysis();
+                void                reduce_spectrum(float *dst, const float *src);
                 void                do_destroy();
 
             public:
