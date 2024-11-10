@@ -245,7 +245,7 @@ namespace lsp
             const size_t szof_history = align_size(sizeof(float) * meta::referencer::SPC_HISTORY_SIZE, OPTIMAL_ALIGN);
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
             size_t szof_buf         = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
-            size_t szof_global_buf  = lsp_max(szof_buf * 2, szof_fft * 2 * 3);
+            size_t szof_global_buf  = lsp_max(szof_buf * 2, szof_fft * 2 * 4);
             size_t alloc            =
                 szof_channels +     // vChannels
                 szof_global_buf +   // vBuffer
@@ -1360,11 +1360,23 @@ namespace lsp
                 dst[i]      = src[vFftInds[i]];
         }
 
+        void referencer::reduce_cspectrum(float *dst, const float *src)
+        {
+            for (size_t i=0; i<meta::referencer::SPC_MESH_SIZE; ++i)
+            {
+                const size_t index  = vFftInds[i];
+                const float *v      = &src[index * 2];
+                dst[0]              = v[0];
+                dst[1]              = v[1];
+
+                dst                += 2;
+            }
+        }
+
         void referencer::process_fft_frame(fft_meters_t *fm)
         {
             const size_t fft_size           = 1 << nFftRank;
             const size_t fft_xsize          = fft_size << 1;
-            const size_t fft_csize          = (fft_size >> 1) + 1;
             const size_t head               = (fm->nFftHistory + meta::referencer::SPC_HISTORY_SIZE - fft_size) % meta::referencer::SPC_HISTORY_SIZE;
             const size_t split              = meta::referencer::SPC_HISTORY_SIZE - head;
 
@@ -1372,38 +1384,57 @@ namespace lsp
             {
                 // Stereo processing
                 float *fl       = vBuffer;
-                float *fl_r     = &fl[fft_size];
                 float *fr       = &fl[fft_xsize];
-                float *fr_r     = &fr[fft_size];
-                float *ft       = &fr[fft_xsize];
+                float *ft1      = &fr[fft_xsize];
+                float *ft2      = &ft1[fft_xsize];
 
                 // Prepare buffers
                 if (split >= fft_size)
                 {
-                    dsp::mul3(fl_r, &fm->vHistory[0][head], &vFftWindow[0], fft_size);
-                    dsp::mul3(fr_r, &fm->vHistory[1][head], &vFftWindow[0], fft_size);
+                    dsp::mul3(fl, &fm->vHistory[0][head], &vFftWindow[0], fft_size);
+                    dsp::mul3(fr, &fm->vHistory[1][head], &vFftWindow[0], fft_size);
                 }
                 else
                 {
-                    dsp::mul3(fl_r, &fm->vHistory[0][head], &vFftWindow[0], split);
-                    dsp::mul3(&fl_r[split], &fm->vHistory[0][0], &vFftWindow[split], fft_size - split);
+                    dsp::mul3(fl, &fm->vHistory[0][head], &vFftWindow[0], split);
+                    dsp::mul3(&fl[split], &fm->vHistory[0][0], &vFftWindow[split], fft_size - split);
 
-                    dsp::mul3(fr_r, &fm->vHistory[1][head], &vFftWindow[0], split);
-                    dsp::mul3(&fr_r[split], &fm->vHistory[1][0], &vFftWindow[split], fft_size - split);
+                    dsp::mul3(fr, &fm->vHistory[1][head], &vFftWindow[0], split);
+                    dsp::mul3(&fr[split], &fm->vHistory[1][0], &vFftWindow[split], fft_size - split);
                 }
 
                 // Perform FFT transform
-                dsp::pcomplex_r2c(fl, fl_r, fft_size);
-                dsp::pcomplex_r2c(fr, fr_r, fft_size);
-                dsp::packed_direct_fft(fl, fl, nFftRank);
-                dsp::packed_direct_fft(fr, fr, nFftRank);
+                dsp::pcomplex_r2c(ft1, fl, fft_size);
+                dsp::packed_direct_fft(ft1, ft1, nFftRank);
+                reduce_cspectrum(fl, ft1);
 
-                dsp::pcomplex_mod(ft, fl, fft_csize);
-                reduce_spectrum(fl, ft);
-                dsp::pcomplex_mod(ft, fr, fft_csize);
-                reduce_spectrum(fr, ft);
+                dsp::pcomplex_r2c(ft1, fr, fft_size);
+                dsp::packed_direct_fft(ft1, ft1, nFftRank);
+                reduce_cspectrum(fr, ft1);
 
-                // Compute average, minimum and maximum
+                // Analyze Mid and side signals
+                dsp::lr_to_ms(ft1, ft2, fl, fr, meta::referencer::SPC_MESH_SIZE * 2);
+                dsp::pcomplex_mod(ft1, ft1, meta::referencer::SPC_MESH_SIZE);
+                dsp::pcomplex_mod(ft2, ft2, meta::referencer::SPC_MESH_SIZE);
+
+                dsp::mix2(fm->vGraphs[FG_MID].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_MID].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_MID].vMax, fm->vGraphs[FG_MID].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
+                dsp::mix2(fm->vGraphs[FG_SIDE].vCurr, ft2, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_SIDE].vMax, ft2, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_SIDE].vMax, fm->vGraphs[FG_SIDE].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
+                // Analyze complex correlation between left and right
+                dsp::pcomplex_corr(ft2, fl, fr, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_CORR].vCurr, ft2, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_CORR].vMax, ft2, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_CORR].vMax, fm->vGraphs[FG_CORR].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
+                // Analyze left and right channels
+                dsp::pcomplex_mod(fl, fl, meta::referencer::SPC_MESH_SIZE);
+                dsp::pcomplex_mod(fr, fr, meta::referencer::SPC_MESH_SIZE);
+
                 dsp::mix2(fm->vGraphs[FG_LEFT].vCurr, fl, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
                 dsp::pmax2(fm->vGraphs[FG_LEFT].vMax, fl, meta::referencer::SPC_MESH_SIZE);
                 dsp::mix2(fm->vGraphs[FG_LEFT].vMax, fm->vGraphs[FG_LEFT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
@@ -1677,6 +1708,33 @@ namespace lsp
                     // Right channel
                     t =  mesh->pvData[rows++];
                     dsp::mul3(&t[2], fm->vGraphs[FG_RIGHT].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[1]    = t[2];
+                    t      += meta::referencer::SPC_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = GAIN_AMP_M_INF_DB;
+
+                    // Middle channel
+                    t =  mesh->pvData[rows++];
+                    dsp::mul3(&t[2], fm->vGraphs[FG_MID].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[1]    = t[2];
+                    t      += meta::referencer::SPC_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = GAIN_AMP_M_INF_DB;
+
+                    // Side channel
+                    t =  mesh->pvData[rows++];
+                    dsp::mul3(&t[2], fm->vGraphs[FG_SIDE].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[1]    = t[2];
+                    t      += meta::referencer::SPC_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = GAIN_AMP_M_INF_DB;
+
+                    // Correlation
+                    t =  mesh->pvData[rows++];
+                    dsp::copy(&t[2], fm->vGraphs[FG_CORR].vCurr, meta::referencer::SPC_MESH_SIZE);
                     t[0]    = GAIN_AMP_M_INF_DB;
                     t[1]    = t[2];
                     t      += meta::referencer::SPC_MESH_SIZE + 2;

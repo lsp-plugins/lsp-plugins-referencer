@@ -47,6 +47,7 @@
 			"both": "Вместе"
 		},
 		"tab": {
+			"correlation": "Корреляция",
 			"dynamics": "Динамика",
 			"samples": "Семплы",
 			"spectrum": "Спектр",

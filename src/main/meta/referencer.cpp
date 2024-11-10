@@ -70,6 +70,7 @@ namespace lsp
             { "Samples",        "referencer.tab.samples"            },
             { "Spectrum",       "referencer.tab.spectrum"           },
             { "Dynamics",       "referencer.tab.dynamics"           },
+            { "Correlation",    "referencer.tab.correlation"        },
             { "Stereo",         "referencer.tab.stereo"             },
             { NULL, NULL }
         };
@@ -200,8 +201,8 @@ namespace lsp
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
-            LOG_CONTROL("fftrct", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
-            MESH("fftgr", "FFT Analysis mesh", 5, referencer::SPC_MESH_SIZE + 4)
+            LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
+            MESH("fftgr", "FFT Analysis mesh", 13, referencer::SPC_MESH_SIZE + 4)
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors)

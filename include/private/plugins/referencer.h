@@ -97,12 +97,12 @@ namespace lsp
 
                 enum fgraph_t
                 {
-                    FG_LEFT,
-                    FG_RIGHT,
-                    FG_MID,
-                    FG_SIDE,
-                    FG_DIFF,
-                    FG_CORR,
+                    FG_LEFT,                                                        // Spectrum analysis of the left channel
+                    FG_RIGHT,                                                       // Spectrum analysis of the right channel
+                    FG_MID,                                                         // Spectrum analysis of the middle channel
+                    FG_SIDE,                                                        // Spectrum analysis of the side channel
+                    FG_CORR,                                                        // Spectral correlation between left and right channels
+                    FG_BAL,                                                         // Balance between left and right channels
 
                     FG_TOTAL
                 };
@@ -288,6 +288,7 @@ namespace lsp
                 void                output_dyna_meters();
                 void                output_spectrum_analysis();
                 void                reduce_spectrum(float *dst, const float *src);
+                void                reduce_cspectrum(float *dst, const float *src);
                 void                do_destroy();
 
             public:

@@ -47,6 +47,7 @@
 			"both": "Both"
 		},
 		"tab": {
+			"correlation": "Correlation",
 			"dynamics": "Dynamics",
 			"samples": "Samples",
 			"spectrum": "Spectrum",
