@@ -102,7 +102,7 @@ namespace lsp
                     FG_MID,                                                         // Spectrum analysis of the middle channel
                     FG_SIDE,                                                        // Spectrum analysis of the side channel
                     FG_CORR,                                                        // Spectral correlation between left and right channels
-                    FG_BAL,                                                         // Balance between left and right channels
+                    FG_PAN,                                                         // Panning between left and right channels
 
                     FG_TOTAL
                 };

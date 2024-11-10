@@ -1442,6 +1442,12 @@ namespace lsp
                 dsp::mix2(fm->vGraphs[FG_RIGHT].vCurr, fr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
                 dsp::pmax2(fm->vGraphs[FG_RIGHT].vMax, fr, meta::referencer::SPC_MESH_SIZE);
                 dsp::mix2(fm->vGraphs[FG_RIGHT].vMax, fm->vGraphs[FG_RIGHT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
+                // Analyze panorama between left and right channels
+                dsp::depan_panl(ft1, fl, fr, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_PAN].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_PAN].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_PAN].vMax, fm->vGraphs[FG_LEFT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
             }
             else
             {
@@ -1735,11 +1741,20 @@ namespace lsp
                     // Correlation
                     t =  mesh->pvData[rows++];
                     dsp::copy(&t[2], fm->vGraphs[FG_CORR].vCurr, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[0]    = 0.0f;
                     t[1]    = t[2];
                     t      += meta::referencer::SPC_MESH_SIZE + 2;
                     t[0]    = t[-1];
-                    t[1]    = GAIN_AMP_M_INF_DB;
+                    t[1]    = 0.0f;
+
+                    // Panorama
+                    t =  mesh->pvData[rows++];
+                    dsp::copy(&t[2], fm->vGraphs[FG_PAN].vCurr, meta::referencer::SPC_MESH_SIZE);
+                    t[0]    = 0.5f;
+                    t[1]    = t[2];
+                    t      += meta::referencer::SPC_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = 0.5f;
                 }
                 else
                 {

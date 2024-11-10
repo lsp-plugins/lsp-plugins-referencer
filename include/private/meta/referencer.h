@@ -113,8 +113,8 @@ namespace lsp
             static constexpr size_t FFT_RANK_MAX        = 14;                   // Maximum FFT rank
 
             static constexpr float  FFT_REACT_TIME_MIN  = 0.000f;               // Spectrum analysis reactivity min
-            static constexpr float  FFT_REACT_TIME_MAX  = 1.000f;               // Spectrum analysis reactivity max
-            static constexpr float  FFT_REACT_TIME_DFL  = 0.200f;               // Spectrum analysis reactivity default value
+            static constexpr float  FFT_REACT_TIME_MAX  = 10.000f;              // Spectrum analysis reactivity max
+            static constexpr float  FFT_REACT_TIME_DFL  = 1.000f;               // Spectrum analysis reactivity default value
             static constexpr float  FFT_REACT_TIME_STEP = 0.001f;               // Spectrum analysis reactivity step
 
         } referencer;

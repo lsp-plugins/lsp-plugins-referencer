@@ -165,13 +165,6 @@
 						<ui:for id="g" first="-60" last="12" step="24">
 							<marker v="${g} db" ox="1" oy="0"/>
 						</ui:for>
-	
-						<!-- ui:for id="t" first="-42" last="-6" step="12">
-							<marker v="${t} db" ox="1" oy="0" visibility=":zoom le -18 db"/>
-						</ui:for>
-						<ui:for id="t" first="-33" last="-15" step="6">
-							<marker v="${t} db" ox="1" oy="0" visibility=":zoom le -33 db"/>
-						</ui:for-->
 					</ui:with>
 	
 					<!-- Primary Grid -->
@@ -191,16 +184,16 @@
 					<!-- Meshes -->
 					<ui:if test="ex :in_r">
 						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" />
-						<mesh id="fftgr" xi="0" yi="6" color="left_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="7" color="left_in" fill="false" />
 						
 						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" />
-						<mesh id="fftgr" xi="0" yi="7" color="right_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="8" color="right_in" fill="false" />
 						
 						<mesh id="fftgr" xi="0" yi="3" color="mid" fill="false" />
-						<mesh id="fftgr" xi="0" yi="8" color="mid_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="9" color="mid_in" fill="false" />
 						
 						<mesh id="fftgr" xi="0" yi="4" color="side" fill="false" />
-						<mesh id="fftgr" xi="0" yi="9" color="side_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="10" color="side_in" fill="false" />
 					</ui:if>
 					<ui:if test="!ex :in_r">
 					</ui:if>
@@ -231,33 +224,10 @@
 						<text x="10" y="${t} db" text="${t}" halign="1" valign="1"/>
 					</ui:for>
 					<text x="10" y="1" ox="0" oy="2" text="graph.units.db" halign="1" valign="-1"/>
-					<!-- ui:with x="10" halign="1" valign="1" visibility=":zoom le -18 db">
-						<text y="-42 db" text="-42"/>
-						<text y="-30 db" text="-30"/>
-						<text y="-18 db" text="-18"/>
-						<text y="-6 db" text="-6"/>
-					</ui:with>
-					<ui:with x="10" halign="1" valign="1" visibility=":zoom le -33 db">
-						<text y="-33 db" text="-33"/>
-						<text y="-27 db" text="-27"/>
-						<text y="-21 db" text="-21"/>
-						<text y="-15 db" text="-33"/>
-					</ui:with -->
 				</graph>
 
 				<!-- Bottom menu -->
-				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
-					<hbox spacing="8">
-						<label text="labels.fft.window"/>
-						<combo id="fftwnd" pad.r="15"/>
-						<label text="labels.fft.tolerance"/>
-						<combo id="ffttol" pad.r="15"/>
-						<label text="labels.fft.envelope"/>
-						<combo id="fftenv" pad.r="15"/>
-						<label text="labels.metering.reactivity" />
-						<knob id="fftrea" scale.size="3" size="10" />
-						<value id="fftrea" sline="true" width="60"/>
-					</hbox>
+				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
 					<void hexpand="true"/>
 				</hbox>
 			</vbox>
@@ -475,7 +445,7 @@
 	
 					<!-- Meshes -->
 					<mesh id="fftgr" xi="0" yi="5" color="cyan" fill="false" />
-					<mesh id="fftgr" xi="0" yi="10" color="cyan" fill="false" />
+					<mesh id="fftgr" xi="0" yi="11" color="cyan" fill="false" />
 	
 					<!-- Axis -->
 					<axis ui:id="main_graph_ox" angle="0.0" min="10" max="24000" color="graph_prim" log="true"/>
@@ -509,24 +479,80 @@
 				</graph>
 
 				<!-- Bottom menu -->
-				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
-					<hbox spacing="8">
-						<label text="labels.fft.window"/>
-						<combo id="fftwnd" pad.r="15"/>
-						<label text="labels.fft.tolerance"/>
-						<combo id="ffttol" pad.r="15"/>
-						<label text="labels.fft.envelope"/>
-						<combo id="fftenv" pad.r="15"/>
-						<label text="labels.metering.reactivity" />
-						<knob id="fftrea" scale.size="3" size="10" />
-						<value id="fftrea" sline="true" width="60"/>
-					</hbox>
+				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
+
 					<void hexpand="true"/>
 				</hbox>
 			</vbox>
 			
 			<!-- Stereo -->
-			<vbox />
+			<grid rows="2" cols="2">
+				<graph width.min="256" height.min="256" expand="true" fill="true">
+					<origin hpos="-1" vpos="-1" visibility="false"/>
+	
+					<!-- Secondary grid -->
+					<ui:with color="graph_sec">
+						<ui:for id="f" first="20" last="90" step="10">
+							<marker v="${:f}" ox="1" oy="0" />
+							<marker v="${:f * 10}" ox="1" oy="0" />
+							<marker v="${:f * 100}" ox="1" oy="0" />
+						</ui:for>
+						<marker v="20000" ox="1" oy="0"/>
+					</ui:with>
+	
+					<!-- Primary Grid -->
+					<ui:with color="graph_prim">
+						<marker v="100" ox="1" oy="0" />
+						<marker v="1000" ox="1" oy="0" />
+						<marker v="10000" ox="1" oy="0" />
+
+						<marker v="0.25" />	
+						<marker v="0.75" />
+	
+						<marker v="1" ox="2" oy="0" visibility="false"/>
+						<marker v="24000" visibility="false"/>
+					</ui:with>
+	
+					<!-- Meshes -->
+					<mesh id="fftgr" xi="6" yi="0" color="cyan" fill="false" />
+					<mesh id="fftgr" xi="12" yi="0" color="cyan" fill="false" />
+	
+					<!-- Axis -->
+					<axis angle="0.0" min="-1" max="1" color="graph_prim" visibility="false" />
+					<axis ui:id="main_graph_ox" angle="0.5" min="10" max="24000" color="graph_prim" log="true"/>
+	
+					<!-- Text -->
+					<ui:with ox="0" x="0" halign="1" valign="1">
+						<text y="20" text="20"/>
+						<text y="30" text="30"/>
+						<text y="50" text="50"/>
+						<text y="100" text="100"/>
+						<text y="200" text="200"/>
+						<text y="300" text="300"/>
+						<text y="500" text="500"/>
+						<text y="1000" text="graph.values.x_k" text:value="1"/>
+						<text y="2000" text="graph.values.x_k" text:value="2"/>
+						<text y="3000" text="graph.values.x_k" text:value="3"/>
+						<text y="5000" text="graph.values.x_k" text:value="5"/>
+						<text y="10000" text="graph.values.x_k" text:value="10"/>
+						<text y="20000" text="graph.values.x_k" text:value="20" valign="-1" pgroup="0" priority="10" />
+						<text y="24000" text="graph.units.hz" valign="-1" pgroup="0" priority="0"/>
+					</ui:with>
+					<text x="0" y="10" text="labels.chan.left" halign="1" valign="1" pgroup="0" priority="0"/>
+					<text x="1" y="10" text="labels.chan.right" halign="-1" valign="1" pgroup="0" priority="0"/>
+				</graph>
+				
+				<graph width.min="256" height.min="256" expand="true" fill="true">
+				</graph>
+			
+				<cell cols="2">
+					<!-- Bottom menu -->
+					<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
+	
+						<void hexpand="true"/>
+					</hbox>
+				</cell>
+			</grid>
 		</tabs>
 		
 		<!-- Different common manipulations -->
