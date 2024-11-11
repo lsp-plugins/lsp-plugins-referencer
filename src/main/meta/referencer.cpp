@@ -220,6 +220,7 @@ namespace lsp
 
             BYPASS,
             REF_COMMON,
+            REF_COMMON_MONO,
             REF_SAMPLES,
 
             PORTS_END

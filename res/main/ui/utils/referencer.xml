@@ -196,6 +196,8 @@
 						<mesh id="fftgr" xi="0" yi="10" color="side_in" fill="false" />
 					</ui:if>
 					<ui:if test="!ex :in_r">
+						<mesh id="fftgr" xi="0" yi="1" color="mono" fill="false" />
+						<mesh id="fftgr" xi="0" yi="2" color="mono_in" fill="false" />
 					</ui:if>
 	
 					<!-- Axis -->
