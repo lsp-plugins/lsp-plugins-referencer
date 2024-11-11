@@ -173,6 +173,13 @@ namespace lsp
 
             for (size_t i=0; i < 2; ++i)
             {
+                dyna_meters_t *dm   = &vDynaMeters[i];
+
+                dm->pCorrValue          = NULL;
+            }
+
+            for (size_t i=0; i < 2; ++i)
+            {
                 fft_meters_t *fm    = &vFftMeters[i];
 
                 fm->vHistory[0]     = NULL;
@@ -365,6 +372,8 @@ namespace lsp
                 if (dm->sLUFSMeter.init(nChannels, dspu::bs::LUFS_MEASURE_PERIOD_MS) != STATUS_OK)
                     return;
 
+                dm->sCorrMeter.construct();
+
                 dm->sLUFSMeter.set_period(dspu::bs::LUFS_MEASURE_PERIOD_MS);
                 dm->sLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
 
@@ -440,6 +449,9 @@ namespace lsp
             if (nChannels > 1)
             {
                 BIND_PORT(pMode);
+                SKIP_PORT("Correlation view mode");
+                SKIP_PORT("Mix correlation visibility");
+                SKIP_PORT("Reference correlation visibility");
             }
 
             // Meshes and meters
@@ -450,6 +462,12 @@ namespace lsp
                 SKIP_PORT("Goniometer history size");
                 SKIP_PORT("Goniometer dots");
                 BIND_PORT(pGoniometer);
+
+                for (size_t i=0; i<2; ++i)
+                {
+                    dyna_meters_t *dm   = &vDynaMeters[i];
+                    BIND_PORT(dm->pCorrValue);
+                }
             }
 
             // Bind sample-related ports
@@ -512,6 +530,7 @@ namespace lsp
                 dm->sTPMeter[1].destroy();
                 dm->sTPDelay.destroy();
                 dm->sLUFSMeter.destroy();
+                dm->sCorrMeter.destroy();
 //                dm->sLUFSDelay.destroy();
 
                 for (size_t j=0; j<DM_TOTAL; ++j)
@@ -600,6 +619,7 @@ namespace lsp
                 vFftFreqs[i]            = SPEC_FREQ_MIN * expf(i * f_norm);
 
             // Update dynamics meters
+            const size_t corr_period = dspu::millis_to_samples(sr, meta::referencer::CORR_PERIOD);
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
@@ -612,6 +632,10 @@ namespace lsp
                 const size_t delay      = dspu::millis_to_samples(fSampleRate, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.25f);
                 dm->sTPDelay.init(delay + BUFFER_SIZE);
                 dm->sTPDelay.set_delay(delay - dm->sTPMeter[0].latency());
+
+                dm->sCorrMeter.init(corr_period);
+                dm->sCorrMeter.set_period(corr_period);
+                dm->sCorrMeter.clear();
 
 //                dm->sLUFSDelay.init(dm->sTPMeter[0].latency());
 //                dm->sLUFSDelay.set_delay(dm->sTPMeter[0].latency());
@@ -1548,6 +1572,10 @@ namespace lsp
                 dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
                 dm->vGraphs[DM_RMS].process(b2, samples);
 
+                // Compute correlation between channels
+                dm->sCorrMeter.process(b2, l, r, samples);
+                dm->vGraphs[DM_CORR].process(b2, samples);
+
                 // Compute LUFS value
                 dm->sLUFSMeter.bind(0, NULL, l, 0);
                 dm->sLUFSMeter.bind(1, NULL, r, 0);
@@ -1734,10 +1762,26 @@ namespace lsp
             output_file_data();
             output_loop_data();
             output_dyna_meters();
+            output_dyna_meshes();
             output_spectrum_analysis();
         }
 
         void referencer::output_dyna_meters()
+        {
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+
+                // Report correlation value
+                if (dm->pCorrValue != NULL)
+                {
+                    const float level = dm->vGraphs[DM_CORR].level();
+                    dm->pCorrValue->set_value(level);
+                }
+            }
+        }
+
+        void referencer::output_dyna_meshes()
         {
             // Check that mesh is ready for receiving data
             plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pDynaMesh->buffer());
@@ -1752,7 +1796,7 @@ namespace lsp
             dsp::lramp_set1(&t[2], fDynaTime, 0.0f, meta::referencer::DYNA_MESH_SIZE);
             t[0]    = meta::referencer::DYNA_TIME_MAX + 0.5f;
             t[1]    = t[0];
-            t     += meta::referencer::DYNA_MESH_SIZE + 2;
+            t      += meta::referencer::DYNA_MESH_SIZE + 2;
             t[0]    = -0.5f;
             t[1]    = t[0];
 

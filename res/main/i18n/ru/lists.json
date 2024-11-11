@@ -1,5 +1,9 @@
 {
 	"referencer": {
+		"correlation": {
+			"history" : "История",
+			"spectrum" : "Спектр"
+		},
 		"dynamics": {
 			"lufs": "LUFS",
 			"peak": "Пик",

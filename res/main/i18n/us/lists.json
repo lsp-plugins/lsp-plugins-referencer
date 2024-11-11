@@ -1,5 +1,9 @@
 {
 	"referencer": {
+		"correlation": {
+			"history" : "History",
+			"spectrum" : "Spectrum"
+		},
 		"dynamics": {
 			"lufs": "LUFS",
 			"peak": "Peak",

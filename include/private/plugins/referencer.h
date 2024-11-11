@@ -24,6 +24,7 @@
 
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
+#include <lsp-plug.in/dsp-units/meters/Correlometer.h>
 #include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
@@ -211,8 +212,11 @@ namespace lsp
                     dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
+                    dspu::Correlometer  sCorrMeter;                                 // Corellometer
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
+
+                    plug::IPort        *pCorrValue;                                 // Correlation output
                 } dyna_meters_t;
 
             protected:
@@ -299,6 +303,7 @@ namespace lsp
                 void                output_file_data();
                 void                output_loop_data();
                 void                output_dyna_meters();
+                void                output_dyna_meshes();
                 void                output_spectrum_analysis();
                 void                reduce_spectrum(float *dst, const float *src);
                 void                reduce_cspectrum(float *dst, const float *src);

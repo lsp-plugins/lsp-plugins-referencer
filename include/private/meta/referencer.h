@@ -58,6 +58,7 @@ namespace lsp
             static constexpr size_t GONIO_REFRESH_RATE  = 20;
             static constexpr size_t FFT_WND_DFL         = dspu::windows::HANN;
             static constexpr size_t FFT_ENV_DFL         = dspu::envelope::PINK_NOISE;
+            static constexpr float  CORR_PERIOD         = 200.0f;               // Correlation period
 
             static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;              // Maximum sample length (s)
@@ -126,7 +127,12 @@ namespace lsp
             static constexpr size_t GONIO_HISTORY_MAX   = 10;                   // Maximum history for goniometer
             static constexpr size_t GONIO_HISTORY_MIN   = 0;                    // Minimum history for goniometer
             static constexpr size_t GONIO_HISTORY_DFL   = 5;                    // Default history for goniometer
-            static constexpr size_t GONIO_HISTORY_STEP  = 1;                    // S
+            static constexpr size_t GONIO_HISTORY_STEP  = 1;                    // Step for goniometer
+
+            static constexpr float  CORRELATION_MIN     = -1.0f;                // Minimum correlation value
+            static constexpr float  CORRELATION_MAX     = 1.0f;                 // Maximum correlation value
+            static constexpr float  CORRELATION_DFL     = 0.0f;                 // Default correlation value
+            static constexpr float  CORRELATION_STEP    = 0.001f;               // Correlation step
 
         } referencer;
 
