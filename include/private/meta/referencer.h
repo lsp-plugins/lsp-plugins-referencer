@@ -55,6 +55,7 @@ namespace lsp
             static constexpr size_t SPC_MESH_SIZE       = 640;
             static constexpr size_t SPC_HISTORY_SIZE    = 1 << (SPC_MAX_RANK + 1);
             static constexpr size_t SPC_REFRESH_RATE    = 20;
+            static constexpr size_t GONIO_REFRESH_RATE  = 20;
             static constexpr size_t FFT_WND_DFL         = dspu::windows::HANN;
             static constexpr size_t FFT_ENV_DFL         = dspu::envelope::PINK_NOISE;
 
@@ -116,6 +117,16 @@ namespace lsp
             static constexpr float  FFT_REACT_TIME_MAX  = 10.000f;              // Spectrum analysis reactivity max
             static constexpr float  FFT_REACT_TIME_DFL  = 1.000f;               // Spectrum analysis reactivity default value
             static constexpr float  FFT_REACT_TIME_STEP = 0.001f;               // Spectrum analysis reactivity step
+
+            static constexpr float  GONIO_DOTS_MAX      = 8192.0f;              // Maximum dots in goniometer
+            static constexpr float  GONIO_DOTS_MIN      = 512.0f;               // Minimum dots in goniometer
+            static constexpr float  GONIO_DOTS_DFL      = 2048.0f;              // Default number of dots in goniometer
+            static constexpr float  GONIO_DOTS_STEP     = 0.01f;                // Configuration step
+
+            static constexpr size_t GONIO_HISTORY_MAX   = 10;                   // Maximum history for goniometer
+            static constexpr size_t GONIO_HISTORY_MIN   = 0;                    // Minimum history for goniometer
+            static constexpr size_t GONIO_HISTORY_DFL   = 5;                    // Default history for goniometer
+            static constexpr size_t GONIO_HISTORY_STEP  = 1;                    // S
 
         } referencer;
 

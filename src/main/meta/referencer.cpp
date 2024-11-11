@@ -196,16 +196,23 @@ namespace lsp
             COMBO("dmsel", "Dynamics display source", 2, source_selectors), \
             COMBO("dmmode", "Dynamics display mode", 4, dynamics_modes), \
             CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
-            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
             /* FFT analysis */ \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
-            LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
-            MESH("fftgr", "FFT Analysis mesh", 13, referencer::SPC_MESH_SIZE + 4)
+            LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
+
+        #define REF_COMMON_MONO \
+            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4)
 
         #define REF_COMMON_STEREO \
-            COMBO("mode", "Output mode", 0, mode_selectors)
+            COMBO("mode", "Output mode", 0, mode_selectors), \
+            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("fftgr", "FFT Analysis mesh", 13, referencer::SPC_MESH_SIZE + 4), \
+            CONTROL("goniohsz", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
+            LOG_CONTROL("goniodot", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
+            STREAM("gonio", "Goniometer stream buffer", 5, 128, 0x8000)
 
         static const port_t referencer_mono_ports[] =
         {

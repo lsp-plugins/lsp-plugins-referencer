@@ -444,7 +444,7 @@
 					</ui:with>
 	
 					<!-- Meshes -->
-					<mesh id="fftgr" xi="0" yi="5" color="cyan" fill="false" />
+					<mesh id="fftgr" xi="0" yi="5" color="orange" fill="false" />
 					<mesh id="fftgr" xi="0" yi="11" color="cyan" fill="false" />
 	
 					<!-- Axis -->
@@ -506,7 +506,8 @@
 						<marker v="1000" ox="1" oy="0" />
 						<marker v="10000" ox="1" oy="0" />
 
-						<marker v="0.25" />	
+						<marker v="0.25" />
+						<marker v="0.5" />	
 						<marker v="0.75" />
 	
 						<marker v="1" ox="2" oy="0" visibility="false"/>
@@ -514,12 +515,12 @@
 					</ui:with>
 	
 					<!-- Meshes -->
-					<mesh id="fftgr" xi="6" yi="0" color="cyan" fill="false" />
+					<mesh id="fftgr" xi="6" yi="0" color="orange" fill="false" />
 					<mesh id="fftgr" xi="12" yi="0" color="cyan" fill="false" />
 	
 					<!-- Axis -->
 					<axis angle="0.0" min="-1" max="1" color="graph_prim" visibility="false" />
-					<axis ui:id="main_graph_ox" angle="0.5" min="10" max="24000" color="graph_prim" log="true"/>
+					<axis ui:id="main_graph_ox" angle="0.5" min="10" max="24000" color="graph_prim" log="true" visibility="false" />
 	
 					<!-- Text -->
 					<ui:with ox="0" x="0" halign="1" valign="1">
@@ -539,19 +540,79 @@
 						<text y="24000" text="graph.units.hz" valign="-1" pgroup="0" priority="0"/>
 					</ui:with>
 					<text x="0" y="10" text="labels.chan.left" halign="1" valign="1" pgroup="0" priority="0"/>
+					<text x="0.5" y="10" text="labels.chan.middle" halign="0" valign="1" pgroup="0" priority="0"/>
 					<text x="1" y="10" text="labels.chan.right" halign="-1" valign="1" pgroup="0" priority="0"/>
 				</graph>
 				
 				<graph width.min="256" height.min="256" expand="true" fill="true">
+					<!-- Origin -->
+					<origin halign="0.0" valign="0.0" visible="false"/>
+
+					<marker v="0" dy=":_a_width" dx="+:_a_height" color="graph_alt_1" smooth="true"/>
+					<marker v="0" dy=":_a_width" dx="-:_a_height" color="graph_alt_1" smooth="true"/>
+
+					<!-- Secondary color -->
+					<marker v="1" ox="1" oy="0" color="graph_sec"/>
+					<marker v="0.5" ox="1" oy="0" color="graph_sec"/>
+					<marker v="-0.5" ox="1" oy="0" color="graph_sec"/>
+					<marker v="-1" ox="1" oy="0" color="graph_sec"/>
+					<marker v="1" ox="0" oy="1" color="graph_sec"/>
+					<marker v="0.5" ox="0" oy="1" color="graph_sec"/>
+					<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
+					<marker v="-1" ox="0" oy="1" color="graph_sec"/>
+
+					<!-- Axes -->
+					<axis min="-1.125" max="1.125" color="graph_prim" angle="0.0" log="false" />
+					<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
+
+					<!-- Streams -->
+					<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohsz" dots.max=":goniodot"/>
+					<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohsz" dots.max=":goniodot"/>
+
+					<!-- Text -->
+					<text x="-1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
+					<text x="1" y="1" text="labels.chan.right" halign="-1" valign="-1" pgroup="0" priority="0"/>
+					
+					<ui:with y="0" halign="1" valign="-1">
+						<text x="-1.125" text="labels.chan.side" pgroup="0" priority="0" />
+						<text x="-1" text="-1" pgroup="0" priority="10"/>
+						<text x="-0.5" text="-0.5"/>
+						<text x="0.5" text="0.5"/>
+						<text x="1" text="1" halign="-1"/>
+					</ui:with>
+
+					<ui:with x="0" halign="1" valign="-1">
+						<text y="-1.125" text="labels.chan.mid" valign="1" pgroup="0" priority="0" />
+						<text y="-1" text="-1" pgroup="0" priority="10"/>
+						<text y="-0.5" text="-0.5"/>
+						<text y="0" text="0"/>
+						<text y="0.5" text="0.5"/>
+						<text y="1" text="1"/>
+					</ui:with>
 				</graph>
 			
-				<cell cols="2">
-					<!-- Bottom menu -->
-					<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
-	
-						<void hexpand="true"/>
+				<!-- Bottom menu for pan analysis -->
+				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
+
+					<void hexpand="true"/>
+				</hbox>
+
+				<!-- Bottom menu for goniometer -->
+				<hbox>
+					<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
+						<label text="labels.history"/>
+						<fader id="goniohsz" angle="0" expand="true"/>
+						<value id="goniohsz" sline="true" width="12"/>
 					</hbox>
-				</cell>
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+					<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
+						<label text="labels.oscilloscope.max_dots"/>
+						<fader id="goniodot" angle="0" expand="true"/>
+						<value id="goniodot" sline="true" width="30"/>
+					</hbox>
+					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+					<void expand="true" bg.color="bg_schema" />
+				</hbox>
 			</grid>
 		</tabs>
 		
@@ -573,7 +634,7 @@
 					</cell>
 					
 					<label text="labels.metering.reactivity" />
-					<knob id="fftrea" scale.size="3" />
+					<knob id="fftrea" />
 					<value id="fftrea" sline="true" />
 				</grid>
 			</group>

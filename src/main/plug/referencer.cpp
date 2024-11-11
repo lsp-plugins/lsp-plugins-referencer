@@ -95,6 +95,8 @@ namespace lsp
             nFftEnvelope        = -1;
             fFftReactivity      = 0.0f;
             fFftTau             = 0.0f;
+            nGonioStrobe        = 0;
+            nGonioPeriod        = 0;
 
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
@@ -145,6 +147,8 @@ namespace lsp
             pFftEnvelope        = NULL;
             pFftReactivity      = NULL;
             pFftMesh            = NULL;
+
+            pGoniometer         = NULL;
 
             for (size_t i=0; i < 2; ++i)
             {
@@ -404,18 +408,27 @@ namespace lsp
             SKIP_PORT("Dynamics display source");
             BIND_PORT(pDynaMode);
             BIND_PORT(pDynaTime);
-            BIND_PORT(pDynaMesh);
 
             // FFT metering
             BIND_PORT(pFftRank);
             BIND_PORT(pFftWindow);
             BIND_PORT(pFftEnvelope);
             BIND_PORT(pFftReactivity);
-            BIND_PORT(pFftMesh);
 
+            // Operating mode
             if (nChannels > 1)
             {
                 BIND_PORT(pMode);
+            }
+
+            // Meshes and meters
+            BIND_PORT(pDynaMesh);
+            BIND_PORT(pFftMesh);
+            if (nChannels > 1)
+            {
+                SKIP_PORT("Goniometer history size");
+                SKIP_PORT("Goniometer dots");
+                BIND_PORT(pGoniometer);
             }
 
             // Bind sample-related ports
@@ -527,6 +540,10 @@ namespace lsp
                     al->nTransition         = lsp_min(al->nTransition, nCrossfadeTime);
                 }
             }
+
+            // Update goniometer settings
+            nGonioPeriod        = dspu::hz_to_samples(fSampleRate, meta::referencer::GONIO_REFRESH_RATE);
+            nGonioStrobe        = nGonioPeriod;
 
             // Update sample rate for the bypass processors
             for (size_t i=0; i < nChannels; ++i)
@@ -1575,6 +1592,67 @@ namespace lsp
             dm->vGraphs[DM_PSR].process(b1, samples);
         }
 
+        void referencer::process_goniometer(
+            const float *l1, const float *r1,
+            const float *l2, const float *r2,
+            size_t samples)
+        {
+            // Check that stream is present
+            if (pGoniometer == NULL)
+                return;
+            plug::stream_t *stream = pGoniometer->buffer<plug::stream_t>();
+            if (stream == NULL)
+                return;
+
+            float *mid  = vBuffer;
+            float *side = &mid[BUFFER_SIZE];
+
+            for (size_t offset=0; offset < samples; )
+            {
+                const size_t count  = stream->add_frame(samples - offset);     // Add a frame
+
+                // Form the strobe signal
+                dsp::fill_zero(mid, count);
+
+                for (size_t i=0; i < count; )
+                {
+                    if (nGonioStrobe == 0)
+                    {
+                        mid[i]                  = 1.0f;
+                        nGonioStrobe            = nGonioPeriod;
+                    }
+
+                    const size_t advance    = lsp_min(count - i, nGonioStrobe);
+                    nGonioStrobe           -= advance;
+                    i                      += advance;
+                }
+                stream->write_frame(0, mid, 0, count);
+
+                // Perform analysis of the first pair
+                dsp::lr_to_ms(mid, side, l1, r1, count);
+//                for (size_t i=0; i < count; ++i)
+//                {
+//
+//                }
+
+                stream->write_frame(1, side, 0, count);
+                stream->write_frame(2, mid, 0, count);
+                l1             += count;
+                r1             += count;
+
+                // Perform analysis of the second pair
+                dsp::lr_to_ms(mid, side, l2, r2, count);
+                stream->write_frame(3, side, 0, count);
+                stream->write_frame(4, mid, 0, count);
+                l2             += count;
+                r2             += count;
+
+                // Commit frame
+                stream->commit_frame();
+                offset         += count;
+            }
+        }
+
         void referencer::process(size_t samples)
         {
             preprocess_audio_channels();
@@ -1608,6 +1686,12 @@ namespace lsp
                     vChannels[0].vBuffer,
                     (nChannels > 1) ? vChannels[1].vBuffer : NULL,
                     to_process);
+
+                if (nChannels > 1)
+                    process_goniometer(
+                        vChannels[0].vIn, vChannels[1].vIn,
+                        vChannels[0].vBuffer, vChannels[1].vBuffer,
+                        to_process);
 
                 mix_channels(to_process);
                 apply_post_filters(to_process);

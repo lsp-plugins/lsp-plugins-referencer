@@ -221,6 +221,8 @@ namespace lsp
                 uint32_t            nFftEnvelope;                               // FFT envelope
                 float               fFftReactivity;                             // FFT reactivity
                 float               fFftTau;                                    // FFT smooth coefficient
+                uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
+                uint32_t            nGonioPeriod;                               // Goniometer period
 
                 float              *vBuffer;                                    // Temporary buffer
                 float              *vFftFreqs;                                  // FFT frequencies
@@ -259,6 +261,7 @@ namespace lsp
                 plug::IPort        *pFftEnvelope;                               // FFT envelope
                 plug::IPort        *pFftReactivity;                             // FFT reactivity
                 plug::IPort        *pFftMesh;                                   // FFT mesh
+                plug::IPort        *pGoniometer;                                // Goniometer stream
 
                 uint8_t            *pData;                                      // Allocated data
 
@@ -282,6 +285,7 @@ namespace lsp
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples);
                 void                process_fft_frame(fft_meters_t *fm);
+                void                process_goniometer(const float *l1, const float *r1, const float *l2, const float *r2, size_t samples);
                 void                perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
                 void                output_file_data();
                 void                output_loop_data();
