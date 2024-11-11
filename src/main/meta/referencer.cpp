@@ -210,8 +210,8 @@ namespace lsp
             COMBO("mode", "Output mode", 0, mode_selectors), \
             MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 13, referencer::SPC_MESH_SIZE + 4), \
-            CONTROL("goniohsz", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
-            LOG_CONTROL("goniodot", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
+            CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
+            LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
             STREAM("gonio", "Goniometer stream buffer", 5, 128, 0x8000)
 
         static const port_t referencer_mono_ports[] =

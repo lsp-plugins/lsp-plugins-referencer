@@ -566,8 +566,8 @@
 					<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
 
 					<!-- Streams -->
-					<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohsz" dots.max=":goniodot"/>
-					<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohsz" dots.max=":goniodot"/>
+					<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
+					<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
 
 					<!-- Text -->
 					<text x="-1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
@@ -601,14 +601,14 @@
 				<hbox>
 					<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
 						<label text="labels.history"/>
-						<fader id="goniohsz" angle="0" expand="true"/>
-						<value id="goniohsz" sline="true" width="12"/>
+						<fader id="goniohs" angle="0" expand="true"/>
+						<value id="goniohs" sline="true" width="12"/>
 					</hbox>
 					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
 						<label text="labels.oscilloscope.max_dots"/>
-						<fader id="goniodot" angle="0" expand="true"/>
-						<value id="goniodot" sline="true" width="30"/>
+						<fader id="goniond" angle="0" expand="true"/>
+						<value id="goniond" sline="true" width="30"/>
 					</hbox>
 					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					<void expand="true" bg.color="bg_schema" />
