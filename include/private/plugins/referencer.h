@@ -86,13 +86,18 @@ namespace lsp
 
                 enum dmtype_t
                 {
-                    DM_PEAK,
-                    DM_TRUE_PEAK,
-                    DM_RMS,
-                    DM_LUFS,
-                    DM_PSR,
+                    DM_PEAK,                                                        // Peak values
+                    DM_TRUE_PEAK,                                                   // True peak values
+                    DM_RMS,                                                         // RMS value
+                    DM_LUFS,                                                        // LUFS value
+                    DM_PSR,                                                         // PSR (True Peak / LUFS) value
+                    DM_CORR,                                                        // Correlation (stereo only)
+                    DM_PAN,                                                         // Panning (stereo only)
+                    DM_MSBAL,                                                       // Mid/Side balance (stereo only)
 
-                    DM_TOTAL
+                    DM_TOTAL,
+                    DM_STEREO = DM_TOTAL,
+                    DM_MONO = DM_CORR
                 };
 
                 enum fgraph_t
@@ -104,7 +109,9 @@ namespace lsp
                     FG_CORR,                                                        // Spectral correlation between left and right channels
                     FG_PAN,                                                         // Panning between left and right channels
 
-                    FG_TOTAL
+                    FG_TOTAL,
+                    FG_STEREO = FG_TOTAL,
+                    FG_MONO = FG_RIGHT
                 };
 
                 struct afile_t;
@@ -209,11 +216,14 @@ namespace lsp
                 } dyna_meters_t;
 
             protected:
+                static const float      dm_endpoints[];
+                static const float      fft_endpoints[];
+
+            protected:
                 uint32_t            nChannels;                                  // Number of channels
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
-                uint32_t            nDynaMode;                                  // Dynamics meter type mode
                 float               fDynaTime;                                  // Dynamics time
                 stereo_mode_t       enMode;                                     // Stereo mode
                 uint32_t            nFftRank;                                   // FFT rank
@@ -253,7 +263,6 @@ namespace lsp
                 plug::IPort        *pPostSlope;                                 // Post-filter slope
                 plug::IPort        *pPostSel;                                   // Post-filter selector
                 plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
-                plug::IPort        *pDynaMode;                                  // Currently selected dynamics metering mode
                 plug::IPort        *pDynaTime;                                  // Maximum dynamics display time on the graph
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pFftRank;                                   // FFT rank

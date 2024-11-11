@@ -75,6 +75,29 @@ namespace lsp
 
         //---------------------------------------------------------------------
         // Implementation
+
+        const float referencer::dm_endpoints[] =
+        {
+            GAIN_AMP_M_INF_DB,  // DM_PEAK
+            GAIN_AMP_M_INF_DB,  // DM_TRUE_PEAK
+            GAIN_AMP_M_INF_DB,  // DM_RMS
+            GAIN_AMP_M_INF_DB,  // DM_LUFS
+            GAIN_AMP_M_INF_DB,  // DM_PSR
+            0,                  // DM_CORR
+            0.5f,               // DM_PAN
+            0.5f,               // DM_MSBAL
+        };
+
+        const float referencer::fft_endpoints[] =
+        {
+            GAIN_AMP_M_INF_DB,  // FG_LEFT
+            GAIN_AMP_M_INF_DB,  // FG_RIGHT
+            GAIN_AMP_M_INF_DB,  // FG_MID
+            GAIN_AMP_M_INF_DB,  // FG_SIDE
+            0.0f,               // FG_CORR
+            0.5f,               // FG_PAN
+        };
+
         referencer::referencer(const meta::plugin_t *meta):
             Module(meta)
         {
@@ -83,7 +106,6 @@ namespace lsp
             nPlaySample         = -1;
             nPlayLoop           = -1;
             nCrossfadeTime      = 0;
-            nDynaMode           = DM_PSR;
             fDynaTime           = 0.0f;
             vBuffer             = NULL;
             vFftFreqs           = NULL;
@@ -138,7 +160,6 @@ namespace lsp
             for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
                 pPostSplit[i]       = NULL;
 
-            pDynaMode           = NULL;
             pDynaTime           = NULL;
             pDynaMesh           = NULL;
 
@@ -406,7 +427,7 @@ namespace lsp
 
             // Dynamics meters
             SKIP_PORT("Dynamics display source");
-            BIND_PORT(pDynaMode);
+            SKIP_PORT("Currently displayed dynamics graph");
             BIND_PORT(pDynaTime);
 
             // FFT metering
@@ -788,7 +809,6 @@ namespace lsp
                 c->sPostFilter.set_mode(post_mode);
             }
 
-            nDynaMode               = pDynaMode->value();
             fDynaTime               = pDynaTime->value();
             const size_t period     = dspu::seconds_to_samples(fSampleRate, fDynaTime / float(meta::referencer::DYNA_MESH_SIZE));
             for (size_t i=0; i<2; ++i)
@@ -1725,41 +1745,40 @@ namespace lsp
                 return;
 
             // Generate timestamp
-            float *t = mesh->pvData[0];
-            float *s = mesh->pvData[1];
-            float *r = mesh->pvData[2];
+            size_t rows = 0;
 
+            // Time
+            float *t    = mesh->pvData[rows++];
             dsp::lramp_set1(&t[2], fDynaTime, 0.0f, meta::referencer::DYNA_MESH_SIZE);
+            t[0]    = meta::referencer::DYNA_TIME_MAX + 0.5f;
+            t[1]    = t[0];
+            t     += meta::referencer::DYNA_MESH_SIZE + 2;
+            t[0]    = -0.5f;
+            t[1]    = t[0];
 
-            // Output graphs
+            // Copy contents of all graphs
+            const size_t max_graph  = (nChannels > 1) ? DM_STEREO : DM_MONO;
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
-                dspu::ScaledMeterGraph *mg    = &dm->vGraphs[nDynaMode];
-                mg->read(&mesh->pvData[i + 1][2], meta::referencer::DYNA_MESH_SIZE);
+
+                for (size_t j=0; j<max_graph; ++j)
+                {
+                    dspu::ScaledMeterGraph *mg    = &dm->vGraphs[j];
+
+                    t       = mesh->pvData[rows++];
+                    mg->read(&t[2], meta::referencer::DYNA_MESH_SIZE);
+
+                    t[0]    = dm_endpoints[j];
+                    t[1]    = t[2];
+                    t      += meta::referencer::DYNA_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = dm_endpoints[j];
+                }
             }
 
-            // Generate end points
-            t[0]    = meta::referencer::DYNA_TIME_MAX + 0.5f;
-            t[1]    = t[0];
-            s[0]    = GAIN_AMP_M_INF_DB;
-            s[1]    = s[2];
-            r[0]    = GAIN_AMP_M_INF_DB;
-            r[1]    = r[2];
-
-            t     += meta::referencer::DYNA_MESH_SIZE + 2;
-            s     += meta::referencer::DYNA_MESH_SIZE + 2;
-            r     += meta::referencer::DYNA_MESH_SIZE + 2;
-
-            t[0]    = - 0.5f;
-            t[1]    = t[0];
-            s[0]    = s[-1];
-            s[1]    = GAIN_AMP_M_INF_DB;
-            r[0]    = r[-1];
-            r[1]    = GAIN_AMP_M_INF_DB;
-
             // Commit data to mesh
-            mesh->data(3, meta::referencer::DYNA_MESH_SIZE + 4);
+            mesh->data(rows, meta::referencer::DYNA_MESH_SIZE + 4);
         }
 
         void referencer::output_spectrum_analysis()
@@ -1780,69 +1799,25 @@ namespace lsp
             t[0]    = SPEC_FREQ_MAX * 2.0f;
             t[1]    = SPEC_FREQ_MAX * 2.0f;
 
+            const size_t max_graph  = (nChannels > 1) ? FG_STEREO : FG_MONO;
             for (size_t i=0; i<2; ++i)
             {
                 fft_meters_t *fm = &vFftMeters[i];
 
-                if (nChannels > 1)
+                for (size_t j=0; j<max_graph; ++j)
                 {
-                    // Left channel
-                    t =  mesh->pvData[rows++];
-                    dsp::mul3(&t[2], fm->vGraphs[FG_LEFT].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = GAIN_AMP_M_INF_DB;
-                    t[1]    = t[2];
-                    t      += meta::referencer::SPC_MESH_SIZE + 2;
-                    t[0]    = t[-1];
-                    t[1]    = GAIN_AMP_M_INF_DB;
+                    t       =  mesh->pvData[rows++];
 
-                    // Right channel
-                    t =  mesh->pvData[rows++];
-                    dsp::mul3(&t[2], fm->vGraphs[FG_RIGHT].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = GAIN_AMP_M_INF_DB;
-                    t[1]    = t[2];
-                    t      += meta::referencer::SPC_MESH_SIZE + 2;
-                    t[0]    = t[-1];
-                    t[1]    = GAIN_AMP_M_INF_DB;
+                    if ((j >= FG_LEFT) && (j <= FG_SIDE))
+                        dsp::mul3(&t[2], fm->vGraphs[j].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                    else
+                        dsp::copy(&t[2], fm->vGraphs[j].vCurr, meta::referencer::SPC_MESH_SIZE);
 
-                    // Middle channel
-                    t =  mesh->pvData[rows++];
-                    dsp::mul3(&t[2], fm->vGraphs[FG_MID].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = GAIN_AMP_M_INF_DB;
+                    t[0]    = fft_endpoints[j];
                     t[1]    = t[2];
                     t      += meta::referencer::SPC_MESH_SIZE + 2;
                     t[0]    = t[-1];
-                    t[1]    = GAIN_AMP_M_INF_DB;
-
-                    // Side channel
-                    t =  mesh->pvData[rows++];
-                    dsp::mul3(&t[2], fm->vGraphs[FG_SIDE].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = GAIN_AMP_M_INF_DB;
-                    t[1]    = t[2];
-                    t      += meta::referencer::SPC_MESH_SIZE + 2;
-                    t[0]    = t[-1];
-                    t[1]    = GAIN_AMP_M_INF_DB;
-
-                    // Correlation
-                    t =  mesh->pvData[rows++];
-                    dsp::copy(&t[2], fm->vGraphs[FG_CORR].vCurr, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = 0.0f;
-                    t[1]    = t[2];
-                    t      += meta::referencer::SPC_MESH_SIZE + 2;
-                    t[0]    = t[-1];
-                    t[1]    = 0.0f;
-
-                    // Panorama
-                    t =  mesh->pvData[rows++];
-                    dsp::copy(&t[2], fm->vGraphs[FG_PAN].vCurr, meta::referencer::SPC_MESH_SIZE);
-                    t[0]    = 0.5f;
-                    t[1]    = t[2];
-                    t      += meta::referencer::SPC_MESH_SIZE + 2;
-                    t[0]    = t[-1];
-                    t[1]    = 0.5f;
-                }
-                else
-                {
-                    // TODO
+                    t[1]    = fft_endpoints[j];
                 }
             }
 

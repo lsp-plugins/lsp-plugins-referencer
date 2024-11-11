@@ -203,12 +203,12 @@ namespace lsp
             LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
 
         #define REF_COMMON_MONO \
-            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("dmmesh", "Dynamics display mesh", 11, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4)
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors), \
-            MESH("dmmesh", "Dynamics display mesh", 3, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("dmmesh", "Dynamics display mesh", 17, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 13, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \

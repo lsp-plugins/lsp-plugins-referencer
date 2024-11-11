@@ -277,8 +277,8 @@
 					</ui:with>
 
 					<!-- Meshes -->
-					<mesh id="dmmesh" width="2" xi="0" yi="1" color="orange" visibility=":dmsel ine 1"/>
-					<mesh id="dmmesh" width="2" xi="0" yi="2" color="cyan" visibility=":dmsel ine 0"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":dmsel ine 1"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":dmsel ine 0"/>
 
 					<!-- Axis -->
 					<axis min="0" max=":dmtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
@@ -361,8 +361,8 @@
 					</ui:with>
 
 					<!-- Meshes -->
-					<mesh id="dmmesh" width="2" xi="0" yi="1" color="orange" visibility=":dmsel ine 1"/>
-					<mesh id="dmmesh" width="2" xi="0" yi="2" color="cyan" visibility=":dmsel ine 0"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":dmsel ine 1"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":dmsel ine 0"/>
 
 					<!-- Axis -->
 					<axis min="0" max=":dmtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
