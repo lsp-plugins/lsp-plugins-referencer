@@ -1,9 +1,5 @@
 {
 	"referencer": {
-		"correlation": {
-			"history" : "History",
-			"spectrum" : "Spectrum"
-		},
 		"dynamics": {
 			"lufs": "LUFS",
 			"peak": "Peak",
@@ -19,6 +15,10 @@
 			"mid": "Mid",
 			"off": "Off",
 			"sub_bass": "Sub Bass"
+		},
+		"graph": {
+			"history" : "History",
+			"spectrum" : "Spectrum"
 		},
 		"loop": {
 			"1": "Loop 1",
@@ -49,6 +49,10 @@
 			"mix": "Mix",
 			"reference": "Reference",
 			"both": "Both"
+		},
+		"stereo": {
+			"lr_panorama": "L/R Panorama",
+			"ms_balance": "M/S Balance"
 		},
 		"tab": {
 			"correlation": "Correlation",

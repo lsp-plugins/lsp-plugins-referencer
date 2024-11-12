@@ -26,6 +26,7 @@
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
 #include <lsp-plug.in/dsp-units/meters/Correlometer.h>
 #include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
+#include <lsp-plug.in/dsp-units/meters/Panometer.h>
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
@@ -109,6 +110,7 @@ namespace lsp
                     FG_SIDE,                                                        // Spectrum analysis of the side channel
                     FG_CORR,                                                        // Spectral correlation between left and right channels
                     FG_PAN,                                                         // Panning between left and right channels
+                    FG_MSBAL,                                                       // Balance between mid and side signals
 
                     FG_TOTAL,
                     FG_STEREO = FG_TOTAL,
@@ -213,10 +215,14 @@ namespace lsp
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
                     dspu::Correlometer  sCorrMeter;                                 // Corellometer
+                    dspu::Panometer     sPanometer;                                 // Panometer
+                    dspu::Panometer     sMsBalance;                                 // Mid/Side balance
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
                     plug::IPort        *pCorrValue;                                 // Correlation output
+                    plug::IPort        *pPanValue;                                  // Panorama output
+                    plug::IPort        *pMsValue;                                   // Mid/Side balance output
                 } dyna_meters_t;
 
             protected:

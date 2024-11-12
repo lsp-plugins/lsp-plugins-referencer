@@ -96,6 +96,7 @@ namespace lsp
             GAIN_AMP_M_INF_DB,  // FG_SIDE
             0.0f,               // FG_CORR
             0.5f,               // FG_PAN
+            0.0f,               // FG_MSBAL
         };
 
         referencer::referencer(const meta::plugin_t *meta):
@@ -176,6 +177,8 @@ namespace lsp
                 dyna_meters_t *dm   = &vDynaMeters[i];
 
                 dm->pCorrValue          = NULL;
+                dm->pPanValue           = NULL;
+                dm->pMsValue            = NULL;
             }
 
             for (size_t i=0; i < 2; ++i)
@@ -373,6 +376,8 @@ namespace lsp
                     return;
 
                 dm->sCorrMeter.construct();
+                dm->sPanometer.construct();
+                dm->sMsBalance.construct();
 
                 dm->sLUFSMeter.set_period(dspu::bs::LUFS_MEASURE_PERIOD_MS);
                 dm->sLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
@@ -450,8 +455,8 @@ namespace lsp
             {
                 BIND_PORT(pMode);
                 SKIP_PORT("Correlation view mode");
-                SKIP_PORT("Mix correlation visibility");
-                SKIP_PORT("Reference correlation visibility");
+                SKIP_PORT("Stereo view type");
+                SKIP_PORT("Stereo view mode");
             }
 
             // Meshes and meters
@@ -466,7 +471,10 @@ namespace lsp
                 for (size_t i=0; i<2; ++i)
                 {
                     dyna_meters_t *dm   = &vDynaMeters[i];
+                    SKIP_PORT("Correlation visibility");
                     BIND_PORT(dm->pCorrValue);
+                    BIND_PORT(dm->pPanValue);
+                    BIND_PORT(dm->pMsValue);
                 }
             }
 
@@ -531,6 +539,8 @@ namespace lsp
                 dm->sTPDelay.destroy();
                 dm->sLUFSMeter.destroy();
                 dm->sCorrMeter.destroy();
+                dm->sPanometer.destroy();
+                dm->sMsBalance.destroy();
 //                dm->sLUFSDelay.destroy();
 
                 for (size_t j=0; j<DM_TOTAL; ++j)
@@ -636,6 +646,18 @@ namespace lsp
                 dm->sCorrMeter.init(corr_period);
                 dm->sCorrMeter.set_period(corr_period);
                 dm->sCorrMeter.clear();
+
+                dm->sPanometer.init(corr_period);
+                dm->sPanometer.set_period(corr_period);
+                dm->sPanometer.set_pan_law(dspu::PAN_LAW_EQUAL_POWER);
+                dm->sPanometer.set_default_pan(0.5f);
+                dm->sPanometer.clear();
+
+                dm->sMsBalance.init(corr_period);
+                dm->sMsBalance.set_period(corr_period);
+                dm->sMsBalance.set_pan_law(dspu::PAN_LAW_LINEAR);
+                dm->sMsBalance.set_default_pan(0.0f);
+                dm->sMsBalance.clear();
 
 //                dm->sLUFSDelay.init(dm->sTPMeter[0].latency());
 //                dm->sLUFSDelay.set_delay(dm->sTPMeter[0].latency());
@@ -1486,6 +1508,12 @@ namespace lsp
                 dsp::pmax2(fm->vGraphs[FG_SIDE].vMax, ft2, meta::referencer::SPC_MESH_SIZE);
                 dsp::mix2(fm->vGraphs[FG_SIDE].vMax, fm->vGraphs[FG_SIDE].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
 
+                // Analyze mid/side balance between left and right channels
+                dsp::depan_lin(ft1, ft1, ft2, 0.0f, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_MSBAL].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fm->vGraphs[FG_MSBAL].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_MSBAL].vMax, fm->vGraphs[FG_MSBAL].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
                 // Analyze complex correlation between left and right
                 dsp::pcomplex_corr(ft2, fl, fr, meta::referencer::SPC_MESH_SIZE);
                 dsp::mix2(fm->vGraphs[FG_CORR].vCurr, ft2, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
@@ -1505,10 +1533,10 @@ namespace lsp
                 dsp::mix2(fm->vGraphs[FG_RIGHT].vMax, fm->vGraphs[FG_RIGHT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
 
                 // Analyze panorama between left and right channels
-                dsp::depan_panl(ft1, fl, fr, meta::referencer::SPC_MESH_SIZE);
+                dsp::depan_eqpow(ft1, fl, fr, 0.5f, meta::referencer::SPC_MESH_SIZE);
                 dsp::mix2(fm->vGraphs[FG_PAN].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
                 dsp::pmax2(fm->vGraphs[FG_PAN].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_PAN].vMax, fm->vGraphs[FG_LEFT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fm->vGraphs[FG_PAN].vMax, fm->vGraphs[FG_PAN].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
             }
             else
             {
@@ -1557,6 +1585,15 @@ namespace lsp
 
             if (nChannels > 1)
             {
+                // Compute stereo panorama
+                dm->sPanometer.process(b1, l, r, samples);
+                dm->vGraphs[DM_PAN].process(b1, samples);
+
+                // Compute Mid/Side balance
+                dsp::lr_to_ms(b1, b2, l, r, samples);
+                dm->sMsBalance.process(b1, b1, b2, samples);
+                dm->vGraphs[DM_MSBAL].process(b1, samples);
+
                 // Compute Peak values
                 dsp::pamax3(b1, l, r, samples);
                 dm->vGraphs[DM_PEAK].process(b1, samples);
@@ -1678,10 +1715,6 @@ namespace lsp
 
                 // Perform analysis of the first pair
                 dsp::lr_to_ms(mid, side, l1, r1, count);
-//                for (size_t i=0; i < count; ++i)
-//                {
-//
-//                }
 
                 stream->write_frame(1, side, 0, count);
                 stream->write_frame(2, mid, 0, count);
@@ -1775,8 +1808,13 @@ namespace lsp
                 // Report correlation value
                 if (dm->pCorrValue != NULL)
                 {
-                    const float level = dm->vGraphs[DM_CORR].level();
-                    dm->pCorrValue->set_value(level);
+                    const float corr    = dm->vGraphs[DM_CORR].level();
+                    const float pan     = dm->vGraphs[DM_PAN].level();
+                    const float msbal   = dm->vGraphs[DM_MSBAL].level();
+
+                    dm->pCorrValue->set_value(corr);
+                    dm->pPanValue->set_value(pan);
+                    dm->pMsValue->set_value(msbal);
                 }
             }
         }

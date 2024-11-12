@@ -1,9 +1,5 @@
 {
 	"referencer": {
-		"correlation": {
-			"history" : "История",
-			"spectrum" : "Спектр"
-		},
 		"dynamics": {
 			"lufs": "LUFS",
 			"peak": "Пик",
@@ -19,6 +15,10 @@
 			"mid": "Сер",
 			"off": "Выкл",
 			"sub_bass": "Суббас"
+		},
+		"graph": {
+			"history" : "История",
+			"spectrum" : "Спектр"
 		},
 		"loop": {
 			"1": "Петля 1",
@@ -49,6 +49,10 @@
 			"mix": "Микс",
 			"reference": "Референс",
 			"both": "Вместе"
+		},
+		"stereo": {
+			"lr_panorama": "Панормам Л/П",
+			"ms_balance": "Баланс Ц/С"
 		},
 		"tab": {
 			"correlation": "Корреляция",

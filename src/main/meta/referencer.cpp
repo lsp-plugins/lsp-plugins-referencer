@@ -65,10 +65,17 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t corr_selectors[] =
+        static const port_item_t graph_selectors[] =
         {
-            { "Spectrum",       "referencer.correlation.spectrum"   },
-            { "History",        "referencer.correlation.history"    },
+            { "Spectrum",       "referencer.graph.spectrum"         },
+            { "History",        "referencer.graph.history"          },
+            { NULL, NULL }
+        };
+
+        static const port_item_t stereo_selectors[] =
+        {
+            { "L/R Panorama",   "referencer.stereo.lr_panorama"     },
+            { "M/S Balance",    "referencer.stereo.ms_balance"      },
             { NULL, NULL }
         };
 
@@ -213,18 +220,24 @@ namespace lsp
             MESH("dmmesh", "Dynamics display mesh", 11, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4)
 
+        #define REF_COMMON_METERS(id, name) \
+            SWITCH("corrv_" id, name " correlation visibility", 1), \
+            METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
+            METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
+            METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE)
+
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors), \
-            COMBO("corrdis", "Correlation view mode", 0, corr_selectors), \
-            SWITCH("corrv_m", "Mix correlation visibility", 1), \
-            SWITCH("corrv_r", "Reference correlation visibility", 1), \
+            COMBO("corrdis", "Correlation view mode", 0, graph_selectors), \
+            COMBO("stertyp", "Stereo analysis type", 0, stereo_selectors), \
+            COMBO("sterdis", "Stereo view mode", 0, graph_selectors), \
             MESH("dmmesh", "Dynamics display mesh", 17, referencer::DYNA_MESH_SIZE + 4), \
-            MESH("fftgr", "FFT Analysis mesh", 13, referencer::SPC_MESH_SIZE + 4), \
+            MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
             STREAM("gonio", "Goniometer stream buffer", 5, 128, 0x8000), \
-            METER("corr_m", "Mix correlation meter", U_NONE, referencer::CORRELATION), \
-            METER("corr_r", "Reference correlation meter", U_NONE, referencer::CORRELATION)
+            REF_COMMON_METERS("m", "Mix"), \
+            REF_COMMON_METERS("r", "Reference")
 
         static const port_t referencer_mono_ports[] =
         {

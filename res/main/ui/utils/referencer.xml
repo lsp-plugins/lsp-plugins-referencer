@@ -183,10 +183,10 @@
 	
 					<!-- Meshes -->
 					<ui:if test="ex :in_r">
-						<mesh id="fftgr" xi="0" yi="7" color="left_in" fill="false" />
-						<mesh id="fftgr" xi="0" yi="8" color="right_in" fill="false" />
-						<mesh id="fftgr" xi="0" yi="9" color="mid_in" fill="false" />
-						<mesh id="fftgr" xi="0" yi="10" color="side_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="8" color="left_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="9" color="right_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="10" color="mid_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="11" color="side_in" fill="false" />
 												
 						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" />
 						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" />
@@ -433,7 +433,7 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="fftgr" xi="0" yi="11" color="cyan" fill="false" visibility=":corrv_r" />
+						<mesh id="fftgr" xi="0" yi="12" color="cyan" fill="false" visibility=":corrv_r" />
 						<mesh id="fftgr" xi="0" yi="5" color="orange" fill="false" visibility=":corrv_m" />
 		
 						<!-- Axis -->
@@ -487,14 +487,6 @@
 							<marker v="${:t + 0.5}" color="graph_alt_1" visibility=":dmtime le 10.5" />
 						</ui:for>
 						
-						<ui:with ox="1" oy="0" color="graph_alt_1">
-							<ui:for id="y" first="0" last="2">
-								<ui:for id="i" first="1" count="5">
-									<marker v="${:y*6 + :i} db" />
-								</ui:for>
-							</ui:for>
-						</ui:with>
-		
 						<!-- Secondary grid -->
 						<ui:for id="t" first="1" last="19" >
 							<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
@@ -510,7 +502,7 @@
 						</ui:with>
 		
 						<!-- Primary Grid -->
-						<ui:with color="graph_prim">
+						<ui:with color="graph_sec">
 							<marker v="-0.5" ox="1" oy="0"/>	
 							<marker v="0.5" ox="1" oy="0"/>
 						</ui:with>
@@ -599,131 +591,257 @@
 			</vbox>
 			
 			<!-- Stereo -->
-			<grid rows="2" cols="2">
-				<graph width.min="256" height.min="256" expand="true" fill="true">
-					<origin hpos="-1" vpos="-1" visibility="false"/>
+			<vbox>
+				<grid rows="2" cols="3" expand="true">
+					<!-- Stereo Frequency graph -->
+					<graph width.min="256" height.min="256" expand="true" fill="true" visibility=":sterdis ieq 0">
+						<origin hpos="-1" vpos="-1" visibility="false"/>
+		
+						<!-- Secondary grid -->
+						<ui:with color="graph_sec">
+							<ui:for id="f" first="20" last="90" step="10">
+								<marker v="${:f}" ox="1" oy="0" />
+								<marker v="${:f * 10}" ox="1" oy="0" />
+								<marker v="${:f * 100}" ox="1" oy="0" />
+							</ui:for>
+							<marker v="20000" ox="1" oy="0"/>
+						</ui:with>
+		
+						<!-- Primary Grid -->
+						<ui:with color="graph_prim">
+							<marker v="100" ox="1" oy="0" />
+							<marker v="1000" ox="1" oy="0" />
+							<marker v="10000" ox="1" oy="0" />
 	
-					<!-- Secondary grid -->
-					<ui:with color="graph_sec">
-						<ui:for id="f" first="20" last="90" step="10">
-							<marker v="${:f}" ox="1" oy="0" />
-							<marker v="${:f * 10}" ox="1" oy="0" />
-							<marker v="${:f * 100}" ox="1" oy="0" />
-						</ui:for>
-						<marker v="20000" ox="1" oy="0"/>
-					</ui:with>
-	
-					<!-- Primary Grid -->
-					<ui:with color="graph_prim">
-						<marker v="100" ox="1" oy="0" />
-						<marker v="1000" ox="1" oy="0" />
-						<marker v="10000" ox="1" oy="0" />
-
-						<marker v="0.25" />
-						<marker v="0.5" />	
-						<marker v="0.75" />
-					</ui:with>
-	
-					<!-- Meshes -->
-					<mesh id="fftgr" xi="12" yi="0" color="cyan" fill="false" />
-					<mesh id="fftgr" xi="6" yi="0" color="orange" fill="false" />
-	
-					<!-- Axis -->
-					<axis angle="0.0" min="-1" max="1" color="graph_prim" visibility="false" />
-					<axis ui:id="main_graph_ox" angle="0.5" min="10" max="24000" color="graph_prim" log="true" visibility="false" />
-	
-					<!-- Text -->
-					<ui:with ox="0" x="0" halign="1" valign="1">
-						<text y="20" text="20"/>
-						<text y="30" text="30"/>
-						<text y="50" text="50"/>
-						<text y="100" text="100"/>
-						<text y="200" text="200"/>
-						<text y="300" text="300"/>
-						<text y="500" text="500"/>
-						<text y="1000" text="graph.values.x_k" text:value="1"/>
-						<text y="2000" text="graph.values.x_k" text:value="2"/>
-						<text y="3000" text="graph.values.x_k" text:value="3"/>
-						<text y="5000" text="graph.values.x_k" text:value="5"/>
-						<text y="10000" text="graph.values.x_k" text:value="10"/>
-						<text y="20000" text="graph.values.x_k" text:value="20" valign="-1" pgroup="0" priority="10" />
-						<text y="24000" text="graph.units.hz" valign="-1" pgroup="0" priority="0"/>
-					</ui:with>
-					<text x="0" y="10" text="labels.chan.left" halign="1" valign="1" pgroup="0" priority="0"/>
-					<text x="0.5" y="10" text="labels.chan.middle" halign="0" valign="1" pgroup="0" priority="0"/>
-					<text x="1" y="10" text="labels.chan.right" halign="-1" valign="1" pgroup="0" priority="0"/>
-				</graph>
-				
-				<graph width.min="256" height.min="256" expand="true" fill="true">
-					<!-- Origin -->
-					<origin halign="0.0" valign="0.0" visible="false"/>
-
-					<marker v="0" dy=":_a_width" dx="+:_a_height" color="graph_alt_1" smooth="true"/>
-					<marker v="0" dy=":_a_width" dx="-:_a_height" color="graph_alt_1" smooth="true"/>
-
-					<!-- Secondary color -->
-					<marker v="1" ox="1" oy="0" color="graph_sec"/>
-					<marker v="0.5" ox="1" oy="0" color="graph_sec"/>
-					<marker v="-0.5" ox="1" oy="0" color="graph_sec"/>
-					<marker v="-1" ox="1" oy="0" color="graph_sec"/>
-					<marker v="1" ox="0" oy="1" color="graph_sec"/>
-					<marker v="0.5" ox="0" oy="1" color="graph_sec"/>
-					<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
-					<marker v="-1" ox="0" oy="1" color="graph_sec"/>
-
-					<!-- Axes -->
-					<axis min="-1.125" max="1.125" color="graph_prim" angle="0.0" log="false" />
-					<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
-
-					<!-- Streams -->
-					<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
-					<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
-
-					<!-- Text -->
-					<text x="-1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
-					<text x="1" y="1" text="labels.chan.right" halign="-1" valign="-1" pgroup="0" priority="0"/>
+							<marker v="0.25" />
+							<marker v="0.5" />	
+							<marker v="0.75" />
+						</ui:with>
+		
+						<!-- Meshes -->
+						<mesh id="fftgr" xi=":stertyp + 13" yi="0" color="cyan" fill="false" />
+						<mesh id="fftgr" xi=":stertyp + 6" yi="0" color="orange" fill="false" />
+		
+						<!-- Axis -->
+						<axis angle="0.0" min="-1" max="1" color="graph_prim" visibility="false" />
+						<axis ui:id="main_graph_ox" angle="0.5" min="10" max="24000" color="graph_prim" log="true" visibility="false" />
+		
+						<!-- Text -->
+						<ui:with ox="0" x="0" halign="1" valign="1">
+							<text y="20" text="20"/>
+							<text y="30" text="30"/>
+							<text y="50" text="50"/>
+							<text y="100" text="100"/>
+							<text y="200" text="200"/>
+							<text y="300" text="300"/>
+							<text y="500" text="500"/>
+							<text y="1000" text="graph.values.x_k" text:value="1"/>
+							<text y="2000" text="graph.values.x_k" text:value="2"/>
+							<text y="3000" text="graph.values.x_k" text:value="3"/>
+							<text y="5000" text="graph.values.x_k" text:value="5"/>
+							<text y="10000" text="graph.values.x_k" text:value="10"/>
+							<text y="20000" text="graph.values.x_k" text:value="20" valign="-1" pgroup="0" priority="10" />
+							<text y="24000" text="graph.units.hz" valign="-1" pgroup="0" priority="0"/>
+						</ui:with>
+						<text x="0" y="10" text="labels.chan.left" halign="1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 0"/>
+						<text x="0" y="10" text="labels.chan.middle" halign="1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 1"/>
+						<text x="0.5" y="10" text="0" halign="1" valign="1" pgroup="0" priority="0"/>
+						<text x="1" y="10" text="labels.chan.right" halign="-1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 0"/>
+						<text x="1" y="10" text="labels.chan.side" halign="-1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 1"/>
+					</graph>
 					
-					<ui:with y="0" halign="1" valign="-1">
-						<text x="-1.125" text="labels.chan.side" pgroup="0" priority="0" />
-						<text x="-1" text="-1" pgroup="0" priority="10"/>
-						<text x="-0.5" text="-0.5"/>
-						<text x="0.5" text="0.5"/>
-						<text x="1" text="1" halign="-1"/>
-					</ui:with>
-
-					<ui:with x="0" halign="1" valign="-1">
-						<text y="-1.125" text="labels.chan.mid" valign="1" pgroup="0" priority="0" />
-						<text y="-1" text="-1" pgroup="0" priority="10"/>
-						<text y="-0.5" text="-0.5"/>
-						<text y="0" text="0"/>
-						<text y="0.5" text="0.5"/>
-						<text y="1" text="1"/>
-					</ui:with>
-				</graph>
-			
-				<!-- Bottom menu for pan analysis -->
-				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
-
-					<void hexpand="true"/>
-				</hbox>
-
-				<!-- Bottom menu for goniometer -->
+					<!-- Stereo history graph -->
+					<graph width.min="256" height.min="256" expand="true" fill="true" visibility=":sterdis ieq 1">
+						<origin hpos="-1" vpos="-1" visibility="false"/>
+		
+						<!-- Additional grid -->
+						<ui:for id="t" first="0" last="2" step="1">
+							<marker v="${:t + 0.125}" color="graph_alt_2" visibility=":dmtime le 2.625" />
+							<marker v="${:t + 0.375}" color="graph_alt_2" visibility=":dmtime le 2.625" />
+							<marker v="${:t + 0.625}" color="graph_alt_2" visibility=":dmtime le 2.625" />
+							<marker v="${:t + 0.875}" color="graph_alt_2" visibility=":dmtime le 2.625" />
+						</ui:for>
+						
+						<ui:for id="t" first="0" last="6" step="1">
+							<marker v="${:t + 0.25}" color="graph_alt_2" visibility=":dmtime le 5.25" />
+							<marker v="${:t + 0.75}" color="graph_alt_2" visibility=":dmtime le 5.25" />
+						</ui:for>
+						
+						<ui:for id="t" first="0" last="9" step="1">
+							<marker v="${:t + 0.5}" color="graph_alt_1" visibility=":dmtime le 10.5" />
+						</ui:for>
+						
+						<ui:with color="graph_alt_1" ox="1" oy="0">
+							<marker v="0.875"/>
+							<marker v="0.625"/>
+							<marker v="0.375"/>
+							<marker v="0.125"/>
+						</ui:with>
+						
+						<!-- Secondary grid -->
+						<ui:for id="t" first="1" last="19" >
+							<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+						</ui:for>
+						
+						<ui:with color="graph_sec">
+							<marker v="0.75" ox="1" oy="0"/>
+							<marker v="0.25" ox="1" oy="0"/>
+						</ui:with>
+							
+						<!-- Primary Grid -->
+						<marker v="0.5" ox="1" oy="0" color="graph_prim"/>	
+		
+						<!-- Meshes -->
+						<mesh id="dmmesh" xi="0" yi=":stertyp + 13" color="cyan" fill="false" visibility=":corrv_r" />
+						<mesh id="dmmesh" xi="0" yi=":stertyp + 7" color="orange" fill="false" visibility=":corrv_m" />
+		
+						<!-- Axis -->
+						<axis min="0" max=":dmtime" angle="0.5" log="false" color="graph_prim" visible="true"/>
+						<axis angle="0" min="0" max="1" color="graph_prim" visibility="false" />
+						<axis min="0" max="1" angle="0.5" log="false" color="graph_prim" visible="false"/>
+		
+						<!-- Text -->
+						<ui:with y="0" halign="1" valign="1" pgroup="0" priority="10">
+							<ui:for id="t" first="0" last="2" step="1">
+								<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":dmtime le 2.625" />
+								<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":dmtime le 2.625" />
+							</ui:for>
+							<ui:for id="t" first="0" last="4" step="1">
+								<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":dmtime le 5.25" />
+							</ui:for>
+							<ui:for id="t" first="1" last="9" step="2">
+								<text x="${t}" text="${t}" color="graph_prim" visibility=":dmtime le 10.5" />
+							</ui:for>
+							<ui:for id="t" first="0" last="18" step="2">
+								<text x="${t}" text="${t}" color="graph_prim"/>
+							</ui:for>
+						</ui:with>
+						
+						<text y="0" ox="2" x="1" text="graph.units.s" halign="1" valign="-1" pgroup="0" priority="0"/>
+						<text x="0" y="0" text="labels.chan.left" halign="1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 0"/>
+						<text x="0" y="0" text="labels.chan.middle" halign="1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 1"/>
+						<text x="0" y="0.5" text="0" halign="1" valign="1" pgroup="0" priority="0"/>
+						<text x="0" y="1" text="labels.chan.right" halign="-1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 0"/>
+						<text x="0" y="1" text="labels.chan.side" halign="-1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 1"/>
+					</graph>
+					
+					<!-- Goniometer graph -->
+					<graph width.min="256" height.min="256" expand="true" fill="true">
+						<!-- Origin -->
+						<origin halign="0.0" valign="0.0" visible="false"/>
+	
+						<marker v="0" dy=":_a_width" dx="+:_a_height" color="graph_alt_1" smooth="true"/>
+						<marker v="0" dy=":_a_width" dx="-:_a_height" color="graph_alt_1" smooth="true"/>
+	
+						<!-- Secondary color -->
+						<marker v="1" ox="1" oy="0" color="graph_sec"/>
+						<marker v="0.5" ox="1" oy="0" color="graph_sec"/>
+						<marker v="-0.5" ox="1" oy="0" color="graph_sec"/>
+						<marker v="-1" ox="1" oy="0" color="graph_sec"/>
+						<marker v="1" ox="0" oy="1" color="graph_sec"/>
+						<marker v="0.5" ox="0" oy="1" color="graph_sec"/>
+						<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
+						<marker v="-1" ox="0" oy="1" color="graph_sec"/>
+	
+						<!-- Axes -->
+						<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false" />
+						<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
+	
+						<!-- Streams -->
+						<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
+						<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
+	
+						<!-- Text -->
+						<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
+						<text x="-1" y="1" text="labels.chan.right" halign="-1" valign="-1" pgroup="0" priority="0"/>
+						
+						<ui:with y="0" halign="1" valign="-1">
+							<text x="-1.125" text="labels.chan.side" pgroup="0" priority="0" />
+							<text x="-1" text="1" pgroup="0" priority="10"/>
+							<text x="-0.5" text="0.5"/>
+							<text x="0.5" text="-0.5"/>
+							<text x="1" text="-1" halign="-1"/>
+						</ui:with>
+	
+						<ui:with x="0" halign="1" valign="-1">
+							<text y="1.125" text="labels.chan.mid" valign="1" pgroup="0" priority="0" />
+							<text y="1" text="-1" pgroup="0" priority="10"/>
+							<text y="0.5" text="-0.5"/>
+							<text y="0" text="0"/>
+							<text y="-0.5" text="0.5"/>
+							<text y="-1" text="1"/>
+						</ui:with>
+					</graph>
+					
+					<!-- Pan meters -->
+					<cell cols="2">
+						<ledmeter text.visible="false" header.visible="false" hexpand="true">
+							<ui:with
+								min="0"
+								max="1"
+								log="false"
+								type="peak"
+								vexpand="true">
+								<ledchannel
+									id="pan_m"
+									balance="0.5"
+									balance.visibility="true"
+									balance.color="cyan"
+									value.color="orange" 
+									activity=":corrv_m" 
+									visibility=":stertyp ieq 0" />
+									
+								<ledchannel
+									id="pan_r"
+									balance="0.5"
+									balance.visibility="true"
+									balance.color="orange"
+									value.color="cyan" 
+									activity=":corrv_r"
+									visibility=":stertyp ieq 0" />
+									
+								<ledchannel
+									id="msbal_m"
+									balance.color="cyan"
+									value.color="orange" 
+									activity=":corrv_m" 
+									visibility=":stertyp ieq 1" />
+									
+								<ledchannel
+									id="msbal_r"
+									balance.color="orange"
+									value.color="cyan" 
+									activity=":corrv_r"
+									visibility=":stertyp ieq 1" />
+							</ui:with>
+						</ledmeter>
+					</cell>
+					
+					<!-- Goniometer settings -->
+					<hbox>
+						<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
+							<label text="labels.history"/>
+							<fader id="goniohs" angle="0" expand="true"/>
+							<value id="goniohs" sline="true" width="12"/>
+						</hbox>
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+						<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
+							<label text="labels.oscilloscope.max_dots"/>
+							<fader id="goniond" angle="0" expand="true"/>
+							<value id="goniond" sline="true" width="30"/>
+						</hbox>
+						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+						<void expand="true" bg.color="bg_schema" />
+					</hbox>
+				</grid>
+				
+				<!-- Bottom menu -->
 				<hbox>
-					<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
-						<label text="labels.history"/>
-						<fader id="goniohs" angle="0" expand="true"/>
-						<value id="goniohs" sline="true" width="12"/>
-					</hbox>
-					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
-					<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
-						<label text="labels.oscilloscope.max_dots"/>
-						<fader id="goniond" angle="0" expand="true"/>
-						<value id="goniond" sline="true" width="30"/>
-					</hbox>
-					<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+					<combo id="stertyp" />
+					<combo id="sterdis" />
 					<void expand="true" bg.color="bg_schema" />
 				</hbox>
-			</grid>
+			</vbox>
 		</tabs>
 		
 		<!-- Different common manipulations -->

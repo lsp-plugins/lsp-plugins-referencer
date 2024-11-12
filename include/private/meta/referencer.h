@@ -134,6 +134,16 @@ namespace lsp
             static constexpr float  CORRELATION_DFL     = 0.0f;                 // Default correlation value
             static constexpr float  CORRELATION_STEP    = 0.001f;               // Correlation step
 
+            static constexpr float  PANOMETER_MIN       = 0.0f;                 // Minimum panometer value
+            static constexpr float  PANOMETER_MAX       = 1.0f;                 // Maximum panometer value
+            static constexpr float  PANOMETER_DFL       = 0.5f;                 // Default panometer value
+            static constexpr float  PANOMETER_STEP      = 0.001f;               // Panometer step
+
+            static constexpr float  MSBALANCE_MIN       = 0.0f;                 // Minimum mid/side balance value
+            static constexpr float  MSBALANCE_MAX       = 1.0f;                 // Maximum mid/side balance value
+            static constexpr float  MSBALANCE_DFL       = 0.5f;                 // Default mid/side balance value
+            static constexpr float  MSBALANCE_STEP      = 0.001f;               // Mid/Side balance step
+
         } referencer;
 
         // Plugin type metadata
