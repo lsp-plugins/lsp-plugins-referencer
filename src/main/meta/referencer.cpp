@@ -193,6 +193,8 @@ namespace lsp
             INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
             COMBO("source", "Audio source", 0, source_selectors), \
             COMBO("section", "Tab section selector", 0, tab_selectors), \
+            SWITCH("mixvis", "Mix graphs visibility", 1), \
+            SWITCH("refvis", "Reference graphs visibility", 1), \
             /* playback loop display */ \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
@@ -207,7 +209,6 @@ namespace lsp
             LOG_CONTROL("pfmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
             LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
             /* dynamics meters */ \
-            COMBO("dmsel", "Dynamics display source", 2, source_selectors), \
             COMBO("dmmode", "Dynamics display mode", 4, dynamics_modes), \
             CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
             /* FFT analysis */ \
@@ -221,7 +222,6 @@ namespace lsp
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4)
 
         #define REF_COMMON_METERS(id, name) \
-            SWITCH("corrv_" id, name " correlation visibility", 1), \
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
             METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE)

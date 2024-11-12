@@ -183,19 +183,19 @@
 	
 					<!-- Meshes -->
 					<ui:if test="ex :in_r">
-						<mesh id="fftgr" xi="0" yi="8" color="left_in" fill="false" />
-						<mesh id="fftgr" xi="0" yi="9" color="right_in" fill="false" />
-						<mesh id="fftgr" xi="0" yi="10" color="mid_in" fill="false" />
-						<mesh id="fftgr" xi="0" yi="11" color="side_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="8" color="left_in" fill="false" visibility=":refvis"/>
+						<mesh id="fftgr" xi="0" yi="9" color="right_in" fill="false" visibility=":refvis" />
+						<mesh id="fftgr" xi="0" yi="10" color="mid_in" fill="false" visibility=":refvis" />
+						<mesh id="fftgr" xi="0" yi="11" color="side_in" fill="false" visibility=":refvis" />
 												
-						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" />
-						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" />
-						<mesh id="fftgr" xi="0" yi="3" color="mid" fill="false" />
-						<mesh id="fftgr" xi="0" yi="4" color="side" fill="false" />
+						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" visibility=":mixvis" />
+						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" visibility=":mixvis" />
+						<mesh id="fftgr" xi="0" yi="3" color="mid" fill="false" visibility=":mixvis" />
+						<mesh id="fftgr" xi="0" yi="4" color="side" fill="false" visibility=":mixvis" />
 					</ui:if>
 					<ui:if test="!ex :in_r">
-						<mesh id="fftgr" xi="0" yi="1" color="mono" fill="false" />
-						<mesh id="fftgr" xi="0" yi="2" color="mono_in" fill="false" />
+						<mesh id="fftgr" xi="0" yi="2" color="mono_in" fill="false" visibility=":refvis" />
+						<mesh id="fftgr" xi="0" yi="1" color="mono" fill="false" visibility=":mixvis" />
 					</ui:if>
 	
 					<!-- Axis -->
@@ -272,8 +272,8 @@
 					</ui:with>
 
 					<!-- Meshes -->
-					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":dmsel ine 0"/>
-					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":dmsel ine 1"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":refvis"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":mixvis"/>
 
 					<!-- Axis -->
 					<axis min="0" max=":dmtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
@@ -353,8 +353,8 @@
 					</ui:with>
 
 					<!-- Meshes -->
-					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":dmsel ine 0"/>
-					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":dmsel ine 1"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":refvis"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":mixvis"/>
 
 					<!-- Axis -->
 					<axis min="0" max=":dmtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
@@ -392,10 +392,7 @@
 					
 				<!-- Down panel -->
 				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
-					<!-- MIDI settings -->
-					<combo id="dmsel" />
 					<combo id="dmmode" />
-						
 					<void hexpand="true" />
 				</hbox>
 			</vbox>
@@ -433,8 +430,8 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="fftgr" xi="0" yi="12" color="cyan" fill="false" visibility=":corrv_r" />
-						<mesh id="fftgr" xi="0" yi="5" color="orange" fill="false" visibility=":corrv_m" />
+						<mesh id="fftgr" xi="0" yi="12" color="cyan" fill="false" visibility=":refvis" />
+						<mesh id="fftgr" xi="0" yi="5" color="orange" fill="false" visibility=":mixvis" />
 		
 						<!-- Axis -->
 						<axis angle="0.0" min="10" max="24000" color="graph_prim" log="true"/>
@@ -508,8 +505,8 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="dmmesh" xi="0" yi="12" color="cyan" fill="false" visibility=":corrv_r" />
-						<mesh id="dmmesh" xi="0" yi="6" color="orange" fill="false" visibility=":corrv_m" />
+						<mesh id="dmmesh" xi="0" yi="12" color="cyan" fill="false" visibility=":refvis" />
+						<mesh id="dmmesh" xi="0" yi="6" color="orange" fill="false" visibility=":mixvis" />
 		
 						<!-- Axis -->
 						<axis min="0" max=":dmtime" angle="1.0" log="false" color="graph_prim" visible="true"/>
@@ -560,7 +557,7 @@
 						bg.color="bg_schema"
 						balance.color="cyan"
 						value.color="orange" 
-						activity=":corrv_m" />
+						activity=":mixvis" />
 					<ledchannel
 						id="corr_r"
 						angle="1"
@@ -576,7 +573,7 @@
 						bg.color="bg_schema"
 						balance.color="orange"
 						value.color="cyan" 
-						activity=":corrv_r" />
+						activity=":refvis" />
 				</hbox>
 
 				<!-- Bottom menu -->
@@ -584,9 +581,6 @@
 					<label text="labels.mode" />
 					<combo id="corrdis" />
 					<void hexpand="true"/>
-					
-					<button id="corrv_m" text="labels.signal.mix" down.color="orange" />
-					<button id="corrv_r" text="labels.signal.reference" down.color="cyan" />
 				</hbox>
 			</vbox>
 			
@@ -619,8 +613,8 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="fftgr" xi=":stertyp + 13" yi="0" color="cyan" fill="false" />
-						<mesh id="fftgr" xi=":stertyp + 6" yi="0" color="orange" fill="false" />
+						<mesh id="fftgr" xi=":stertyp + 13" yi="0" color="cyan" fill="false" visibility=":refvis"/>
+						<mesh id="fftgr" xi=":stertyp + 6" yi="0" color="orange" fill="false" visibility=":mixvis"/>
 		
 						<!-- Axis -->
 						<axis angle="0.0" min="-1" max="1" color="graph_prim" visibility="false" />
@@ -692,8 +686,8 @@
 						<marker v="0.5" ox="1" oy="0" color="graph_prim"/>	
 		
 						<!-- Meshes -->
-						<mesh id="dmmesh" xi="0" yi=":stertyp + 13" color="cyan" fill="false" visibility=":corrv_r" />
-						<mesh id="dmmesh" xi="0" yi=":stertyp + 7" color="orange" fill="false" visibility=":corrv_m" />
+						<mesh id="dmmesh" xi="0" yi=":stertyp + 13" color="cyan" fill="false" visibility=":refvis" />
+						<mesh id="dmmesh" xi="0" yi=":stertyp + 7" color="orange" fill="false" visibility=":mixvis" />
 		
 						<!-- Axis -->
 						<axis min="0" max=":dmtime" angle="0.5" log="false" color="graph_prim" visible="true"/>
@@ -748,8 +742,8 @@
 						<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
 	
 						<!-- Streams -->
-						<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
-						<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond"/>
+						<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
+						<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
 	
 						<!-- Text -->
 						<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
@@ -765,11 +759,11 @@
 	
 						<ui:with x="0" halign="1" valign="-1">
 							<text y="1.125" text="labels.chan.mid" valign="1" pgroup="0" priority="0" />
-							<text y="1" text="-1" pgroup="0" priority="10"/>
-							<text y="0.5" text="-0.5"/>
+							<text y="1" text="1" pgroup="0" priority="10"/>
+							<text y="0.5" text="0.5"/>
 							<text y="0" text="0"/>
-							<text y="-0.5" text="0.5"/>
-							<text y="-1" text="1"/>
+							<text y="-0.5" text="-0.5"/>
+							<text y="-1" text="-1"/>
 						</ui:with>
 					</graph>
 					
@@ -788,7 +782,7 @@
 									balance.visibility="true"
 									balance.color="cyan"
 									value.color="orange" 
-									activity=":corrv_m" 
+									activity=":mixvis" 
 									visibility=":stertyp ieq 0" />
 									
 								<ledchannel
@@ -797,21 +791,21 @@
 									balance.visibility="true"
 									balance.color="orange"
 									value.color="cyan" 
-									activity=":corrv_r"
+									activity=":refvis"
 									visibility=":stertyp ieq 0" />
 									
 								<ledchannel
 									id="msbal_m"
 									balance.color="cyan"
 									value.color="orange" 
-									activity=":corrv_m" 
+									activity=":mixvis" 
 									visibility=":stertyp ieq 1" />
 									
 								<ledchannel
 									id="msbal_r"
 									balance.color="orange"
 									value.color="cyan" 
-									activity=":corrv_r"
+									activity=":refvis"
 									visibility=":stertyp ieq 1" />
 							</ui:with>
 						</ledmeter>
@@ -847,7 +841,7 @@
 		<!-- Different common manipulations -->
 		<hbox spacing="2">
 			<group text="groups.analysis">
-				<grid rows="3" cols="3">
+				<grid rows="3" cols="4">
 					<cell rows="3">
 						<grid rows="3" cols="2">
 							<label text="labels.fft.window"/>
@@ -863,12 +857,18 @@
 					
 					<label text="labels.metering.reactivity" />
 					<label text="labels.metering.period" />
+					<label text="labels.metering.display" />
 					
 					<knob id="fftrea" />
 					<knob id="dmtime" />
+					<vbox>
+						<button id="mixvis" text="labels.signal.mix" down.color="orange" />
+						<button id="refvis" text="labels.signal.reference" down.color="cyan" />
+					</vbox>
 					
 					<value id="fftrea" sline="true" />
 					<value id="dmtime" sline="true" />
+					<void />
 				</grid>
 			</group>
 			<group text="groups.post_filter">

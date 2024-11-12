@@ -428,6 +428,8 @@ namespace lsp
             BIND_PORT(pPlayLoop);
             BIND_PORT(pSource);
             SKIP_PORT("Tab section selector");
+            SKIP_PORT("Mix graph visibility");
+            SKIP_PORT("Reference graph visibility");
             BIND_PORT(pLoopMesh);
             BIND_PORT(pLoopLen);
             BIND_PORT(pLoopPos);
@@ -440,7 +442,6 @@ namespace lsp
                 BIND_PORT(pPostSplit[i]);
 
             // Dynamics meters
-            SKIP_PORT("Dynamics display source");
             SKIP_PORT("Currently displayed dynamics graph");
             BIND_PORT(pDynaTime);
 
@@ -471,7 +472,6 @@ namespace lsp
                 for (size_t i=0; i<2; ++i)
                 {
                     dyna_meters_t *dm   = &vDynaMeters[i];
-                    SKIP_PORT("Correlation visibility");
                     BIND_PORT(dm->pCorrValue);
                     BIND_PORT(dm->pPanValue);
                     BIND_PORT(dm->pMsValue);
