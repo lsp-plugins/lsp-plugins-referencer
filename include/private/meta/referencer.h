@@ -59,6 +59,9 @@ namespace lsp
             static constexpr size_t FFT_WND_DFL         = dspu::windows::HANN;
             static constexpr size_t FFT_ENV_DFL         = dspu::envelope::PINK_NOISE;
             static constexpr float  CORR_PERIOD         = 200.0f;               // Correlation period
+            static constexpr float  PSR_MIN_LEVEL       = 0.0f;                 // Minimum PSR level (dB)
+            static constexpr float  PSR_MAX_LEVEL       = 18.0f;                // Maximum PSR level (dB)
+            static constexpr size_t PSR_MESH_SIZE       = 360;                  // Size of PSR mesh
 
             static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;              // Maximum sample length (s)
@@ -143,6 +146,21 @@ namespace lsp
             static constexpr float  MSBALANCE_MAX       = 1.0f;                 // Maximum mid/side balance value
             static constexpr float  MSBALANCE_DFL       = 0.5f;                 // Default mid/side balance value
             static constexpr float  MSBALANCE_STEP      = 0.001f;               // Mid/Side balance step
+
+            static constexpr float  PSR_PERIOD_MIN      = 1.0f;                 // Minimum PSR statistics period
+            static constexpr float  PSR_PERIOD_MAX      = 30.0f;                // Maximum PSR statistics period
+            static constexpr float  PSR_PERIOD_DFL      = 10.0f;                // Default PSR statistics period
+            static constexpr float  PSR_PERIOD_STEP     = 0.05f;                // PSR statistics period step
+
+            static constexpr float  PSR_THRESH_MIN      = GAIN_AMP_0_DB;        // Minimum PSR threshold
+            static constexpr float  PSR_THRESH_MAX      = GAIN_AMP_P_18_DB;     // Maximum PSR threshold
+            static constexpr float  PSR_THRESH_DFL      = GAIN_AMP_P_7_DB;      // Default PSR threshold
+            static constexpr float  PSR_THRESH_STEP     = GAIN_AMP_S_0_1_DB;    // PSR threshold step
+
+            static constexpr float  PSR_METER_MIN       = GAIN_AMP_0_DB;        // Minimum PSR meter value
+            static constexpr float  PSR_METER_MAX       = GAIN_AMP_P_36_DB;     // Maximum PSR meter value
+            static constexpr float  PSR_METER_DFL       = GAIN_AMP_0_DB;        // Default PSR meter value
+            static constexpr float  PSR_METER_STEP      = 0.01f;                // PSR meter step
 
         } referencer;
 

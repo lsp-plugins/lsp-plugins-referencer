@@ -29,6 +29,7 @@
 #include <lsp-plug.in/dsp-units/meters/Panometer.h>
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
+#include <lsp-plug.in/dsp-units/stat/QuantizedCounter.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
 #include <lsp-plug.in/dsp-units/util/ScaledMeterGraph.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
@@ -115,6 +116,12 @@ namespace lsp
                     FG_TOTAL,
                     FG_STEREO = FG_TOTAL,
                     FG_MONO = FG_RIGHT
+                };
+
+                enum psr_mode_t
+                {
+                    PSR_DENSITY,
+                    PSR_FREQUENCY
                 };
 
                 struct afile_t;
@@ -217,9 +224,11 @@ namespace lsp
                     dspu::Correlometer  sCorrMeter;                                 // Corellometer
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
+                    dspu::QuantizedCounter  sPSRStats;                              // PSR statistics
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
+                    plug::IPort        *pPsrValue;                                  // PSR value
                     plug::IPort        *pCorrValue;                                 // Correlation output
                     plug::IPort        *pPanValue;                                  // Panorama output
                     plug::IPort        *pMsValue;                                   // Mid/Side balance output
@@ -243,12 +252,15 @@ namespace lsp
                 float               fFftTau;                                    // FFT smooth coefficient
                 uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
                 uint32_t            nGonioPeriod;                               // Goniometer period
+                uint32_t            nPsrMode;                                   // PSR display mode
+                uint32_t            nPsrThresh;                                 // PSR threshold (index)
 
                 float              *vBuffer;                                    // Temporary buffer
                 float              *vFftFreqs;                                  // FFT frequencies
                 uint16_t           *vFftInds;                                   // FFT indices
                 float              *vFftWindow;                                 // FFT window
                 float              *vFftEnvelope;                               // FFT envelope
+                float              *vPsrLevels;                                 // PSR levels
                 bool                bPlay;                                      // Play
                 bool                bSyncLoopMesh;                              // Sync loop mesh
                 bool                bUpdFft;                                    // Update FFT-related data
@@ -281,6 +293,10 @@ namespace lsp
                 plug::IPort        *pFftReactivity;                             // FFT reactivity
                 plug::IPort        *pFftMesh;                                   // FFT mesh
                 plug::IPort        *pGoniometer;                                // Goniometer stream
+                plug::IPort        *pPsrPeriod;                                 // PSR period
+                plug::IPort        *pPsrThreshold;                              // PSR threshold
+                plug::IPort        *pPsrMesh;                                   // PSR output
+                plug::IPort        *pPsrDisplay;                                // PSR display mode
 
                 uint8_t            *pData;                                      // Allocated data
 
@@ -309,6 +325,7 @@ namespace lsp
                 void                output_file_data();
                 void                output_loop_data();
                 void                output_dyna_meters();
+                void                output_psr_mesh();
                 void                output_dyna_meshes();
                 void                output_spectrum_analysis();
                 void                reduce_spectrum(float *dst, const float *src);

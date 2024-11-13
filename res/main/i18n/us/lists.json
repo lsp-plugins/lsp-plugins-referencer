@@ -39,6 +39,10 @@
 			"sides": "Sides",
 			"stereo": "Stereo"
 		},
+		"psr": {
+			"density": "Density",
+			"frequency": "Frequency"
+		},
 		"sample": {
 			"1": "Sample 1",
 			"2": "Sample 2",

@@ -113,6 +113,7 @@ namespace lsp
             vFftInds            = NULL;
             vFftWindow          = NULL;
             vFftEnvelope        = NULL;
+            vPsrLevels          = NULL;
             nFftRank            = 0;
             nFftWindow          = -1;
             nFftEnvelope        = -1;
@@ -120,6 +121,8 @@ namespace lsp
             fFftTau             = 0.0f;
             nGonioStrobe        = 0;
             nGonioPeriod        = 0;
+            nPsrMode            = PSR_DENSITY;
+            nPsrThresh          = 0;
 
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
@@ -172,10 +175,16 @@ namespace lsp
 
             pGoniometer         = NULL;
 
+            pPsrPeriod          = NULL;
+            pPsrThreshold       = NULL;
+            pPsrMesh            = NULL;
+            pPsrDisplay         = NULL;
+
             for (size_t i=0; i < 2; ++i)
             {
                 dyna_meters_t *dm   = &vDynaMeters[i];
 
+                dm->pPsrValue           = NULL;
                 dm->pCorrValue          = NULL;
                 dm->pPanValue           = NULL;
                 dm->pMsValue            = NULL;
@@ -278,6 +287,7 @@ namespace lsp
             const size_t szof_spc   = align_size(sizeof(float) * meta::referencer::SPC_MESH_SIZE, OPTIMAL_ALIGN);
             const size_t szof_ind   = align_size(sizeof(uint16_t) * meta::referencer::SPC_MESH_SIZE, OPTIMAL_ALIGN);
             const size_t szof_history = align_size(sizeof(float) * meta::referencer::SPC_HISTORY_SIZE, OPTIMAL_ALIGN);
+            const size_t szof_psr   = align_size(sizeof(float) * meta::referencer::PSR_MESH_SIZE, OPTIMAL_ALIGN);
             size_t szof_channels    = align_size(sizeof(channel_t) * nChannels, OPTIMAL_ALIGN);
             size_t szof_buf         = align_size(sizeof(float) * BUFFER_SIZE, OPTIMAL_ALIGN);
             size_t szof_global_buf  = lsp_max(szof_buf * 2, szof_fft * 2 * 4);
@@ -288,6 +298,7 @@ namespace lsp
                 szof_ind +          // vFftInds
                 szof_fft +          // vFftWindow
                 szof_spc +          // vFftEnvelope
+                szof_psr +          // vPsrLevels
                 nChannels * (
                     szof_buf            // vBuffer
                 ) +
@@ -312,6 +323,7 @@ namespace lsp
             vFftInds                = advance_ptr_bytes<uint16_t>(ptr, szof_ind);
             vFftWindow              = advance_ptr_bytes<float>(ptr, szof_fft);
             vFftEnvelope            = advance_ptr_bytes<float>(ptr, szof_spc);
+            vPsrLevels              = advance_ptr_bytes<float>(ptr, szof_psr);
 
             // Initialize audio channels
             for (size_t i=0; i < nChannels; ++i)
@@ -379,6 +391,8 @@ namespace lsp
                 dm->sPanometer.construct();
                 dm->sMsBalance.construct();
 
+                dm->sPSRStats.construct();
+
                 dm->sLUFSMeter.set_period(dspu::bs::LUFS_MEASURE_PERIOD_MS);
                 dm->sLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
 
@@ -445,6 +459,11 @@ namespace lsp
             SKIP_PORT("Currently displayed dynamics graph");
             BIND_PORT(pDynaTime);
 
+            // PSR metering
+            BIND_PORT(pPsrPeriod);
+            BIND_PORT(pPsrThreshold);
+            BIND_PORT(pPsrDisplay);
+
             // FFT metering
             BIND_PORT(pFftRank);
             BIND_PORT(pFftWindow);
@@ -463,6 +482,7 @@ namespace lsp
             // Meshes and meters
             BIND_PORT(pDynaMesh);
             BIND_PORT(pFftMesh);
+            BIND_PORT(pPsrMesh);
             if (nChannels > 1)
             {
                 SKIP_PORT("Goniometer history size");
@@ -475,6 +495,15 @@ namespace lsp
                     BIND_PORT(dm->pCorrValue);
                     BIND_PORT(dm->pPanValue);
                     BIND_PORT(dm->pMsValue);
+                    BIND_PORT(dm->pPsrValue);
+                }
+            }
+            else
+            {
+                for (size_t i=0; i<2; ++i)
+                {
+                    dyna_meters_t *dm   = &vDynaMeters[i];
+                    BIND_PORT(dm->pPsrValue);
                 }
             }
 
@@ -502,6 +531,11 @@ namespace lsp
                     BIND_PORT(al->pPlayPos);
                 }
             }
+
+            // Initialize PSR levels
+            const float psr_delta   = (meta::referencer::PSR_MAX_LEVEL - meta::referencer::PSR_MIN_LEVEL) / meta::referencer::PSR_MESH_SIZE;
+            for (size_t i=0; i<meta::referencer::PSR_MESH_SIZE; ++i)
+                vPsrLevels[i]       = dspu::db_to_gain(meta::referencer::PSR_MIN_LEVEL + psr_delta * i);
         }
 
         void referencer::destroy()
@@ -629,7 +663,8 @@ namespace lsp
                 vFftFreqs[i]            = SPEC_FREQ_MIN * expf(i * f_norm);
 
             // Update dynamics meters
-            const size_t corr_period = dspu::millis_to_samples(sr, meta::referencer::CORR_PERIOD);
+            const size_t corr_period    = dspu::millis_to_samples(sr, meta::referencer::CORR_PERIOD);
+            const size_t max_psr_period = dspu::seconds_to_samples(sr, meta::referencer::PSR_PERIOD_MAX);
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
@@ -659,8 +694,11 @@ namespace lsp
                 dm->sMsBalance.set_default_pan(0.0f);
                 dm->sMsBalance.clear();
 
-//                dm->sLUFSDelay.init(dm->sTPMeter[0].latency());
-//                dm->sLUFSDelay.set_delay(dm->sTPMeter[0].latency());
+                dm->sPSRStats.init(max_psr_period, meta::referencer::PSR_MESH_SIZE);
+                dm->sPSRStats.set_range(
+                    meta::referencer::PSR_MIN_LEVEL,
+                    meta::referencer::PSR_MAX_LEVEL,
+                    meta::referencer::PSR_MESH_SIZE);
 
                 const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_MESH_SIZE);
                 for (size_t j=0; j<DM_TOTAL; ++j)
@@ -857,12 +895,16 @@ namespace lsp
 
             fDynaTime               = pDynaTime->value();
             const size_t period     = dspu::seconds_to_samples(fSampleRate, fDynaTime / float(meta::referencer::DYNA_MESH_SIZE));
+            const size_t psr_period = dspu::seconds_to_samples(fSampleRate, pPsrPeriod->value());
+            nPsrMode                = pPsrDisplay->value();
+            nPsrThresh              = dspu::db_to_gain(pPsrThreshold->value()) * (meta::referencer::PSR_MAX_LEVEL - meta::referencer::PSR_MIN_LEVEL);
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
                 for (size_t j=0; j<DM_TOTAL; ++j)
                 {
                     dm->vGraphs[j].set_period(period);
+                    dm->sPSRStats.set_period(psr_period);
                 }
             }
 
@@ -1664,17 +1706,15 @@ namespace lsp
             {
                 const float peak    = b1[i];
                 const float lufs    = b2[i];
-                b1[i]               = (lufs >= GAIN_AMP_M_60_DB) ? peak / lufs : 0.0f;
+                const float psr     = (lufs >= GAIN_AMP_M_60_DB) ? peak / lufs : 0.0f;
+                const float psr_db  = dspu::gain_to_db(lsp_max(psr, GAIN_AMP_M_72_DB));
+
+                b1[i]               = psr;
+                b2[i]               = psr_db;
             }
 
-//            if (dm == &vDynaMeters[0])
-//            {
-//                size_t offset = psr.length();
-//                psr.append(samples);
-//                dsp::copy(psr.channel(0, offset), b1, samples);
-//            }
-
             dm->vGraphs[DM_PSR].process(b1, samples);
+            dm->sPSRStats.process(b2, samples);
         }
 
         void referencer::process_goniometer(
@@ -1796,6 +1836,7 @@ namespace lsp
             output_loop_data();
             output_dyna_meters();
             output_dyna_meshes();
+            output_psr_mesh();
             output_spectrum_analysis();
         }
 
@@ -1811,12 +1852,83 @@ namespace lsp
                     const float corr    = dm->vGraphs[DM_CORR].level();
                     const float pan     = dm->vGraphs[DM_PAN].level();
                     const float msbal   = dm->vGraphs[DM_MSBAL].level();
+                    const float psr     = dm->vGraphs[DM_PSR].level();
 
                     dm->pCorrValue->set_value(corr);
                     dm->pPanValue->set_value(pan);
                     dm->pMsValue->set_value(msbal);
+                    dm->pPsrValue->set_value(psr);
                 }
             }
+        }
+
+        void referencer::output_psr_mesh()
+        {
+            // Check that mesh is ready for receiving data
+            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pPsrMesh->buffer());
+            if ((mesh == NULL) || (!mesh->isEmpty()))
+                return;
+
+            // Form the levels
+            size_t rows = 0;
+            float *t    = mesh->pvData[rows++];
+
+            dsp::copy(&t[2], vPsrLevels, meta::referencer::PSR_MESH_SIZE);
+            t[0]        = meta::referencer::PSR_MIN_LEVEL * 0.5f;
+            t[1]        = t[0];
+            t          += meta::referencer::PSR_MESH_SIZE + 2;
+            t[0]        = meta::referencer::PSR_MAX_LEVEL * 2.0f;
+            t[1]        = t[0];
+
+            // Append meshes
+            for (size_t i=0; i < 2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+                dspu::QuantizedCounter *qc = &dm->sPSRStats;
+
+                size_t count            = dm->sPSRStats.count();
+                float *t                = mesh->pvData[rows++];
+
+                if (count > 0)
+                {
+                    size_t below            = qc->below();
+                    size_t above            = qc->above();
+                    const uint32_t *c       = dm->sPSRStats.counters();
+                    const float norm        = 100.0f / count;
+
+                    if (nPsrMode == PSR_DENSITY)
+                    {
+                        *(t++)                  = 0;
+                        *(t++)                  = count * norm;
+                        count                  -= below;
+
+                        for (size_t j=0; j<meta::referencer::PSR_MESH_SIZE; ++j)
+                        {
+                            *(t++)                  = count * norm;
+                            count                  -= c[j];
+                        }
+
+                        *(t++)                  = count * norm;
+                        *(t++)                  = 0;
+                    }
+                    else // PSR_FREQUENCY
+                    {
+                        *(t++)                  = 0;
+                        *(t++)                  = below * norm;
+
+                        for (size_t j=0; j<meta::referencer::PSR_MESH_SIZE; ++j)
+                            *(t++)                  = c[j] * norm;
+
+                        *(t++)                  = above * norm;
+                        *(t++)                  = 0;
+                    }
+                }
+                else
+                    dsp::fill_zero(t, meta::referencer::PSR_MESH_SIZE + 4);
+            }
+
+            // Commit data to mesh
+            mesh->data(rows, meta::referencer::PSR_MESH_SIZE + 4);
         }
 
         void referencer::output_dyna_meshes()

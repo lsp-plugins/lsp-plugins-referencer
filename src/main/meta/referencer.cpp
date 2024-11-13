@@ -151,6 +151,14 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t psr_hyst_mode[] =
+        {
+            { "Density",        "referencer.psr.density"            },
+            { "Frequency",      "referencer.psr.frequency"          },
+            { NULL, NULL }
+        };
+
+
         static const port_item_t fft_tolerance[] =
         {
             { "1024", NULL },
@@ -211,20 +219,31 @@ namespace lsp
             /* dynamics meters */ \
             COMBO("dmmode", "Dynamics display mode", 4, dynamics_modes), \
             CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
+            /* PSR metering */ \
+            CONTROL("psrtime", "PSR measurement time period", U_SEC, referencer::PSR_PERIOD), \
+            LOG_CONTROL("psrthr", "PSR measurement threshold", U_SEC, referencer::PSR_THRESH), \
+            COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
             /* FFT analysis */ \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
             LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
 
-        #define REF_COMMON_MONO \
-            MESH("dmmesh", "Dynamics display mesh", 11, referencer::DYNA_MESH_SIZE + 4), \
-            MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4)
+        #define REF_COMMON_METERS_MONO(id, name) \
+            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
 
-        #define REF_COMMON_METERS(id, name) \
+        #define REF_COMMON_METERS_STEREO(id, name) \
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
-            METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE)
+            METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE), \
+            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
+
+        #define REF_COMMON_MONO \
+            MESH("dmmesh", "Dynamics display mesh", 11, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4), \
+            MESH("psrmesh", "PSR output hystogram", 2, referencer::PSR_MESH_SIZE + 4), \
+            REF_COMMON_METERS_MONO("m", "Mix"), \
+            REF_COMMON_METERS_MONO("r", "Reference")
 
         #define REF_COMMON_STEREO \
             COMBO("mode", "Output mode", 0, mode_selectors), \
@@ -233,11 +252,12 @@ namespace lsp
             COMBO("sterdis", "Stereo view mode", 0, graph_selectors), \
             MESH("dmmesh", "Dynamics display mesh", 17, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
+            MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
             STREAM("gonio", "Goniometer stream buffer", 5, 128, 0x8000), \
-            REF_COMMON_METERS("m", "Mix"), \
-            REF_COMMON_METERS("r", "Reference")
+            REF_COMMON_METERS_STEREO("m", "Mix"), \
+            REF_COMMON_METERS_STEREO("r", "Reference")
 
         static const port_t referencer_mono_ports[] =
         {
