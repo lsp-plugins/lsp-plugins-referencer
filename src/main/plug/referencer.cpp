@@ -463,6 +463,7 @@ namespace lsp
             BIND_PORT(pPsrPeriod);
             BIND_PORT(pPsrThreshold);
             BIND_PORT(pPsrDisplay);
+            BIND_PORT(pPsrMesh);
 
             // FFT metering
             BIND_PORT(pFftRank);
@@ -482,7 +483,6 @@ namespace lsp
             // Meshes and meters
             BIND_PORT(pDynaMesh);
             BIND_PORT(pFftMesh);
-            BIND_PORT(pPsrMesh);
             if (nChannels > 1)
             {
                 SKIP_PORT("Goniometer history size");
