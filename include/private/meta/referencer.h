@@ -62,6 +62,7 @@ namespace lsp
             static constexpr float  PSR_MIN_LEVEL       = 0.0f;                 // Minimum PSR level (dB)
             static constexpr float  PSR_MAX_LEVEL       = 18.0f;                // Maximum PSR level (dB)
             static constexpr size_t PSR_MESH_SIZE       = 360;                  // Size of PSR mesh
+            static constexpr float  PSR_TRUE_PEAK_DECAY = -0.5f;                // True peak decay for PSR (see AES Convention 143 Brief 373 for reference)
 
             static constexpr float  SAMPLE_LENGTH_MIN   = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX   = 1000.0f;              // Maximum sample length (s)

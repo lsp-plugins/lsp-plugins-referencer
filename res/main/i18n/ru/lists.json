@@ -1,10 +1,12 @@
 {
 	"referencer": {
 		"dynamics": {
-			"lufs": "LUFS",
+			"ilufs": "I-LUFS",
+			"mlufs": "M-LUFS",
 			"peak": "Пик",
 			"psr" : "PSR",
 			"rms": "СКЗ",
+			"slufs": "S-LUFS",
 			"true_peak": "Ист пик"
 		},
 		"filter": {

@@ -92,7 +92,9 @@ namespace lsp
                     DM_PEAK,                                                        // Peak values
                     DM_TRUE_PEAK,                                                   // True peak values
                     DM_RMS,                                                         // RMS value
-                    DM_LUFS,                                                        // LUFS value
+                    DM_M_LUFS,                                                      // Momentary LUFS value
+                    DM_S_LUFS,                                                      // Short-term LUFS value
+                    DM_I_LUFS,                                                      // Integrated LUFS value
                     DM_PSR,                                                         // PSR (True Peak / LUFS) value
                     DM_CORR,                                                        // Correlation (stereo only)
                     DM_PAN,                                                         // Panning (stereo only)
@@ -220,11 +222,13 @@ namespace lsp
                     dspu::Sidechain     sRMSMeter;                                  // RMS meter
                     dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
                     dspu::Delay         sTPDelay;                                   // True Peak delay
-                    dspu::LoudnessMeter sLUFSMeter;                                 // LUFS meter
+                    dspu::LoudnessMeter sMLUFSMeter;                                // Momentary LUFS meter
+                    dspu::LoudnessMeter sSLUFSMeter;                                // Short-term LUFS meter
                     dspu::Correlometer  sCorrMeter;                                 // Corellometer
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
                     dspu::QuantizedCounter  sPSRStats;                              // PSR statistics
+                    double              fTPLevel;                                   // True-peak level
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
@@ -254,6 +258,7 @@ namespace lsp
                 uint32_t            nGonioPeriod;                               // Goniometer period
                 uint32_t            nPsrMode;                                   // PSR display mode
                 uint32_t            nPsrThresh;                                 // PSR threshold (index)
+                double              fTPDecay;                                   // True-peak decay for PSR
 
                 float              *vBuffer;                                    // Temporary buffer
                 float              *vFftFreqs;                                  // FFT frequencies

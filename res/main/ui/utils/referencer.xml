@@ -234,7 +234,7 @@
 			
 			<!-- Dynamics -->
 			<vbox>
-				<graph width.min="640" height.min="256" expand="true" fill="true" visibility=":dmmode ine 4">
+				<graph width.min="640" height.min="256" expand="true" fill="true" visibility=":dmmode ine 6">
 					<origin hpos="1" vpos="-1" visible="false"/>
 					<!-- Additional grid -->
 					<ui:for id="t" first="0" last="2" step="1">
@@ -272,7 +272,7 @@
 					</ui:with>
 
 					<!-- Meshes -->
-					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":refvis"/>
+					<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 11 : 8) + :dmmode" color="cyan" visibility=":refvis"/>
 					<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":mixvis"/>
 
 					<!-- Axis -->
@@ -314,7 +314,7 @@
 				</graph>
 				
 				<!-- PSR graph -->
-				<hbox expand="true" visibility=":dmmode ieq 4">
+				<hbox expand="true" visibility=":dmmode ieq 6">
 					<graph width.min="256" height.min="256" expand="true" fill="true">
 						<origin hpos="1" vpos="-1" visible="false"/>
 						<!-- Additional grid -->
@@ -353,7 +353,7 @@
 						</ui:with>
 	
 						<!-- Meshes -->
-						<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 9 : 6) + :dmmode" color="cyan" visibility=":refvis"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="((ex :in_r) ? 11 : 8) + :dmmode" color="cyan" visibility=":refvis"/>
 						<mesh id="dmmesh" width="2" xi="0" yi="1 + :dmmode" color="orange" visibility=":mixvis"/>
 	
 						<!-- Axis -->
@@ -559,8 +559,8 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="dmmesh" xi="0" yi="12" color="cyan" fill="false" visibility=":refvis" />
-						<mesh id="dmmesh" xi="0" yi="6" color="orange" fill="false" visibility=":mixvis" />
+						<mesh id="dmmesh" xi="0" yi="18" color="cyan" fill="false" visibility=":refvis" />
+						<mesh id="dmmesh" xi="0" yi="8" color="orange" fill="false" visibility=":mixvis" />
 		
 						<!-- Axis -->
 						<axis min="0" max=":dmtime" angle="1.0" log="false" color="graph_prim" visible="true"/>
@@ -740,8 +740,8 @@
 						<marker v="0.5" ox="1" oy="0" color="graph_prim"/>	
 		
 						<!-- Meshes -->
-						<mesh id="dmmesh" xi="0" yi=":stertyp + 13" color="cyan" fill="false" visibility=":refvis" />
-						<mesh id="dmmesh" xi="0" yi=":stertyp + 7" color="orange" fill="false" visibility=":mixvis" />
+						<mesh id="dmmesh" xi="0" yi=":stertyp + 19" color="cyan" fill="false" visibility=":refvis" />
+						<mesh id="dmmesh" xi="0" yi=":stertyp + 9" color="orange" fill="false" visibility=":mixvis" />
 		
 						<!-- Axis -->
 						<axis min="0" max=":dmtime" angle="0.5" log="false" color="graph_prim" visible="true"/>

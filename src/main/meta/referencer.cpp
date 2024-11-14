@@ -146,7 +146,9 @@ namespace lsp
             { "Peak",           "referencer.dynamics.peak"          },
             { "True Peak",      "referencer.dynamics.true_peak"     },
             { "RMS",            "referencer.dynamics.rms"           },
-            { "LUFS",           "referencer.dynamics.lufs"          },
+            { "M-LUFS",         "referencer.dynamics.mlufs"         },
+            { "S-LUFS",         "referencer.dynamics.slufs"         },
+            { "I-LUFS",         "referencer.dynamics.ilufs"         },
             { "PSR",            "referencer.dynamics.psr"           },
             { NULL, NULL }
         };
@@ -240,7 +242,7 @@ namespace lsp
             METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
 
         #define REF_COMMON_MONO \
-            MESH("dmmesh", "Dynamics display mesh", 11, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("dmmesh", "Dynamics display mesh", 15, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4), \
             REF_COMMON_METERS_MONO("m", "Mix"), \
             REF_COMMON_METERS_MONO("r", "Reference")
@@ -250,7 +252,7 @@ namespace lsp
             COMBO("corrdis", "Correlation view mode", 0, graph_selectors), \
             COMBO("stertyp", "Stereo analysis type", 0, stereo_selectors), \
             COMBO("sterdis", "Stereo view mode", 0, graph_selectors), \
-            MESH("dmmesh", "Dynamics display mesh", 17, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("dmmesh", "Dynamics display mesh", 21, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \

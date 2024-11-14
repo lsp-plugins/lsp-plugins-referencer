@@ -1,10 +1,12 @@
 {
 	"referencer": {
 		"dynamics": {
-			"lufs": "LUFS",
+			"ilufs": "I-LUFS",
+			"mlufs": "M-LUFS",
 			"peak": "Peak",
 			"psr" : "PSR",
 			"rms": "RMS",
+			"slufs": "S-LUFS",
 			"true_peak": "True Peak"
 		},
 		"filter": {
