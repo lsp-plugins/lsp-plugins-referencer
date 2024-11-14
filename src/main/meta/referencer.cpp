@@ -219,11 +219,11 @@ namespace lsp
             LOG_CONTROL("pfmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
             LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
             /* dynamics meters */ \
-            COMBO("dmmode", "Dynamics display mode", 4, dynamics_modes), \
+            COMBO("dmmode", "Dynamics display mode", 6, dynamics_modes), \
             CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
             /* PSR metering */ \
             CONTROL("psrtime", "PSR measurement time period", U_SEC, referencer::PSR_PERIOD), \
-            LOG_CONTROL("psrthr", "PSR measurement threshold", U_SEC, referencer::PSR_THRESH), \
+            LOG_CONTROL("psrthr", "PSR measurement threshold", U_GAIN_AMP, referencer::PSR_THRESH), \
             COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
             MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
             /* FFT analysis */ \
@@ -233,13 +233,15 @@ namespace lsp
             LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
 
         #define REF_COMMON_METERS_MONO(id, name) \
-            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
+            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER), \
+            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
 
         #define REF_COMMON_METERS_STEREO(id, name) \
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
             METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE), \
-            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
+            METER("psr_" id, name " PSR meter", U_GAIN_AMP, referencer::PSR_METER), \
+            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
 
         #define REF_COMMON_MONO \
             MESH("dmmesh", "Dynamics display mesh", 15, referencer::DYNA_MESH_SIZE + 4), \

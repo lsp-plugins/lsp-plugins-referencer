@@ -233,6 +233,7 @@ namespace lsp
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
                     plug::IPort        *pPsrValue;                                  // PSR value
+                    plug::IPort        *pPsrPcValue;                                // PSR value in percents (over threshold)
                     plug::IPort        *pCorrValue;                                 // Correlation output
                     plug::IPort        *pPanValue;                                  // Panorama output
                     plug::IPort        *pMsValue;                                   // Mid/Side balance output

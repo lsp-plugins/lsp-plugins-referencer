@@ -84,7 +84,7 @@ namespace lsp
             GAIN_AMP_M_INF_DB,  // DM_M_LUFS
             GAIN_AMP_M_INF_DB,  // DM_S_LUFS
             GAIN_AMP_M_INF_DB,  // DM_I_LUFS
-            GAIN_AMP_M_INF_DB,  // DM_PSR
+            GAIN_AMP_0_DB,      // DM_PSR
             0,                  // DM_CORR
             0.5f,               // DM_PAN
             0.5f,               // DM_MSBAL
@@ -190,6 +190,7 @@ namespace lsp
                 dm->fTPLevel            = 0.0;
 
                 dm->pPsrValue           = NULL;
+                dm->pPsrPcValue         = NULL;
                 dm->pCorrValue          = NULL;
                 dm->pPanValue           = NULL;
                 dm->pMsValue            = NULL;
@@ -513,6 +514,7 @@ namespace lsp
                     BIND_PORT(dm->pPanValue);
                     BIND_PORT(dm->pMsValue);
                     BIND_PORT(dm->pPsrValue);
+                    BIND_PORT(dm->pPsrPcValue);
                 }
             }
             else
@@ -521,6 +523,7 @@ namespace lsp
                 {
                     dyna_meters_t *dm   = &vDynaMeters[i];
                     BIND_PORT(dm->pPsrValue);
+                    BIND_PORT(dm->pPsrPcValue);
                 }
             }
 
@@ -920,7 +923,11 @@ namespace lsp
             const size_t period     = dspu::seconds_to_samples(fSampleRate, fDynaTime / float(meta::referencer::DYNA_MESH_SIZE));
             const size_t psr_period = dspu::seconds_to_samples(fSampleRate, pPsrPeriod->value());
             nPsrMode                = pPsrDisplay->value();
-            nPsrThresh              = dspu::db_to_gain(pPsrThreshold->value()) * (meta::referencer::PSR_MAX_LEVEL - meta::referencer::PSR_MIN_LEVEL);
+            const float psr_th      = dspu::gain_to_db(pPsrThreshold->value());
+
+            nPsrThresh              = (psr_th * meta::referencer::PSR_MESH_SIZE) / (meta::referencer::PSR_MAX_LEVEL - meta::referencer::PSR_MIN_LEVEL);
+            lsp_trace("psr_th = %f, nPsrThresh = %d", psr_th, int(nPsrThresh));
+
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
@@ -1740,7 +1747,7 @@ namespace lsp
                 const double peak   = lsp_max(double(b1[i]), dm->fTPLevel * fTPDecay);
                 const float lufs    = b2[i];
 
-                const float psr     = (lufs >= GAIN_AMP_M_72_DB) ? float(peak) / lufs : 1.0f;
+                const float psr     = (lufs >= GAIN_AMP_M_72_DB) ? float(peak) / lufs : GAIN_AMP_M_3_DB;
                 const float psr_db  = dspu::gain_to_db(lsp_max(psr, 0.0f));
 
                 b1[i]               = psr;
@@ -1884,15 +1891,26 @@ namespace lsp
                 // Report correlation value
                 if (dm->pCorrValue != NULL)
                 {
-                    const float corr    = dm->vGraphs[DM_CORR].level();
-                    const float pan     = dm->vGraphs[DM_PAN].level();
-                    const float msbal   = dm->vGraphs[DM_MSBAL].level();
-                    const float psr     = dm->vGraphs[DM_PSR].level();
+                    const float corr            = dm->vGraphs[DM_CORR].level();
+                    const float pan             = dm->vGraphs[DM_PAN].level();
+                    const float msbal           = dm->vGraphs[DM_MSBAL].level();
+                    const float psr             = dm->vGraphs[DM_PSR].level();
 
+                    // Compute the amount of PRS values above the threshold
+                    const float psr_total       = dm->sPSRStats.count();
+                    const uint32_t *psr_values  = dm->sPSRStats.counters();
+                    size_t psr_above            = dm->sPSRStats.above();
+                    for (size_t k=nPsrThresh; k < meta::referencer::PSR_MESH_SIZE; ++k)
+                        psr_above                  += psr_values[k];
+
+                    const float psr_pc          = (psr_above * 100.0f) / psr_total;
+
+                    // Output meters
                     dm->pCorrValue->set_value(corr);
                     dm->pPanValue->set_value(pan);
                     dm->pMsValue->set_value(msbal);
                     dm->pPsrValue->set_value(psr);
+                    dm->pPsrPcValue->set_value(psr_pc);
                 }
             }
         }

@@ -153,8 +153,8 @@ namespace lsp
             static constexpr float  PSR_PERIOD_DFL      = 10.0f;                // Default PSR statistics period
             static constexpr float  PSR_PERIOD_STEP     = 0.05f;                // PSR statistics period step
 
-            static constexpr float  PSR_THRESH_MIN      = GAIN_AMP_0_DB;        // Minimum PSR threshold
-            static constexpr float  PSR_THRESH_MAX      = GAIN_AMP_P_18_DB;     // Maximum PSR threshold
+            static constexpr float  PSR_THRESH_MIN      = GAIN_AMP_P_1_DB;      // Minimum PSR threshold
+            static constexpr float  PSR_THRESH_MAX      = GAIN_AMP_P_16_DB;     // Maximum PSR threshold
             static constexpr float  PSR_THRESH_DFL      = GAIN_AMP_P_7_DB;      // Default PSR threshold
             static constexpr float  PSR_THRESH_STEP     = GAIN_AMP_S_0_1_DB;    // PSR threshold step
 
@@ -162,6 +162,11 @@ namespace lsp
             static constexpr float  PSR_METER_MAX       = GAIN_AMP_P_36_DB;     // Maximum PSR meter value
             static constexpr float  PSR_METER_DFL       = GAIN_AMP_0_DB;        // Default PSR meter value
             static constexpr float  PSR_METER_STEP      = 0.01f;                // PSR meter step
+
+            static constexpr float  PSR_HYST_MIN        = 0;                    // PSR hystogram minimum value
+            static constexpr float  PSR_HYST_MAX        = 100.0f;               // PSR hystogram maximum value
+            static constexpr float  PSR_HYST_DFL        = 0.0f;                 // PSR hystogram default value
+            static constexpr float  PSR_HYST_STEP       = 0.01f;                // PSR hystogram step
 
         } referencer;
 
