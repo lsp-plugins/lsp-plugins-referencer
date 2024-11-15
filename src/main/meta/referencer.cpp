@@ -142,17 +142,6 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t dynamics_modes[] =
-        {
-            { "Peak",           "referencer.dynamics.peak"          },
-            { "True Peak",      "referencer.dynamics.true_peak"     },
-            { "RMS",            "referencer.dynamics.rms"           },
-            { "M-LUFS",         "referencer.dynamics.mlufs"         },
-            { "S-LUFS",         "referencer.dynamics.slufs"         },
-            { "I-LUFS",         "referencer.dynamics.ilufs"         },
-            { NULL, NULL }
-        };
-
         static const port_item_t psr_hyst_mode[] =
         {
             { "Density",        "referencer.psr.density"            },
