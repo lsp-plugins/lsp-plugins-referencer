@@ -232,11 +232,8 @@ namespace lsp
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
-                    plug::IPort        *pPsrValue;                                  // PSR value
+                    plug::IPort        *pMeters[DM_TOTAL];                          // Output meters
                     plug::IPort        *pPsrPcValue;                                // PSR value in percents (over threshold)
-                    plug::IPort        *pCorrValue;                                 // Correlation output
-                    plug::IPort        *pPanValue;                                  // Panorama output
-                    plug::IPort        *pMsValue;                                   // Mid/Side balance output
                 } dyna_meters_t;
 
             protected:
@@ -248,7 +245,7 @@ namespace lsp
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
-                float               fDynaTime;                                  // Dynamics time
+                float               fMaxTime;                                   // Maximum display time
                 stereo_mode_t       enMode;                                     // Stereo mode
                 uint32_t            nFftRank;                                   // FFT rank
                 uint32_t            nFftWindow;                                 // FFT window
@@ -291,7 +288,7 @@ namespace lsp
                 plug::IPort        *pPostSlope;                                 // Post-filter slope
                 plug::IPort        *pPostSel;                                   // Post-filter selector
                 plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
-                plug::IPort        *pDynaTime;                                  // Maximum dynamics display time on the graph
+                plug::IPort        *pMaxTime;                                   // Maximum time on the graph
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pFftRank;                                   // FFT rank
                 plug::IPort        *pFftWindow;                                 // FFT window

@@ -1,12 +1,12 @@
 {
 	"referencer": {
 		"dynamics": {
-			"ilufs": "I-LUFS",
-			"mlufs": "M-LUFS",
+			"ilufs": "Integrated LUFS",
+			"mlufs": "Momentary LUFS",
 			"peak": "Peak",
 			"psr" : "PSR",
 			"rms": "RMS",
-			"slufs": "S-LUFS",
+			"slufs": "Short-term LUFS",
 			"true_peak": "True Peak"
 		},
 		"filter": {
@@ -63,6 +63,7 @@
 		"tab": {
 			"correlation": "Correlation",
 			"dynamics": "Dynamics",
+			"loudness": "Loudness",
 			"samples": "Samples",
 			"spectrum": "Spectrum",
 			"stereo": "Stereo"

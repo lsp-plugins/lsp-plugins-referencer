@@ -109,7 +109,7 @@ namespace lsp
             nPlaySample         = -1;
             nPlayLoop           = -1;
             nCrossfadeTime      = 0;
-            fDynaTime           = 0.0f;
+            fMaxTime            = 0.0f;
             vBuffer             = NULL;
             vFftFreqs           = NULL;
             vFftInds            = NULL;
@@ -167,7 +167,7 @@ namespace lsp
             for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
                 pPostSplit[i]       = NULL;
 
-            pDynaTime           = NULL;
+            pMaxTime            = NULL;
             pDynaMesh           = NULL;
 
             pFftRank            = NULL;
@@ -189,11 +189,9 @@ namespace lsp
 
                 dm->fTPLevel            = 0.0;
 
-                dm->pPsrValue           = NULL;
+                for (size_t i=0; i<DM_TOTAL; ++i)
+                    dm->pMeters[i]          = NULL;
                 dm->pPsrPcValue         = NULL;
-                dm->pCorrValue          = NULL;
-                dm->pPanValue           = NULL;
-                dm->pMsValue            = NULL;
             }
 
             for (size_t i=0; i < 2; ++i)
@@ -473,9 +471,16 @@ namespace lsp
             for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
                 BIND_PORT(pPostSplit[i]);
 
-            // Dynamics meters
-            SKIP_PORT("Currently displayed dynamics graph");
-            BIND_PORT(pDynaTime);
+            // Common graph parameters
+            BIND_PORT(pMaxTime);
+
+            // Loudness graph parameters
+            SKIP_PORT("Peak graph visible");
+            SKIP_PORT("True Peak graph visible");
+            SKIP_PORT("RMS graph visible");
+            SKIP_PORT("Momentary LUFS graph visible");
+            SKIP_PORT("Short-term LUFS graph visible");
+            SKIP_PORT("Integrated LUFS graph visible");
 
             // PSR metering
             BIND_PORT(pPsrPeriod);
@@ -510,10 +515,8 @@ namespace lsp
                 for (size_t i=0; i<2; ++i)
                 {
                     dyna_meters_t *dm   = &vDynaMeters[i];
-                    BIND_PORT(dm->pCorrValue);
-                    BIND_PORT(dm->pPanValue);
-                    BIND_PORT(dm->pMsValue);
-                    BIND_PORT(dm->pPsrValue);
+                    for (size_t j=0; j<DM_STEREO; ++j)
+                        BIND_PORT(dm->pMeters[j]);
                     BIND_PORT(dm->pPsrPcValue);
                 }
             }
@@ -522,7 +525,8 @@ namespace lsp
                 for (size_t i=0; i<2; ++i)
                 {
                     dyna_meters_t *dm   = &vDynaMeters[i];
-                    BIND_PORT(dm->pPsrValue);
+                    for (size_t j=0; j<DM_MONO; ++j)
+                        BIND_PORT(dm->pMeters[j]);
                     BIND_PORT(dm->pPsrPcValue);
                 }
             }
@@ -919,8 +923,8 @@ namespace lsp
                 c->sPostFilter.set_mode(post_mode);
             }
 
-            fDynaTime               = pDynaTime->value();
-            const size_t period     = dspu::seconds_to_samples(fSampleRate, fDynaTime / float(meta::referencer::DYNA_MESH_SIZE));
+            fMaxTime                = pMaxTime->value();
+            const size_t period     = dspu::seconds_to_samples(fSampleRate, fMaxTime / float(meta::referencer::DYNA_MESH_SIZE));
             const size_t psr_period = dspu::seconds_to_samples(fSampleRate, pPsrPeriod->value());
             nPsrMode                = pPsrDisplay->value();
             const float psr_th      = dspu::gain_to_db(pPsrThreshold->value());
@@ -1865,7 +1869,8 @@ namespace lsp
                 for (size_t i=0; i<nChannels; ++i)
                 {
                     channel_t *c = &vChannels[i];
-                    dsp::copy(c->vOut, c->vBuffer, to_process);
+
+                    c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
 
                     c->vIn             += to_process;
                     c->vOut            += to_process;
@@ -1888,14 +1893,19 @@ namespace lsp
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
 
-                // Report correlation value
-                if (dm->pCorrValue != NULL)
+                // Report meter values
+                for (size_t i=0; i<DM_STEREO; ++i)
                 {
-                    const float corr            = dm->vGraphs[DM_CORR].level();
-                    const float pan             = dm->vGraphs[DM_PAN].level();
-                    const float msbal           = dm->vGraphs[DM_MSBAL].level();
-                    const float psr             = dm->vGraphs[DM_PSR].level();
+                    if (dm->pMeters[i] != NULL)
+                    {
+                        const float value       = dm->vGraphs[i].level();
+                        dm->pMeters[i]->set_value(value);
+                    }
+                }
 
+                // Report the PSR percentage value
+                if (dm->pPsrPcValue != NULL)
+                {
                     // Compute the amount of PRS values above the threshold
                     const float psr_total       = dm->sPSRStats.count();
                     const uint32_t *psr_values  = dm->sPSRStats.counters();
@@ -1904,12 +1914,6 @@ namespace lsp
                         psr_above                  += psr_values[k];
 
                     const float psr_pc          = (psr_above * 100.0f) / psr_total;
-
-                    // Output meters
-                    dm->pCorrValue->set_value(corr);
-                    dm->pPanValue->set_value(pan);
-                    dm->pMsValue->set_value(msbal);
-                    dm->pPsrValue->set_value(psr);
                     dm->pPsrPcValue->set_value(psr_pc);
                 }
             }
@@ -1996,7 +2000,7 @@ namespace lsp
 
             // Time
             float *t    = mesh->pvData[rows++];
-            dsp::lramp_set1(&t[2], fDynaTime, 0.0f, meta::referencer::DYNA_MESH_SIZE);
+            dsp::lramp_set1(&t[2], fMaxTime, 0.0f, meta::referencer::DYNA_MESH_SIZE);
             t[0]    = meta::referencer::DYNA_TIME_MAX + 0.5f;
             t[1]    = t[0];
             t      += meta::referencer::DYNA_MESH_SIZE + 2;

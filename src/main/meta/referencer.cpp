@@ -82,6 +82,7 @@ namespace lsp
         static const port_item_t tab_selectors[] =
         {
             { "Samples",        "referencer.tab.samples"            },
+            { "Loudness",       "referencer.tab.loudness"           },
             { "Spectrum",       "referencer.tab.spectrum"           },
             { "Dynamics",       "referencer.tab.dynamics"           },
             { "Correlation",    "referencer.tab.correlation"        },
@@ -149,7 +150,6 @@ namespace lsp
             { "M-LUFS",         "referencer.dynamics.mlufs"         },
             { "S-LUFS",         "referencer.dynamics.slufs"         },
             { "I-LUFS",         "referencer.dynamics.ilufs"         },
-            { "PSR",            "referencer.dynamics.psr"           },
             { NULL, NULL }
         };
 
@@ -218,10 +218,16 @@ namespace lsp
             LOG_CONTROL("pflomid", "Post-filter low-mid frequency", U_HZ, referencer::POST_LOW_MID), \
             LOG_CONTROL("pfmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
             LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
-            /* dynamics meters */ \
-            COMBO("dmmode", "Dynamics display mode", 6, dynamics_modes), \
-            CONTROL("dmtime", "Dynamics display maximum time", U_SEC, referencer::DYNA_TIME), \
-            /* PSR metering */ \
+            /* graph display maximum time */ \
+            CONTROL("maxtime", "Graph display maximum time", U_SEC, referencer::DYNA_TIME), \
+            /* Loudness metering */ \
+            SWITCH("lmpk", "Peak graph visible", 0), \
+            SWITCH("lmtp", "True peak graph visible", 1), \
+            SWITCH("lmrms", "RMS graph visible", 0), \
+            SWITCH("lmmlufs", "Momentary LUFS graph visible", 0), \
+            SWITCH("lmslufs", "Short-term LUFS graph visible", 1), \
+            SWITCH("lmilufs", "Integrated LUFS graph visible", 0), \
+            /* PSR (dynamics) metering */ \
             CONTROL("psrtime", "PSR measurement time period", U_SEC, referencer::PSR_PERIOD), \
             LOG_CONTROL("psrthr", "PSR measurement threshold", U_GAIN_AMP, referencer::PSR_THRESH), \
             COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
@@ -232,15 +238,24 @@ namespace lsp
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
             LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
 
+        #define REF_COMMON_METERS(id, name) \
+            METER("pk_" id, name " Peak meter", U_NONE, referencer::LOUD_METER), \
+            METER("tp_" id, name " True Peak meter", U_NONE, referencer::LOUD_METER), \
+            METER("rms_" id, name " RMS meter", U_NONE, referencer::LOUD_METER), \
+            METER("mlufs_" id, name " Momentary LUFS meter", U_NONE, referencer::LOUD_METER), \
+            METER("slufs_" id, name " Short-Term LUFS meter", U_NONE, referencer::LOUD_METER), \
+            METER("ilufs_" id, name " Integrated LUFS meter", U_NONE, referencer::LOUD_METER), \
+            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
+
         #define REF_COMMON_METERS_MONO(id, name) \
-            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER), \
+            REF_COMMON_METERS(id, name), \
             METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
 
         #define REF_COMMON_METERS_STEREO(id, name) \
+            REF_COMMON_METERS(id, name), \
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
             METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE), \
-            METER("psr_" id, name " PSR meter", U_GAIN_AMP, referencer::PSR_METER), \
             METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
 
         #define REF_COMMON_MONO \

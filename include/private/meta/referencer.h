@@ -168,6 +168,11 @@ namespace lsp
             static constexpr float  PSR_HYST_DFL        = 0.0f;                 // PSR hystogram default value
             static constexpr float  PSR_HYST_STEP       = 0.01f;                // PSR hystogram step
 
+            static constexpr float  LOUD_METER_MIN      = GAIN_AMP_M_INF_DB;    // Loudness meter minimum
+            static constexpr float  LOUD_METER_MAX      = GAIN_AMP_P_24_DB;     // Loudness meter maximum
+            static constexpr float  LOUD_METER_DFL      = GAIN_AMP_M_INF_DB;    // Loudness meter default
+            static constexpr float  LOUD_METER_STEP     = 0.01f;                // Loudness meter step
+
         } referencer;
 
         // Plugin type metadata

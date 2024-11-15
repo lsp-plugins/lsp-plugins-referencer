@@ -1,13 +1,13 @@
 {
 	"referencer": {
 		"dynamics": {
-			"ilufs": "I-LUFS",
-			"mlufs": "M-LUFS",
+			"ilufs": "Интегрированный LUFS",
+			"mlufs": "Моментальный LUFS",
 			"peak": "Пик",
 			"psr" : "PSR",
 			"rms": "СКЗ",
-			"slufs": "S-LUFS",
-			"true_peak": "Ист пик"
+			"slufs": "Короткий LUFS",
+			"true_peak": "Истинный пик"
 		},
 		"filter": {
 			"bass": "Бас",
@@ -63,6 +63,7 @@
 		"tab": {
 			"correlation": "Корреляция",
 			"dynamics": "Динамика",
+			"loudness": "Громкость",
 			"samples": "Семплы",
 			"spectrum": "Спектр",
 			"stereo": "Стерео"

@@ -1,0 +1,11 @@
+{
+	"referencer": {
+		"ilufs": "I",
+		"mlufs": "M",
+		"peak": "PK",
+		"psr" : "PSR",
+		"rms": "RMS",
+		"slufs": "S",
+		"true_peak": "TP"
+	}
+}
