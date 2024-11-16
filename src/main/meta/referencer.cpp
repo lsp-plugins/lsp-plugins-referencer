@@ -210,6 +210,7 @@ namespace lsp
             /* graph display maximum time */ \
             CONTROL("maxtime", "Graph display maximum time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
+            CONTROL("ilufsit", "Integrated LUFS integration period", U_SEC, referencer::ILUFS_TIME), \
             SWITCH("lmpk", "Peak graph visible", 0), \
             SWITCH("lmtp", "True peak graph visible", 1), \
             SWITCH("lmrms", "RMS graph visible", 0), \
@@ -228,13 +229,13 @@ namespace lsp
             LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
 
         #define REF_COMMON_METERS(id, name) \
-            METER("pk_" id, name " Peak meter", U_NONE, referencer::LOUD_METER), \
-            METER("tp_" id, name " True Peak meter", U_NONE, referencer::LOUD_METER), \
-            METER("rms_" id, name " RMS meter", U_NONE, referencer::LOUD_METER), \
-            METER("mlufs_" id, name " Momentary LUFS meter", U_NONE, referencer::LOUD_METER), \
-            METER("slufs_" id, name " Short-Term LUFS meter", U_NONE, referencer::LOUD_METER), \
-            METER("ilufs_" id, name " Integrated LUFS meter", U_NONE, referencer::LOUD_METER), \
-            METER("psr_" id, name " PSR meter", U_NONE, referencer::PSR_METER)
+            METER("pk_" id, name " Peak meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("tp_" id, name " True Peak meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("rms_" id, name " RMS meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("mlufs_" id, name " Momentary LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("slufs_" id, name " Short-Term LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("ilufs_" id, name " Integrated LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("psr_" id, name " PSR meter", U_GAIN_AMP, referencer::PSR_METER)
 
         #define REF_COMMON_METERS_MONO(id, name) \
             REF_COMMON_METERS(id, name), \

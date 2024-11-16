@@ -168,6 +168,7 @@ namespace lsp
                 pPostSplit[i]       = NULL;
 
             pMaxTime            = NULL;
+            pILUFSTime          = NULL;
             pDynaMesh           = NULL;
 
             pFftRank            = NULL;
@@ -388,9 +389,11 @@ namespace lsp
                 if (!dm->sTPMeter[1].init())
                     return;
 
-                if (dm->sMLUFSMeter.init(nChannels, dspu::bs::LUFS_MOMENTARY_PEROID) != STATUS_OK)
+                if (dm->sMLUFSMeter.init(nChannels, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
                     return;
-                if (dm->sSLUFSMeter.init(nChannels, dspu::bs::LUFS_SHORT_TERM_PEROID) != STATUS_OK)
+                if (dm->sSLUFSMeter.init(nChannels, dspu::bs::LUFS_SHORT_TERM_PERIOD) != STATUS_OK)
+                    return;
+                if (dm->sILUFSMeter.init(nChannels, meta::referencer::ILUFS_TIME_MAX, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
                     return;
 
                 dm->sCorrMeter.construct();
@@ -399,10 +402,11 @@ namespace lsp
 
                 dm->sPSRStats.construct();
 
-                dm->sMLUFSMeter.set_period(dspu::bs::LUFS_MOMENTARY_PEROID);
+                dm->sMLUFSMeter.set_period(dspu::bs::LUFS_MOMENTARY_PERIOD);
                 dm->sMLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
-                dm->sSLUFSMeter.set_period(dspu::bs::LUFS_SHORT_TERM_PEROID);
+                dm->sSLUFSMeter.set_period(dspu::bs::LUFS_SHORT_TERM_PERIOD);
                 dm->sSLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
+                dm->sILUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
 
                 if (nChannels > 1)
                 {
@@ -415,6 +419,11 @@ namespace lsp
                     dm->sSLUFSMeter.set_active(1, true);
                     dm->sSLUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
                     dm->sSLUFSMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+
+                    dm->sILUFSMeter.set_active(0, true);
+                    dm->sILUFSMeter.set_active(1, true);
+                    dm->sILUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                    dm->sILUFSMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
                 }
                 else
                 {
@@ -423,6 +432,9 @@ namespace lsp
 
                     dm->sSLUFSMeter.set_active(0, true);
                     dm->sSLUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+
+                    dm->sILUFSMeter.set_active(0, true);
+                    dm->sILUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
                 }
             }
 
@@ -475,6 +487,7 @@ namespace lsp
             BIND_PORT(pMaxTime);
 
             // Loudness graph parameters
+            BIND_PORT(pILUFSTime);
             SKIP_PORT("Peak graph visible");
             SKIP_PORT("True Peak graph visible");
             SKIP_PORT("RMS graph visible");
@@ -597,6 +610,7 @@ namespace lsp
                 dm->sTPDelay.destroy();
                 dm->sMLUFSMeter.destroy();
                 dm->sSLUFSMeter.destroy();
+                dm->sILUFSMeter.destroy();
                 dm->sCorrMeter.destroy();
                 dm->sPanometer.destroy();
                 dm->sMsBalance.destroy();
@@ -701,6 +715,7 @@ namespace lsp
 
                 dm->sMLUFSMeter.set_sample_rate(sr);
                 dm->sSLUFSMeter.set_sample_rate(sr);
+                dm->sILUFSMeter.set_sample_rate(sr);
 
                 const size_t delay      = dspu::millis_to_samples(fSampleRate, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.5f);
                 dm->sTPDelay.init(delay + BUFFER_SIZE);
@@ -924,6 +939,7 @@ namespace lsp
             }
 
             fMaxTime                = pMaxTime->value();
+            const float ilufs_time  = pILUFSTime->value();
             const size_t period     = dspu::seconds_to_samples(fSampleRate, fMaxTime / float(meta::referencer::DYNA_MESH_SIZE));
             const size_t psr_period = dspu::seconds_to_samples(fSampleRate, pPsrPeriod->value());
             nPsrMode                = pPsrDisplay->value();
@@ -938,6 +954,7 @@ namespace lsp
                 for (size_t j=0; j<DM_TOTAL; ++j)
                 {
                     dm->vGraphs[j].set_period(period);
+                    dm->sILUFSMeter.set_integration_period(ilufs_time);
                     dm->sPSRStats.set_period(psr_period);
                 }
             }
@@ -1696,6 +1713,12 @@ namespace lsp
                 dm->sMLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
                 dm->vGraphs[DM_M_LUFS].process(b2, samples);
 
+                // Compute Integrated LUFS value
+                dm->sILUFSMeter.bind(0, l);
+                dm->sILUFSMeter.bind(1, r);
+                dm->sILUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+                dm->vGraphs[DM_I_LUFS].process(b2, samples);
+
                 // Compute Short-term LUFS value
                 dm->sSLUFSMeter.bind(0, NULL, l, 0);
                 dm->sSLUFSMeter.bind(1, NULL, r, 0);
@@ -1737,6 +1760,11 @@ namespace lsp
                 dm->sMLUFSMeter.bind(0, NULL, l, 0);
                 dm->sMLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
                 dm->vGraphs[DM_M_LUFS].process(b2, samples);
+
+                // Compute Integrated LUFS value
+                dm->sILUFSMeter.bind(0, l);
+                dm->sILUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+                dm->vGraphs[DM_I_LUFS].process(b2, samples);
 
                 // Compute Short-term LUFS value
                 dm->sSLUFSMeter.bind(0, NULL, l, 0);

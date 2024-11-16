@@ -343,6 +343,8 @@
 						<button id="lmslufs" text="lists.referencer.dynamics.slufs" />
 						<button id="lmilufs" text="lists.referencer.dynamics.ilufs" />
 						<void hexpand="true" />
+						<fader id="ilufsit" angle="0" />
+						<value id="ilufsit" sline="true" />
 					</hbox>
 				</cell>
 			</grid>

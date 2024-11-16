@@ -25,6 +25,7 @@
 #include <lsp-plug.in/dsp-units/ctl/Bypass.h>
 #include <lsp-plug.in/dsp-units/filters/Equalizer.h>
 #include <lsp-plug.in/dsp-units/meters/Correlometer.h>
+#include <lsp-plug.in/dsp-units/meters/ILUFSMeter.h>
 #include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
 #include <lsp-plug.in/dsp-units/meters/Panometer.h>
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
@@ -224,6 +225,7 @@ namespace lsp
                     dspu::Delay         sTPDelay;                                   // True Peak delay
                     dspu::LoudnessMeter sMLUFSMeter;                                // Momentary LUFS meter
                     dspu::LoudnessMeter sSLUFSMeter;                                // Short-term LUFS meter
+                    dspu::ILUFSMeter    sILUFSMeter;                                // Integrated loudness meter
                     dspu::Correlometer  sCorrMeter;                                 // Corellometer
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
@@ -289,6 +291,7 @@ namespace lsp
                 plug::IPort        *pPostSel;                                   // Post-filter selector
                 plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
                 plug::IPort        *pMaxTime;                                   // Maximum time on the graph
+                plug::IPort        *pILUFSTime;                                 // Integrated LUFS time
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pFftRank;                                   // FFT rank
                 plug::IPort        *pFftWindow;                                 // FFT window

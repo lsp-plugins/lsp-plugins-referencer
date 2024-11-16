@@ -173,6 +173,11 @@ namespace lsp
             static constexpr float  LOUD_METER_DFL      = GAIN_AMP_M_INF_DB;    // Loudness meter default
             static constexpr float  LOUD_METER_STEP     = 0.01f;                // Loudness meter step
 
+            static constexpr float  ILUFS_TIME_MIN      = 5.0f;                 // Minimum integrated LUFS computation time
+            static constexpr float  ILUFS_TIME_MAX      = 60.0f;                // Maximum integrated LUFS computation time
+            static constexpr float  ILUFS_TIME_DFL      = 20.0f;                // Integrated LUFS default computation time
+            static constexpr float  ILUFS_TIME_STEP     = 0.05f;                // Integrated LUFS computation time step
+
         } referencer;
 
         // Plugin type metadata
