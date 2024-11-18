@@ -43,7 +43,8 @@
 		},
 		"psr": {
 			"density": "Density",
-			"frequency": "Frequency"
+			"frequency": "Frequency",
+			"normalized": "Normalized"
 		},
 		"sample": {
 			"1": "Sample 1",

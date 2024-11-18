@@ -121,10 +121,20 @@ namespace lsp
                     FG_MONO = FG_RIGHT
                 };
 
+                enum ftype_t
+                {
+                    FT_CURR,
+                    FT_MIN,
+                    FT_MAX,
+
+                    FT_TOTAL
+                };
+
                 enum psr_mode_t
                 {
                     PSR_DENSITY,
-                    PSR_FREQUENCY
+                    PSR_FREQUENCY,
+                    PSR_NORMALIZED
                 };
 
                 struct afile_t;
@@ -202,9 +212,7 @@ namespace lsp
 
                 typedef struct fft_graph_t
                 {
-                    float              *vCurr;                                      // Current actual value
-                    float              *vMin;                                       // Minimum value
-                    float              *vMax;                                       // Maximum value
+                    float              *vData[FT_TOTAL];                            // Measured values
                 } fft_graph_t;
 
                 typedef struct fft_meters_t
@@ -252,8 +260,8 @@ namespace lsp
                 uint32_t            nFftRank;                                   // FFT rank
                 uint32_t            nFftWindow;                                 // FFT window
                 uint32_t            nFftEnvelope;                               // FFT envelope
-                float               fFftReactivity;                             // FFT reactivity
                 float               fFftTau;                                    // FFT smooth coefficient
+                float               fFftBal;                                    // FFT ballistics coefficient
                 uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
                 uint32_t            nGonioPeriod;                               // Goniometer period
                 uint32_t            nPsrMode;                                   // PSR display mode
@@ -269,6 +277,7 @@ namespace lsp
                 bool                bPlay;                                      // Play
                 bool                bSyncLoopMesh;                              // Sync loop mesh
                 bool                bUpdFft;                                    // Update FFT-related data
+                bool                bFftDamping;                                // FFT damping
                 channel_t          *vChannels;                                  // Delay channels
                 asource_t           sMix;                                       // Mix signal characteristics
                 asource_t           sRef;                                       // Reference signal characteristics
@@ -297,7 +306,10 @@ namespace lsp
                 plug::IPort        *pFftWindow;                                 // FFT window
                 plug::IPort        *pFftEnvelope;                               // FFT envelope
                 plug::IPort        *pFftReactivity;                             // FFT reactivity
-                plug::IPort        *pFftMesh;                                   // FFT mesh
+                plug::IPort        *pFftDamping;                                // Enable FFT damping
+                plug::IPort        *pFftReset;                                  // Reset FFT minimum and maximum
+                plug::IPort        *pFftBallistics;                             // FFT ballistics
+                plug::IPort        *pFftMesh[3];                                // FFT mesh
                 plug::IPort        *pGoniometer;                                // Goniometer stream
                 plug::IPort        *pPsrPeriod;                                 // PSR period
                 plug::IPort        *pPsrThreshold;                              // PSR threshold
@@ -328,12 +340,14 @@ namespace lsp
                 void                process_fft_frame(fft_meters_t *fm);
                 void                process_goniometer(const float *l1, const float *r1, const float *l2, const float *r2, size_t samples);
                 void                perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
+                void                accumulate_fft(fft_meters_t *fm, size_t type, const float *buf);
+                void                reset_fft();
                 void                output_file_data();
                 void                output_loop_data();
                 void                output_dyna_meters();
                 void                output_psr_mesh();
                 void                output_dyna_meshes();
-                void                output_spectrum_analysis();
+                void                output_spectrum_analysis(size_t type);
                 void                reduce_spectrum(float *dst, const float *src);
                 void                reduce_cspectrum(float *dst, const float *src);
                 void                do_destroy();

@@ -383,19 +383,48 @@
 	
 					<!-- Meshes -->
 					<ui:if test="ex :in_r">
-						<mesh id="fftgr" xi="0" yi="8" color="left_in" fill="false" visibility=":refvis and :left_v"/>
-						<mesh id="fftgr" xi="0" yi="9" color="right_in" fill="false" visibility=":refvis and :right_v" />
-						<mesh id="fftgr" xi="0" yi="10" color="mid_in" fill="false" visibility=":refvis and :mid_v" />
-						<mesh id="fftgr" xi="0" yi="11" color="side_in" fill="false" visibility=":refvis and :side_v" />
-												
-						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" visibility=":mixvis and :left_v" />
-						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" visibility=":mixvis and :right_v" />
-						<mesh id="fftgr" xi="0" yi="3" color="mid" fill="false" visibility=":mixvis and :mid_v" />
-						<mesh id="fftgr" xi="0" yi="4" color="side" fill="false" visibility=":mixvis and :side_v" />
+					
+						<ui:with id="fftming" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh yi="8" color="left_in" fill.color="left_in" visibility=":refvis and :minvis and :left_v"/>
+							<mesh yi="9" color="right_in" fill.color="right_in" visibility=":refvis and :minvis and :right_v" />
+							<mesh yi="10" color="mid_in" fill.color="mid_in" visibility=":refvis and :minvis and :mid_v" />
+							<mesh yi="11" color="side_in" fill.color="side_in" visibility=":refvis and :minvis and :side_v" />
+													
+							<mesh yi="1" color="left" fill.color="left" visibility=":mixvis and :minvis and :left_v" />
+							<mesh yi="2" color="right" fill.color="right" visibility=":mixvis and :minvis and :right_v" />
+							<mesh yi="3" color="mid" fill.color="mid" visibility=":mixvis and :minvis and :mid_v" />
+							<mesh yi="4" color="side" fill.color="side" visibility=":mixvis and :minvis and :side_v" />
+						</ui:with>
+					
+						<ui:with id="fftmaxg" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh yi="8" color="left_in" fill.color="left_in" visibility=":refvis and :maxvis and :left_v"/>
+							<mesh yi="9" color="right_in" fill.color="right_in" visibility=":refvis and :maxvis and :right_v" />
+							<mesh yi="10" color="mid_in" fill.color="mid_in" visibility=":refvis and :maxvis and :mid_v" />
+							<mesh yi="11" color="side_in" fill.color="side_in" visibility=":refvis and :maxvis and :side_v" />
+													
+							<mesh yi="1" color="left" fill.color="left" visibility=":mixvis and :maxvis and :left_v" />
+							<mesh yi="2" color="right" fill.color="right" visibility=":mixvis and :maxvis and :right_v" />
+							<mesh yi="3" color="mid" fill.color="mid" ui:tag="42" visibility=":mixvis and :maxvis and :mid_v" />
+							<mesh yi="4" color="side" fill.color="side" visibility=":mixvis and :maxvis and :side_v" />
+						</ui:with>
+					
+						<ui:with id="fftgr" xi="0" fill="false">
+							<mesh yi="8" color="left_in" visibility=":refvis and :left_v"/>
+							<mesh yi="9" color="right_in" visibility=":refvis and :right_v" />
+							<mesh yi="10" color="mid_in" visibility=":refvis and :mid_v" />
+							<mesh yi="11" color="side_in" visibility=":refvis and :side_v" />
+													
+							<mesh yi="1" color="left" visibility=":mixvis and :left_v" />
+							<mesh yi="2" color="right" visibility=":mixvis and :right_v" />
+							<mesh yi="3" color="mid" visibility=":mixvis and :mid_v" />
+							<mesh yi="4" color="side" visibility=":mixvis and :side_v" />
+						</ui:with>
 					</ui:if>
 					<ui:if test="!ex :in_r">
-						<mesh id="fftgr" xi="0" yi="2" color="mono_in" fill="false" visibility=":refvis" />
-						<mesh id="fftgr" xi="0" yi="1" color="mono" fill="false" visibility=":mixvis" />
+						<ui:with id="fftgr" xi="0" width=":lthick+1" fill="false">
+							<mesh yi="2" color="mono_in" visibility=":refvis" />
+							<mesh yi="1" color="mono" visibility=":mixvis" />
+						</ui:with>
 					</ui:if>
 	
 					<!-- Axis -->
@@ -541,7 +570,7 @@
 							activity=":refvis" />
 					</ui:with>
 					
-					<graph width.min="193" height.min="256" vexpand="true" fill="true">
+					<graph width.min="192" height.min="256" vexpand="true" fill="true">
 						<origin hpos="1" vpos="-1" visible="false"/>
 						
 						<!-- Additional grid -->
@@ -567,8 +596,10 @@
 						</ui:with>
 	
 						<!-- Meshes -->
-						<mesh id="psrmesh" width="2" xi="0" yi="2" color="cyan" visibility=":refvis"/>
-						<mesh id="psrmesh" width="2" xi="0" yi="1" color="orange" visibility=":mixvis"/>
+						<ui:with id="psrmesh" xi="0" width="2" fill="true" fill.color.a="0.9">
+							<mesh yi="2" color="cyan" fill.color="cyan" visibility=":refvis"/>
+							<mesh yi="1" color="orange" fill.color="orange" visibility=":mixvis"/>
+						</ui:with>
 						
 						<marker id="psrthr" ox="0" oy="1" width="2" hwidth="2" color="threshold" hcolor="threshold" pointer="vsize" editable="true"/>
 	
@@ -645,8 +676,18 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="fftgr" xi="0" yi="12" color="cyan" fill="false" visibility=":refvis" />
-						<mesh id="fftgr" xi="0" yi="5" color="orange" fill="false" visibility=":mixvis" />
+						<ui:with id="fftming" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh yi="12" color="cyan" fill.color="cyan" visibility=":refvis and :minvis" />
+							<mesh yi="5" color="orange" fill.color="orange" visibility=":mixvis and :minvis" />
+						</ui:with>
+						<ui:with id="fftmaxg" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh yi="12" color="cyan" fill.color="cyan" visibility=":refvis and :maxvis" />
+							<mesh yi="5" color="orange" fill.color="orange" visibility=":mixvis and :maxvis" />
+						</ui:with>
+						<ui:with id="fftgr" xi="0" fill="false" >
+							<mesh yi="12" color="cyan" visibility=":refvis" />
+							<mesh yi="5" color="orange" visibility=":mixvis" />
+						</ui:with>
 		
 						<!-- Axis -->
 						<axis angle="0.0" min="10" max="24000" color="graph_prim" log="true"/>
@@ -820,8 +861,18 @@
 						</ui:with>
 		
 						<!-- Meshes -->
-						<mesh id="fftgr" xi=":stertyp + 13" yi="0" color="cyan" fill="false" visibility=":refvis"/>
-						<mesh id="fftgr" xi=":stertyp + 6" yi="0" color="orange" fill="false" visibility=":mixvis"/>
+						<ui:with id="fftming" yi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh xi=":stertyp + 13" color="cyan" fill.color="cyan" visibility=":refvis and :minvis"/>
+							<mesh xi=":stertyp + 6" color="orange" fill.color="orange" visibility=":mixvis and :minvis"/>
+						</ui:with>
+						<ui:with id="fftmaxg" yi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh xi=":stertyp + 13" color="cyan" fill.color="cyan" visibility=":refvis and :maxvis"/>
+							<mesh xi=":stertyp + 6" color="orange" fill.color="orange" visibility=":mixvis and :maxvis"/>
+						</ui:with>
+						<ui:with id="fftgr" yi="0" fill="false">
+							<mesh xi=":stertyp + 13" color="cyan" visibility=":refvis"/>
+							<mesh xi=":stertyp + 6" color="orange" visibility=":mixvis"/>
+						</ui:with>
 		
 						<!-- Axis -->
 						<axis angle="0.0" min="-1" max="1" color="graph_prim" visibility="false" />
@@ -1048,9 +1099,9 @@
 		<!-- Different common manipulations -->
 		<hbox spacing="2">
 			<group text="groups.analysis">
-				<grid rows="3" cols="4">
+				<grid rows="3" cols="5">
 					<cell rows="3">
-						<grid rows="3" cols="2">
+						<grid rows="4" cols="2">
 							<label text="labels.fft.window"/>
 							<combo id="fftwnd" pad.r="15"/>
 							
@@ -1059,23 +1110,33 @@
 							
 							<label text="labels.fft.envelope"/>
 							<combo id="fftenv" pad.r="15"/>
+							
+							<cell cols="3">
+								<button id="fftrst" text="labels.reset" />
+							</cell>
 						</grid>
 					</cell>
 					
 					<label text="labels.metering.reactivity" />
 					<label text="labels.metering.period" />
 					<label text="labels.metering.display" />
+					<button id="fftdamp" text="labels.metering.damping" />
 					
 					<knob id="fftrea" />
 					<knob id="maxtime" />
-					<vbox>
-						<button id="mixvis" text="labels.signal.mix" down.color="orange" />
-						<button id="refvis" text="labels.signal.reference" down.color="cyan" />
-					</vbox>
+					<cell rows="2">
+						<grid rows="3" cols="2">
+							<cell cols="2"><button id="mixvis" hfill="true" text="labels.signal.mix" down.color="orange" /></cell>
+							<cell cols="2"><button id="refvis" hfill="true" text="labels.signal.reference" down.color="cyan" /></cell>
+							<button id="minvis" hfill="true" text="labels.signal.min" color="yellow" />
+							<button id="maxvis" hfill="true" text="labels.signal.max" color="yellow" />
+						</grid>
+					</cell>
+					<knob id="fftbal" />
 					
 					<value id="fftrea" sline="true" />
 					<value id="maxtime" sline="true" />
-					<void />
+					<value id="fftbal" sline="true" />
 				</grid>
 			</group>
 			<group text="groups.post_filter">

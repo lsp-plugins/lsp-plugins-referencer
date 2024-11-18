@@ -146,6 +146,7 @@ namespace lsp
         {
             { "Density",        "referencer.psr.density"            },
             { "Frequency",      "referencer.psr.frequency"          },
+            { "Normalized",     "referencer.psr.normalized"         },
             { NULL, NULL }
         };
 
@@ -194,6 +195,8 @@ namespace lsp
             COMBO("section", "Tab section selector", 0, tab_selectors), \
             SWITCH("mixvis", "Mix graphs visibility", 1), \
             SWITCH("refvis", "Reference graphs visibility", 1), \
+            SWITCH("minvis", "Minimum graphs visibility", 0), \
+            SWITCH("maxvis", "Maximum graphs visibility", 0), \
             /* playback loop display */ \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
@@ -226,7 +229,10 @@ namespace lsp
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
-            LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME)
+            LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
+            SWITCH("fftdamp", "FFT Damping", 1), \
+            TRIGGER("fftrst", "FFT Reset"), \
+            LOG_CONTROL("fftbal", "FFT Ballistics", U_SEC, referencer::FFT_BALLISTICS)
 
         #define REF_COMMON_METERS(id, name) \
             METER("pk_" id, name " Peak meter", U_GAIN_AMP, referencer::LOUD_METER), \
@@ -251,6 +257,8 @@ namespace lsp
         #define REF_COMMON_MONO \
             MESH("dmmesh", "Dynamics display mesh", 15, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4), \
+            MESH("fftming", "FFT minimum extremum mesh", 3, referencer::SPC_MESH_SIZE + 4), \
+            MESH("fftmaxg", "FFT maximum extremum mesh", 3, referencer::SPC_MESH_SIZE + 4), \
             REF_COMMON_METERS_MONO("m", "Mix"), \
             REF_COMMON_METERS_MONO("r", "Reference")
 
@@ -265,6 +273,8 @@ namespace lsp
             SWITCH("side_v", "Visibilty of FFT analysis for side channel", 0), \
             MESH("dmmesh", "Dynamics display mesh", 21, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
+            MESH("fftming", "FFT minimum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
+            MESH("fftmaxg", "FFT maximum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
             STREAM("gonio", "Goniometer stream buffer", 5, 128, 0x8000), \

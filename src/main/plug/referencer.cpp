@@ -92,13 +92,13 @@ namespace lsp
 
         const float referencer::fft_endpoints[] =
         {
-            GAIN_AMP_M_INF_DB,  // FG_LEFT
-            GAIN_AMP_M_INF_DB,  // FG_RIGHT
-            GAIN_AMP_M_INF_DB,  // FG_MID
-            GAIN_AMP_M_INF_DB,  // FG_SIDE
-            0.0f,               // FG_CORR
-            0.5f,               // FG_PAN
-            0.0f,               // FG_MSBAL
+            GAIN_AMP_M_INF_DB, GAIN_AMP_M_INF_DB, GAIN_AMP_P_24_DB,     // FG_LEFT
+            GAIN_AMP_M_INF_DB, GAIN_AMP_M_INF_DB, GAIN_AMP_P_24_DB,     // FG_RIGHT
+            GAIN_AMP_M_INF_DB, GAIN_AMP_M_INF_DB, GAIN_AMP_P_24_DB,     // FG_MID
+            GAIN_AMP_M_INF_DB, GAIN_AMP_M_INF_DB, GAIN_AMP_P_24_DB,     // FG_SIDE
+            0.0f, -2.0f, 2.0f,                                          // FG_CORR
+            0.5f, -1.0f, 2.0f,                                          // FG_PAN
+            0.0f, -1.0f, 2.0f,                                          // FG_MSBAL
         };
 
         referencer::referencer(const meta::plugin_t *meta):
@@ -119,8 +119,8 @@ namespace lsp
             nFftRank            = 0;
             nFftWindow          = -1;
             nFftEnvelope        = -1;
-            fFftReactivity      = 0.0f;
             fFftTau             = 0.0f;
+            fFftBal             = 0.0f;
             nGonioStrobe        = 0;
             nGonioPeriod        = 0;
             nPsrMode            = PSR_DENSITY;
@@ -158,6 +158,7 @@ namespace lsp
             bPlay               = false;
             bSyncLoopMesh       = true;
             bUpdFft             = true;
+            bFftDamping         = true;
             pMode               = NULL;
 
             pPostMode           = NULL;
@@ -175,7 +176,12 @@ namespace lsp
             pFftWindow          = NULL;
             pFftEnvelope        = NULL;
             pFftReactivity      = NULL;
-            pFftMesh            = NULL;
+            pFftDamping         = NULL;
+            pFftReset           = NULL;
+            pFftBallistics      = NULL;
+
+            for (size_t i=0; i<FT_TOTAL; ++i)
+                pFftMesh[i]         = NULL;
 
             pGoniometer         = NULL;
 
@@ -210,9 +216,8 @@ namespace lsp
                 {
                     fft_graph_t *fg     = &fm->vGraphs[i];
 
-                    fg->vCurr           = NULL;
-                    fg->vMin            = NULL;
-                    fg->vMax            = NULL;
+                    for (size_t j=0; j<FT_TOTAL; ++j)
+                        fg->vData[j]        = NULL;
                 }
             }
 
@@ -308,11 +313,9 @@ namespace lsp
                     szof_buf            // vBuffer
                 ) +
                 2 * (               // vFftMeters
-                    szof_history * nChannels + // vHistory
+                    szof_history * nChannels +  // vHistory
                     num_graphs * (      // vGraphs
-                        szof_spc +         // vCurr
-                        szof_spc +         // vMin
-                        szof_spc           // vMax
+                        szof_spc * FT_TOTAL     // Curr, Min, Max
                     )
                 );
 
@@ -364,9 +367,8 @@ namespace lsp
                 {
                     fft_graph_t *fg     = &fm->vGraphs[j];
 
-                    fg->vCurr           = advance_ptr_bytes<float>(ptr, szof_spc);
-                    fg->vMin            = advance_ptr_bytes<float>(ptr, szof_spc);
-                    fg->vMax            = advance_ptr_bytes<float>(ptr, szof_spc);
+                    for (size_t k=0; k<FT_TOTAL; ++k)
+                        fg->vData[k]        = advance_ptr_bytes<float>(ptr, szof_spc);
                 }
             }
 
@@ -472,6 +474,8 @@ namespace lsp
             SKIP_PORT("Tab section selector");
             SKIP_PORT("Mix graph visibility");
             SKIP_PORT("Reference graph visibility");
+            SKIP_PORT("Minimum graphs visibility");
+            SKIP_PORT("Maxiimum graphs visibility");
             BIND_PORT(pLoopMesh);
             BIND_PORT(pLoopLen);
             BIND_PORT(pLoopPos);
@@ -506,6 +510,9 @@ namespace lsp
             BIND_PORT(pFftWindow);
             BIND_PORT(pFftEnvelope);
             BIND_PORT(pFftReactivity);
+            BIND_PORT(pFftDamping);
+            BIND_PORT(pFftReset);
+            BIND_PORT(pFftBallistics);
 
             // Operating mode
             if (nChannels > 1)
@@ -522,7 +529,9 @@ namespace lsp
 
             // Meshes and meters
             BIND_PORT(pDynaMesh);
-            BIND_PORT(pFftMesh);
+            for (size_t i=0; i<FT_TOTAL; ++i)
+                BIND_PORT(pFftMesh[i]);
+
             if (nChannels > 1)
             {
                 SKIP_PORT("Goniometer history size");
@@ -694,10 +703,10 @@ namespace lsp
                 for (size_t j=0; j < num_graphs; ++j)
                 {
                     fft_graph_t *fg     = &fm->vGraphs[j];
+                    const float dfl     = fft_endpoints[j * FT_TOTAL];
 
-                    dsp::fill_zero(fg->vCurr, meta::referencer::SPC_MESH_SIZE);
-                    dsp::fill_zero(fg->vMin, meta::referencer::SPC_MESH_SIZE);
-                    dsp::fill_zero(fg->vMax, meta::referencer::SPC_MESH_SIZE);
+                    for (size_t k=0; k<FT_TOTAL; ++k)
+                        dsp::fill(fg->vData[k], dfl, meta::referencer::SPC_MESH_SIZE);
                 }
             }
 
@@ -965,12 +974,15 @@ namespace lsp
 
             // Apply FFT analysis settings
             const float fft_react   = pFftReactivity->value();
+            const float fft_ball    = lsp_max(fft_react, pFftBallistics->value());
             const size_t fft_rank   = meta::referencer::FFT_RANK_MIN + pFftRank->value();
             const size_t fft_window = pFftWindow->value();
             const size_t fft_env    = pFftEnvelope->value();
             const size_t fft_size   = 1 << fft_rank;
 
             fFftTau                 = 1.0f - expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_react));
+            fFftBal                 = 1.0f - expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_ball));
+            bFftDamping             = pFftDamping->value() >= 0.5f;
             if (nFftRank != fft_rank)
             {
                 nFftRank                = fft_rank;
@@ -978,6 +990,10 @@ namespace lsp
                 nFftEnvelope            = -1;
                 bUpdFft                 = true;
             }
+
+            // Need to reset values?
+            if (pFftReset->value() >= 0.5f)
+                reset_fft();
 
             if (bUpdFft)
             {
@@ -1553,6 +1569,51 @@ namespace lsp
             }
         }
 
+        void referencer::reset_fft()
+        {
+            const size_t max_graph  = (nChannels > 1) ? FG_STEREO : FG_MONO;
+
+            for (size_t i=0; i<2; ++i)
+            {
+                fft_meters_t *fm = &vFftMeters[i];
+
+                for (size_t j=0; j<max_graph; ++j)
+                {
+                    fft_graph_t *fg = & fm->vGraphs[j];
+
+                    dsp::copy(fg->vData[FT_MIN], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+                    dsp::copy(fg->vData[FT_MAX], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+                }
+            }
+        }
+
+        void referencer::accumulate_fft(fft_meters_t *fm, size_t type, const float *buf)
+        {
+            fft_graph_t *fg = &fm->vGraphs[type];
+
+            // Current value
+            dsp::mix2(fg->vData[FT_CURR], buf, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+
+            // Compute minimum and maximum
+            if (bFftDamping)
+            {
+                // Minimum
+                dsp::mix2(fg->vData[FT_MIN], fg->vData[FT_CURR], 1.0 - fFftBal, fFftBal, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmin2(fg->vData[FT_MIN], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+
+                // Maximum
+                dsp::mix2(fg->vData[FT_MAX], fg->vData[FT_CURR], 1.0 - fFftBal, fFftBal, meta::referencer::SPC_MESH_SIZE);
+                dsp::pmax2(fg->vData[FT_MAX], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+            }
+            else
+            {
+                // Minimum
+                dsp::pmin2(fg->vData[FT_MIN], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+                // Maximum
+                dsp::pmax2(fg->vData[FT_MAX], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+            }
+        }
+
         void referencer::process_fft_frame(fft_meters_t *fm)
         {
             const size_t fft_size           = 1 << nFftRank;
@@ -1596,44 +1657,26 @@ namespace lsp
                 dsp::lr_to_ms(ft1, ft2, fl, fr, meta::referencer::SPC_MESH_SIZE * 2);
                 dsp::pcomplex_mod(ft1, ft1, meta::referencer::SPC_MESH_SIZE);
                 dsp::pcomplex_mod(ft2, ft2, meta::referencer::SPC_MESH_SIZE);
-
-                dsp::mix2(fm->vGraphs[FG_MID].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_MID].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_MID].vMax, fm->vGraphs[FG_MID].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-
-                dsp::mix2(fm->vGraphs[FG_SIDE].vCurr, ft2, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_SIDE].vMax, ft2, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_SIDE].vMax, fm->vGraphs[FG_SIDE].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                accumulate_fft(fm, FG_MID, ft1);
+                accumulate_fft(fm, FG_SIDE, ft2);
 
                 // Analyze mid/side balance between left and right channels
                 dsp::depan_lin(ft1, ft1, ft2, 0.0f, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_MSBAL].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_MSBAL].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_MSBAL].vMax, fm->vGraphs[FG_MSBAL].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                accumulate_fft(fm, FG_MSBAL, ft1);
 
                 // Analyze complex correlation between left and right
                 dsp::pcomplex_corr(ft2, fl, fr, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_CORR].vCurr, ft2, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_CORR].vMax, ft2, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_CORR].vMax, fm->vGraphs[FG_CORR].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                accumulate_fft(fm, FG_CORR, ft2);
 
                 // Analyze left and right channels
                 dsp::pcomplex_mod(fl, fl, meta::referencer::SPC_MESH_SIZE);
                 dsp::pcomplex_mod(fr, fr, meta::referencer::SPC_MESH_SIZE);
-
-                dsp::mix2(fm->vGraphs[FG_LEFT].vCurr, fl, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_LEFT].vMax, fl, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_LEFT].vMax, fm->vGraphs[FG_LEFT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-
-                dsp::mix2(fm->vGraphs[FG_RIGHT].vCurr, fr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_RIGHT].vMax, fr, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_RIGHT].vMax, fm->vGraphs[FG_RIGHT].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                accumulate_fft(fm, FG_LEFT, fl);
+                accumulate_fft(fm, FG_RIGHT, fr);
 
                 // Analyze panorama between left and right channels
                 dsp::depan_eqpow(ft1, fl, fr, 0.5f, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_PAN].vCurr, ft1, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
-                dsp::pmax2(fm->vGraphs[FG_PAN].vMax, ft1, meta::referencer::SPC_MESH_SIZE);
-                dsp::mix2(fm->vGraphs[FG_PAN].vMax, fm->vGraphs[FG_PAN].vCurr, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+                accumulate_fft(fm, FG_PAN, ft1);
             }
             else
             {
@@ -1864,17 +1907,6 @@ namespace lsp
                 prepare_reference_signal(to_process);
 
                 // Measure input and reference signal parameters
-                perform_fft_analysis(
-                    &vFftMeters[0],
-                    vChannels[0].vIn,
-                    (nChannels > 1) ? vChannels[1].vIn : NULL,
-                    to_process);
-                perform_fft_analysis(
-                    &vFftMeters[1],
-                    vChannels[0].vBuffer,
-                    (nChannels > 1) ? vChannels[1].vBuffer : NULL,
-                    to_process);
-
                 perform_metering(
                     &vDynaMeters[0],
                     vChannels[0].vIn,
@@ -1891,6 +1923,17 @@ namespace lsp
                         vChannels[0].vIn, vChannels[1].vIn,
                         vChannels[0].vBuffer, vChannels[1].vBuffer,
                         to_process);
+
+                perform_fft_analysis(
+                    &vFftMeters[0],
+                    vChannels[0].vIn,
+                    (nChannels > 1) ? vChannels[1].vIn : NULL,
+                    to_process);
+                perform_fft_analysis(
+                    &vFftMeters[1],
+                    vChannels[0].vBuffer,
+                    (nChannels > 1) ? vChannels[1].vBuffer : NULL,
+                    to_process);
 
                 mix_channels(to_process);
                 apply_post_filters(to_process);
@@ -1916,7 +1959,8 @@ namespace lsp
             output_dyna_meters();
             output_dyna_meshes();
             output_psr_mesh();
-            output_spectrum_analysis();
+            for (size_t i=0; i<FT_TOTAL; ++i)
+                output_spectrum_analysis(i);
         }
 
         void referencer::output_dyna_meters()
@@ -1983,10 +2027,11 @@ namespace lsp
                     size_t below            = qc->below();
                     size_t above            = qc->above();
                     const uint32_t *c       = dm->sPSRStats.counters();
-                    const float norm        = 100.0f / count;
 
                     if (nPsrMode == PSR_DENSITY)
                     {
+                        const float norm        = 100.0f / count;
+
                         *(t++)                  = 0;
                         *(t++)                  = count * norm;
                         count                  -= below;
@@ -2000,8 +2045,29 @@ namespace lsp
                         *(t++)                  = count * norm;
                         *(t++)                  = 0;
                     }
-                    else // PSR_FREQUENCY
+                    else if (nPsrMode == PSR_FREQUENCY)
                     {
+                        const float norm        = 100.0f / count;
+
+                        *(t++)                  = 0;
+                        *(t++)                  = below * norm;
+
+                        for (size_t j=0; j<meta::referencer::PSR_MESH_SIZE; ++j)
+                            *(t++)                  = c[j] * norm;
+
+                        *(t++)                  = above * norm;
+                        *(t++)                  = 0;
+                    }
+                    else // PSR_NORMALIZED
+                    {
+                        // Compute norming factor
+                        size_t max              = lsp_max(below, above);
+                        for (size_t j=0; j<meta::referencer::PSR_MESH_SIZE; ++j)
+                            max                     = lsp_max(max, c[j]);
+
+                        const float norm        = 100.0f / max;
+
+                        // Apply changes
                         *(t++)                  = 0;
                         *(t++)                  = below * norm;
 
@@ -2064,10 +2130,10 @@ namespace lsp
             mesh->data(rows, meta::referencer::DYNA_MESH_SIZE + 4);
         }
 
-        void referencer::output_spectrum_analysis()
+        void referencer::output_spectrum_analysis(size_t type)
         {
             // Check that mesh is ready for receiving data
-            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pFftMesh->buffer());
+            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pFftMesh[type]->buffer());
             if ((mesh == NULL) || (!mesh->isEmpty()))
                 return;
 
@@ -2076,31 +2142,34 @@ namespace lsp
             // Frequencies
             float *t =  mesh->pvData[rows++];
             dsp::copy(&t[2], vFftFreqs, meta::referencer::SPC_MESH_SIZE);
-            t[0]    = SPEC_FREQ_MIN * 0.5f;
+            t[0]    = SPEC_FREQ_MIN * 0.25f;
             t[1]    = SPEC_FREQ_MIN * 0.5f;
             t      += meta::referencer::SPC_MESH_SIZE + 2;
             t[0]    = SPEC_FREQ_MAX * 2.0f;
-            t[1]    = SPEC_FREQ_MAX * 2.0f;
+            t[1]    = SPEC_FREQ_MAX * 3.0f;
 
             const size_t max_graph  = (nChannels > 1) ? FG_STEREO : FG_MONO;
+
             for (size_t i=0; i<2; ++i)
             {
-                fft_meters_t *fm = &vFftMeters[i];
+                fft_meters_t *fm  = &vFftMeters[i];
 
                 for (size_t j=0; j<max_graph; ++j)
                 {
-                    t       =  mesh->pvData[rows++];
+                    fft_graph_t *fg = & fm->vGraphs[j];
+                    const float dfl = fft_endpoints[j * FT_TOTAL + type];
+                    t               =  mesh->pvData[rows++];
 
                     if ((j >= FG_LEFT) && (j <= FG_SIDE))
-                        dsp::mul3(&t[2], fm->vGraphs[j].vCurr, vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
+                        dsp::mul3(&t[2], fg->vData[type], vFftEnvelope, meta::referencer::SPC_MESH_SIZE);
                     else
-                        dsp::copy(&t[2], fm->vGraphs[j].vCurr, meta::referencer::SPC_MESH_SIZE);
+                        dsp::copy(&t[2], fg->vData[type], meta::referencer::SPC_MESH_SIZE);
 
-                    t[0]    = fft_endpoints[j];
+                    t[0]    = dfl;
                     t[1]    = t[2];
                     t      += meta::referencer::SPC_MESH_SIZE + 2;
                     t[0]    = t[-1];
-                    t[1]    = fft_endpoints[j];
+                    t[1]    = dfl;
                 }
             }
 
