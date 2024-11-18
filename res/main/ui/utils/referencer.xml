@@ -383,15 +383,15 @@
 	
 					<!-- Meshes -->
 					<ui:if test="ex :in_r">
-						<mesh id="fftgr" xi="0" yi="8" color="left_in" fill="false" visibility=":refvis"/>
-						<mesh id="fftgr" xi="0" yi="9" color="right_in" fill="false" visibility=":refvis" />
-						<mesh id="fftgr" xi="0" yi="10" color="mid_in" fill="false" visibility=":refvis" />
-						<mesh id="fftgr" xi="0" yi="11" color="side_in" fill="false" visibility=":refvis" />
+						<mesh id="fftgr" xi="0" yi="8" color="left_in" fill="false" visibility=":refvis and :left_v"/>
+						<mesh id="fftgr" xi="0" yi="9" color="right_in" fill="false" visibility=":refvis and :right_v" />
+						<mesh id="fftgr" xi="0" yi="10" color="mid_in" fill="false" visibility=":refvis and :mid_v" />
+						<mesh id="fftgr" xi="0" yi="11" color="side_in" fill="false" visibility=":refvis and :side_v" />
 												
-						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" visibility=":mixvis" />
-						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" visibility=":mixvis" />
-						<mesh id="fftgr" xi="0" yi="3" color="mid" fill="false" visibility=":mixvis" />
-						<mesh id="fftgr" xi="0" yi="4" color="side" fill="false" visibility=":mixvis" />
+						<mesh id="fftgr" xi="0" yi="1" color="left" fill="false" visibility=":mixvis and :left_v" />
+						<mesh id="fftgr" xi="0" yi="2" color="right" fill="false" visibility=":mixvis and :right_v" />
+						<mesh id="fftgr" xi="0" yi="3" color="mid" fill="false" visibility=":mixvis and :mid_v" />
+						<mesh id="fftgr" xi="0" yi="4" color="side" fill="false" visibility=":mixvis and :side_v" />
 					</ui:if>
 					<ui:if test="!ex :in_r">
 						<mesh id="fftgr" xi="0" yi="2" color="mono_in" fill="false" visibility=":refvis" />
@@ -428,6 +428,12 @@
 
 				<!-- Bottom menu -->
 				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
+					<ui:if test="ex :in_r">
+						<button id="left_v" text="labels.chan.left" />
+						<button id="right_v" text="labels.chan.right" />
+						<button id="mid_v" text="labels.chan.mid" />
+						<button id="side_v" text="labels.chan.side" />
+					</ui:if>
 					<void hexpand="true"/>
 				</hbox>
 			</vbox>

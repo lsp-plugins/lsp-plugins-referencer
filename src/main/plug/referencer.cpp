@@ -514,6 +514,10 @@ namespace lsp
                 SKIP_PORT("Correlation view mode");
                 SKIP_PORT("Stereo view type");
                 SKIP_PORT("Stereo view mode");
+                SKIP_PORT("Left channel visibility");
+                SKIP_PORT("Right channel visibility");
+                SKIP_PORT("Middle channel visibility");
+                SKIP_PORT("Side channel visibility");
             }
 
             // Meshes and meters

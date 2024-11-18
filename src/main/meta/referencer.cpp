@@ -259,6 +259,10 @@ namespace lsp
             COMBO("corrdis", "Correlation view mode", 0, graph_selectors), \
             COMBO("stertyp", "Stereo analysis type", 0, stereo_selectors), \
             COMBO("sterdis", "Stereo view mode", 0, graph_selectors), \
+            SWITCH("left_v", "Visibilty of FFT analysis for left channel", 0), \
+            SWITCH("right_v", "Visibilty of FFT analysis for right channel", 0), \
+            SWITCH("mid_v", "Visibilty of FFT analysis for middle channel", 1), \
+            SWITCH("side_v", "Visibilty of FFT analysis for side channel", 0), \
             MESH("dmmesh", "Dynamics display mesh", 21, referencer::DYNA_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
