@@ -10,6 +10,15 @@
 					<button text="lists.referencer.source.reference" value="1" />
 					<button text="lists.referencer.source.both" value="2" />
 				</ui:with>
+				
+				<!-- Gain matching settings -->
+				<grid rows="2" cols="3">
+					<label text="labels.gain_matching" />
+					<cell cols="2"><combo id="gmmode" /></cell>
+					<label text="labels.reactivity" />
+					<knob id="gmreact" />
+					<value id="gmreact" />
+				</grid>
 	
 				<!-- Mode for stereo version -->
 				<ui:if test="ex :mode">

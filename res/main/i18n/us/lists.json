@@ -28,6 +28,11 @@
 			"3": "Loop 3",
 			"4": "Loop 4"
 		},
+		"matching": {
+			"mix": "Mix",
+			"none": "None",
+			"reference": "Reference"
+		},
 		"mode": {
 			"inverse_stereo": "Inverse Stereo",
 			"left": "Left",

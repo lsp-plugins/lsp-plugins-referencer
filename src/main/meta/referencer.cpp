@@ -150,6 +150,13 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t gain_matching[] =
+        {
+            { "None",           "referencer.matching.none"          },
+            { "Reference",      "referencer.matching.reference"     },
+            { "Mix",            "referencer.matching.mix"           },
+            { NULL, NULL }
+        };
 
         static const port_item_t fft_tolerance[] =
         {
@@ -201,6 +208,9 @@ namespace lsp
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
             METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK), \
+            /* gain matching */ \
+            COMBO("gmmode", "Gain matching mode", 0, gain_matching), \
+            LOG_CONTROL("gmreact", "Gain matching reactivity", U_SEC, referencer::GAIN_MATCH_REACT), \
             /* post-filter */ \
             COMBO("pfmode", "Post-filter mode", 0, post_filter_modes), \
             COMBO("pfslope", "Post-filter slope", 3, post_filter_slopes), \

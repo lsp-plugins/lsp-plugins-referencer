@@ -63,6 +63,7 @@ namespace lsp
             static constexpr float  PSR_MAX_LEVEL               = 18.0f;                // Maximum PSR level (dB)
             static constexpr size_t PSR_MESH_SIZE               = 360;                  // Size of PSR mesh
             static constexpr float  PSR_TRUE_PEAK_DECAY         = -0.5f;                // True peak decay for PSR (see AES Convention 143 Brief 373 for reference)
+            static constexpr float  AUTOGAIN_MEASURE_PERIOD     = 3000.0f;              // Measurement period for Autogain
 
             static constexpr float  SAMPLE_LENGTH_MIN           = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX           = 1000.0f;              // Maximum sample length (s)
@@ -182,6 +183,11 @@ namespace lsp
             static constexpr float  ILUFS_TIME_MAX              = 60.0f;                // Maximum integrated LUFS computation time
             static constexpr float  ILUFS_TIME_DFL              = 20.0f;                // Integrated LUFS default computation time
             static constexpr float  ILUFS_TIME_STEP             = 0.05f;                // Integrated LUFS computation time step
+
+            static constexpr float  GAIN_MATCH_REACT_MIN        = 0.1f;                 // Minimum gain matching reactivity (s)
+            static constexpr float  GAIN_MATCH_REACT_MAX        = 5.0f;                 // Maximum gain matching reactivity (s)
+            static constexpr float  GAIN_MATCH_REACT_DFL        = 1.0f;                 // Default gain matching reactivity (s)
+            static constexpr float  GAIN_MATCH_REACT_STEP       = 0.001f;               // Gain matching reactivity step
 
         } referencer;
 

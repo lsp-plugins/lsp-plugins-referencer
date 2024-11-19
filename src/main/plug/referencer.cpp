@@ -108,6 +108,9 @@ namespace lsp
             nChannels           = 0;
             nPlaySample         = -1;
             nPlayLoop           = -1;
+            nGainMatching       = MATCH_NONE;
+            fGainMatchGrow      = 1.0f;
+            fGainMatchFall      = 1.0f;
             nCrossfadeTime      = 0;
             fMaxTime            = 0.0f;
             vBuffer             = NULL;
@@ -155,6 +158,8 @@ namespace lsp
             pLoopMesh           = NULL;
             pLoopLen            = NULL;
             pLoopPos            = NULL;
+            pGainMatching       = NULL;
+            pGainMatchReact     = NULL;
             bPlay               = false;
             bSyncLoopMesh       = true;
             bUpdFft             = true;
@@ -194,11 +199,13 @@ namespace lsp
             {
                 dyna_meters_t *dm   = &vDynaMeters[i];
 
-                dm->fTPLevel            = 0.0;
+                dm->vLoudness       = NULL;
+                dm->fGain           = GAIN_AMP_0_DB;
+                dm->fTPLevel        = 0.0;
 
                 for (size_t i=0; i<DM_TOTAL; ++i)
-                    dm->pMeters[i]          = NULL;
-                dm->pPsrPcValue         = NULL;
+                    dm->pMeters[i]      = NULL;
+                dm->pPsrPcValue     = NULL;
             }
 
             for (size_t i=0; i < 2; ++i)
@@ -310,7 +317,11 @@ namespace lsp
                 szof_spc +          // vFftEnvelope
                 szof_psr +          // vPsrLevels
                 nChannels * (
-                    szof_buf            // vBuffer
+                    szof_buf +          // vBuffer
+                    szof_buf            // vInBuffer
+                ) +
+                2 * (               // vDynaMeters
+                    szof_buf            // vLoudness
                 ) +
                 2 * (               // vFftMeters
                     szof_history * nChannels +  // vHistory
@@ -349,6 +360,7 @@ namespace lsp
 
                 // Initialize fields
                 c->vBuffer              = advance_ptr_bytes<float>(ptr, szof_buf);
+                c->vInBuffer            = advance_ptr_bytes<float>(ptr, szof_buf);
 
                 c->pIn                  = NULL;
                 c->pOut                 = NULL;
@@ -380,6 +392,8 @@ namespace lsp
                 if (!dm->sRMSMeter.init(nChannels, dspu::bs::LUFS_MEASURE_PERIOD_MS))
                     return;
 
+                dm->vLoudness           = advance_ptr_bytes<float>(ptr, szof_buf);
+
                 dm->sRMSMeter.set_mode(dspu::SCM_RMS);
                 dm->sRMSMeter.set_stereo_mode(dspu::SCSM_STEREO);
                 dm->sRMSMeter.set_source(dspu::SCS_MIDDLE);
@@ -391,6 +405,8 @@ namespace lsp
                 if (!dm->sTPMeter[1].init())
                     return;
 
+                if (dm->sAutogainMeter.init(nChannels, meta::referencer::AUTOGAIN_MEASURE_PERIOD) != STATUS_OK)
+                    return;
                 if (dm->sMLUFSMeter.init(nChannels, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
                     return;
                 if (dm->sSLUFSMeter.init(nChannels, dspu::bs::LUFS_SHORT_TERM_PERIOD) != STATUS_OK)
@@ -404,6 +420,8 @@ namespace lsp
 
                 dm->sPSRStats.construct();
 
+                dm->sAutogainMeter.set_period(dspu::bs::LUFS_SHORT_TERM_PERIOD);
+                dm->sAutogainMeter.set_weighting(dspu::bs::WEIGHT_K);
                 dm->sMLUFSMeter.set_period(dspu::bs::LUFS_MOMENTARY_PERIOD);
                 dm->sMLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
                 dm->sSLUFSMeter.set_period(dspu::bs::LUFS_SHORT_TERM_PERIOD);
@@ -412,6 +430,11 @@ namespace lsp
 
                 if (nChannels > 1)
                 {
+                    dm->sAutogainMeter.set_active(0, true);
+                    dm->sAutogainMeter.set_active(1, true);
+                    dm->sAutogainMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                    dm->sAutogainMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+
                     dm->sMLUFSMeter.set_active(0, true);
                     dm->sMLUFSMeter.set_active(1, true);
                     dm->sMLUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
@@ -429,6 +452,9 @@ namespace lsp
                 }
                 else
                 {
+                    dm->sAutogainMeter.set_active(0, true);
+                    dm->sAutogainMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+
                     dm->sMLUFSMeter.set_active(0, true);
                     dm->sMLUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
 
@@ -479,6 +505,8 @@ namespace lsp
             BIND_PORT(pLoopMesh);
             BIND_PORT(pLoopLen);
             BIND_PORT(pLoopPos);
+            BIND_PORT(pGainMatching);
+            BIND_PORT(pGainMatchReact);
 
             // Post-filter controls
             BIND_PORT(pPostMode);
@@ -621,6 +649,7 @@ namespace lsp
                 dm->sTPMeter[0].destroy();
                 dm->sTPMeter[1].destroy();
                 dm->sTPDelay.destroy();
+                dm->sAutogainMeter.destroy();
                 dm->sMLUFSMeter.destroy();
                 dm->sSLUFSMeter.destroy();
                 dm->sILUFSMeter.destroy();
@@ -726,6 +755,7 @@ namespace lsp
                 dm->sTPMeter[0].set_sample_rate(sr);
                 dm->sTPMeter[1].set_sample_rate(sr);
 
+                dm->sAutogainMeter.set_sample_rate(sr);
                 dm->sMLUFSMeter.set_sample_rate(sr);
                 dm->sSLUFSMeter.set_sample_rate(sr);
                 dm->sILUFSMeter.set_sample_rate(sr);
@@ -899,6 +929,13 @@ namespace lsp
                 }
             }
 
+            // Enable gain matching
+            const float gm_react    = 10.0f / pGainMatchReact->value();
+            nGainMatching           = pGainMatching->value();
+            const float gm_ksr      = (M_LN10 / 20.0f) / fSampleRate;
+            fGainMatchGrow          = expf(gm_react * gm_ksr);
+            fGainMatchFall          = expf(-gm_react * gm_ksr);
+
             // Apply post-filter settings
             dspu::equalizer_mode_t post_mode  = decode_equalizer_mode(pPostMode->value());
             const size_t post_slope = pPostSlope->value();
@@ -980,8 +1017,8 @@ namespace lsp
             const size_t fft_env    = pFftEnvelope->value();
             const size_t fft_size   = 1 << fft_rank;
 
-            fFftTau                 = 1.0f - expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_react));
-            fFftBal                 = 1.0f - expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_ball));
+            fFftTau                 = expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_react));
+            fFftBal                 = expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_ball));
             bFftDamping             = pFftDamping->value() >= 0.5f;
             if (nFftRank != fft_rank)
             {
@@ -1489,7 +1526,7 @@ namespace lsp
                 for (size_t i=0; i<nChannels; ++i)
                 {
                     float *dst = vChannels[i].vBuffer;
-                    const float *src = vChannels[i].vIn;
+                    const float *src = vChannels[i].vInBuffer;
 
                     dsp::lramp_add2(dst, src, sMix.fGain, gain, to_process);
                     if (to_process < samples)
@@ -1502,7 +1539,7 @@ namespace lsp
             else
             {
                 for (size_t i=0; i<nChannels; ++i)
-                    dsp::fmadd_k3(vChannels[i].vBuffer, vChannels[i].vIn, sMix.fGain, samples);
+                    dsp::fmadd_k3(vChannels[i].vBuffer, vChannels[i].vInBuffer, sMix.fGain, samples);
             }
         }
 
@@ -1592,17 +1629,17 @@ namespace lsp
             fft_graph_t *fg = &fm->vGraphs[type];
 
             // Current value
-            dsp::mix2(fg->vData[FT_CURR], buf, 1.0 - fFftTau, fFftTau, meta::referencer::SPC_MESH_SIZE);
+            dsp::mix2(fg->vData[FT_CURR], buf, fFftTau, 1.0f - fFftTau, meta::referencer::SPC_MESH_SIZE);
 
             // Compute minimum and maximum
             if (bFftDamping)
             {
                 // Minimum
-                dsp::mix2(fg->vData[FT_MIN], fg->vData[FT_CURR], 1.0 - fFftBal, fFftBal, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fg->vData[FT_MIN], fg->vData[FT_CURR], fFftBal, 1.0f - fFftBal, meta::referencer::SPC_MESH_SIZE);
                 dsp::pmin2(fg->vData[FT_MIN], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
 
                 // Maximum
-                dsp::mix2(fg->vData[FT_MAX], fg->vData[FT_CURR], 1.0 - fFftBal, fFftBal, meta::referencer::SPC_MESH_SIZE);
+                dsp::mix2(fg->vData[FT_MAX], fg->vData[FT_CURR], fFftBal, 1.0f - fFftBal, meta::referencer::SPC_MESH_SIZE);
                 dsp::pmax2(fg->vData[FT_MAX], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
             }
             else
@@ -1895,6 +1932,97 @@ namespace lsp
             }
         }
 
+        void referencer::apply_gain_matching(size_t samples)
+        {
+            dyna_meters_t *src_dm   = &vDynaMeters[0];
+            dyna_meters_t *dst_dm   = &vDynaMeters[1];
+
+            // First, measure automatic gain for both Mix and reference signals
+            if (nChannels > 1)
+            {
+                src_dm->sAutogainMeter.bind(0, NULL, vChannels[0].vIn, 0);
+                src_dm->sAutogainMeter.bind(1, NULL, vChannels[1].vIn, 0);
+                src_dm->sAutogainMeter.process(src_dm->vLoudness, samples);
+
+                dst_dm->sAutogainMeter.bind(0, NULL, vChannels[0].vBuffer, 0);
+                dst_dm->sAutogainMeter.bind(1, NULL, vChannels[1].vBuffer, 0);
+                dst_dm->sAutogainMeter.process(dst_dm->vLoudness, samples);
+            }
+            else
+            {
+                src_dm->sAutogainMeter.bind(0, NULL, vChannels[0].vIn, 0);
+                src_dm->sAutogainMeter.process(src_dm->vLoudness, samples);
+
+                dst_dm->sAutogainMeter.bind(0, NULL, vChannels[0].vBuffer, 0);
+                dst_dm->sAutogainMeter.process(dst_dm->vLoudness, samples);
+            }
+
+            // Now compute gain correction
+            if (nGainMatching == MATCH_MIX)
+                lsp::swap(src_dm, dst_dm);
+
+            float src_gain      = src_dm->fGain;
+            float dst_gain      = dst_dm->fGain;
+            float *src          = src_dm->vLoudness;
+            float *dst          = dst_dm->vLoudness;
+
+            if (nGainMatching == MATCH_NONE)
+            {
+                for (size_t i=0; i<samples; ++i)
+                {
+                    src_gain            = (src_gain > GAIN_AMP_0_DB) ? lsp_max(src_gain * fGainMatchFall, GAIN_AMP_0_DB) : lsp_min(src_gain * fGainMatchGrow, GAIN_AMP_0_DB);
+                    dst_gain            = (dst_gain > GAIN_AMP_0_DB) ? lsp_max(dst_gain * fGainMatchFall, GAIN_AMP_0_DB) : lsp_min(dst_gain * fGainMatchGrow, GAIN_AMP_0_DB);
+
+                    // Store values to resulting arrays
+                    src[i]              = src_gain;
+                    dst[i]              = dst_gain;
+                }
+            }
+            else
+            {
+                for (size_t i=0; i<samples; ++i)
+                {
+                    // Normalize source gain if needed
+                    src_gain            = (src_gain > GAIN_AMP_0_DB) ? lsp_max(src_gain * fGainMatchFall, GAIN_AMP_0_DB) : lsp_min(src_gain * fGainMatchGrow, GAIN_AMP_0_DB);
+
+                    // Compute destination gain
+                    if (dst[i] >= GAIN_AMP_M_60_DB)
+                    {
+                        const float src_loud= src[i] * src_gain;
+                        const float dst_loud= dst[i] * dst_gain;
+                        dst_gain            = (dst_loud > src_loud) ? dst_gain * fGainMatchFall : dst_gain * fGainMatchGrow;
+                    }
+                    else
+                        dst_gain            = lsp_min(dst_gain * fGainMatchGrow, GAIN_AMP_0_DB);
+
+                    // Store values to resulting arrays
+                    src[i]              = src_gain;
+                    dst[i]              = dst_gain;
+                }
+            }
+
+            // Store new values
+            src_dm->fGain       = src_gain;
+            dst_dm->fGain       = dst_gain;
+
+            // Apply gain correction to buffers
+            src_dm              = &vDynaMeters[0];
+            dst_dm              = &vDynaMeters[1];
+
+            if (nChannels > 1)
+            {
+                dsp::mul3(vChannels[0].vInBuffer, vChannels[0].vIn, src_dm->vLoudness, samples);
+                dsp::mul3(vChannels[1].vInBuffer, vChannels[1].vIn, src_dm->vLoudness, samples);
+                dsp::mul2(vChannels[0].vBuffer, dst_dm->vLoudness, samples);
+                dsp::mul2(vChannels[1].vBuffer, dst_dm->vLoudness, samples);
+            }
+            else
+            {
+                dsp::mul3(vChannels[0].vInBuffer, vChannels[0].vIn, src_dm->vLoudness, samples);
+                dsp::mul2(vChannels[0].vBuffer, dst_dm->vLoudness, samples);
+            }
+        }
+
         void referencer::process(size_t samples)
         {
             preprocess_audio_channels();
@@ -1905,12 +2033,13 @@ namespace lsp
                 const size_t to_process = lsp_min(samples - offset, BUFFER_SIZE);
 
                 prepare_reference_signal(to_process);
+                apply_gain_matching(to_process);
 
                 // Measure input and reference signal parameters
                 perform_metering(
                     &vDynaMeters[0],
-                    vChannels[0].vIn,
-                    (nChannels > 1) ? vChannels[1].vIn : NULL,
+                    vChannels[0].vInBuffer,
+                    (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
                     to_process);
                 perform_metering(
                     &vDynaMeters[1],
@@ -1920,14 +2049,14 @@ namespace lsp
 
                 if (nChannels > 1)
                     process_goniometer(
-                        vChannels[0].vIn, vChannels[1].vIn,
+                        vChannels[0].vInBuffer, vChannels[1].vInBuffer,
                         vChannels[0].vBuffer, vChannels[1].vBuffer,
                         to_process);
 
                 perform_fft_analysis(
                     &vFftMeters[0],
-                    vChannels[0].vIn,
-                    (nChannels > 1) ? vChannels[1].vIn : NULL,
+                    vChannels[0].vInBuffer,
+                    (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
                     to_process);
                 perform_fft_analysis(
                     &vFftMeters[1],

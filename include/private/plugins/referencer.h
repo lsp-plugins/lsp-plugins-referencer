@@ -137,6 +137,13 @@ namespace lsp
                     PSR_NORMALIZED
                 };
 
+                enum gain_matching_t
+                {
+                    MATCH_NONE,
+                    MATCH_REFERENCE,
+                    MATCH_MIX
+                };
+
                 struct afile_t;
 
                 class AFLoader: public ipc::ITask
@@ -204,6 +211,7 @@ namespace lsp
                     float              *vIn;                                        // Input buffer
                     float              *vOut;                                       // Output buffer
                     float              *vBuffer;                                    // Signal buffer
+                    float              *vInBuffer;                                  // Input buffer
 
                     // Input ports
                     plug::IPort        *pIn;                                        // Input port
@@ -231,6 +239,7 @@ namespace lsp
                     dspu::Sidechain     sRMSMeter;                                  // RMS meter
                     dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
                     dspu::Delay         sTPDelay;                                   // True Peak delay
+                    dspu::LoudnessMeter sAutogainMeter;                             // Short-term LUFS meter for Autogain matching
                     dspu::LoudnessMeter sMLUFSMeter;                                // Momentary LUFS meter
                     dspu::LoudnessMeter sSLUFSMeter;                                // Short-term LUFS meter
                     dspu::ILUFSMeter    sILUFSMeter;                                // Integrated loudness meter
@@ -238,6 +247,9 @@ namespace lsp
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
                     dspu::QuantizedCounter  sPSRStats;                              // PSR statistics
+
+                    float              *vLoudness;                                  // Measured short-term loudness
+                    float               fGain;                                      // Current gain
                     double              fTPLevel;                                   // True-peak level
 
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
@@ -254,6 +266,9 @@ namespace lsp
                 uint32_t            nChannels;                                  // Number of channels
                 uint32_t            nPlaySample;                                // Current sample index
                 uint32_t            nPlayLoop;                                  // Current loop index
+                uint32_t            nGainMatching;                              // Gain matching mode
+                float               fGainMatchGrow;                             // Gain matching grow time coefficient
+                float               fGainMatchFall;                             // Gain matching fall time coefficient
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
                 float               fMaxTime;                                   // Maximum display time
                 stereo_mode_t       enMode;                                     // Stereo mode
@@ -294,6 +309,8 @@ namespace lsp
                 plug::IPort        *pLoopMesh;                                  // Loop mesh
                 plug::IPort        *pLoopLen;                                   // Loop length
                 plug::IPort        *pLoopPos;                                   // Loop play position
+                plug::IPort        *pGainMatching;                              // Gain matching mode
+                plug::IPort        *pGainMatchReact;                            // Gain matching reactivity
                 plug::IPort        *pMode;                                      // Output mode
                 plug::IPort        *pPostMode;                                  // Post-filter mode
                 plug::IPort        *pPostSlope;                                 // Post-filter slope
@@ -335,6 +352,7 @@ namespace lsp
                 void                mix_channels(size_t samples);
                 void                apply_post_filters(size_t samples);
                 void                apply_stereo_mode(size_t samples);
+                void                apply_gain_matching(size_t samples);
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples);
                 void                process_fft_frame(fft_meters_t *fm);
