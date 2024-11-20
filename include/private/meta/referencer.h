@@ -47,6 +47,7 @@ namespace lsp
             static constexpr size_t FILE_MESH_SIZE              = 640;                  // Audio file mesh size
             static constexpr size_t DYNA_MESH_SIZE              = 640;                  // Dynamics graph mesh size
             static constexpr size_t DYNA_SUBSAMPLING            = 64;                   // Dynamics graph mesh sub-sampling
+            static constexpr size_t WAVE_MESH_SIZE              = 640;                  // Waveform graph mesh size
             static constexpr size_t POST_BANDS                  = 6;                    // Number of post-filter bands
             static constexpr size_t POST_SPLITS                 = POST_BANDS - 1;       // Number of post-filter frequency splits
             static constexpr size_t EQ_RANK                     = 12;                   // Equalizer rank
@@ -188,6 +189,16 @@ namespace lsp
             static constexpr float  GAIN_MATCH_REACT_MAX        = 5.0f;                 // Maximum gain matching reactivity (s)
             static constexpr float  GAIN_MATCH_REACT_DFL        = 1.0f;                 // Default gain matching reactivity (s)
             static constexpr float  GAIN_MATCH_REACT_STEP       = 0.001f;               // Gain matching reactivity step
+
+            static constexpr float  WAVE_OFFSET_MIN             = 0.0f;                 // Minimum waveform frame offset in seconds
+            static constexpr float  WAVE_OFFSET_MAX             = 2.0f;                 // Maximum waveform frame offset in seconds
+            static constexpr float  WAVE_OFFSET_DFL             = 0.0f;                 // Default waveform frame offset in seconds
+            static constexpr float  WAVE_OFFSET_STEP            = 0.005f;               // Waveform frame offset step in seconds
+
+            static constexpr float  WAVE_SIZE_MIN               = 0.005f;               // Minimum waveform frame size in seconds
+            static constexpr float  WAVE_SIZE_MAX               = 2.0f;                 // Maximum waveform frame size in seconds
+            static constexpr float  WAVE_SIZE_DFL               = 2.0f;                 // Default waveform frame size in seconds
+            static constexpr float  WAVE_SIZE_STEP              = 0.005f;               // Waveform frame size step in seconds
 
         } referencer;
 

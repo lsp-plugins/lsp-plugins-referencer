@@ -72,7 +72,8 @@
 			"loudness": "Loudness",
 			"samples": "Samples",
 			"spectrum": "Spectrum",
-			"stereo": "Stereo"
+			"stereo": "Stereo",
+			"waveform": "Waveform"
 		}
 	}
 }

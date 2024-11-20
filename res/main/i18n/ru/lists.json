@@ -72,7 +72,8 @@
 			"loudness": "Громкость",
 			"samples": "Семплы",
 			"spectrum": "Спектр",
-			"stereo": "Стерео"
+			"stereo": "Стерео",
+			"waveform": "Форма волны"
 		}
 	}
 }

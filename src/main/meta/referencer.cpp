@@ -83,6 +83,7 @@ namespace lsp
         {
             { "Samples",        "referencer.tab.samples"            },
             { "Loudness",       "referencer.tab.loudness"           },
+            { "Waveform",       "referencer.tab.waveform"           },
             { "Spectrum",       "referencer.tab.spectrum"           },
             { "Dynamics",       "referencer.tab.dynamics"           },
             { "Correlation",    "referencer.tab.correlation"        },
@@ -204,6 +205,8 @@ namespace lsp
             SWITCH("refvis", "Reference graphs visibility", 1), \
             SWITCH("minvis", "Minimum graphs visibility", 0), \
             SWITCH("maxvis", "Maximum graphs visibility", 0), \
+            SWITCH("mixfrz", "Freeze mix graphs", 0), \
+            SWITCH("reffrz", "Freeze reference graphs", 0), \
             /* playback loop display */ \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
@@ -235,6 +238,9 @@ namespace lsp
             LOG_CONTROL("psrthr", "PSR measurement threshold", U_GAIN_AMP, referencer::PSR_THRESH), \
             COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
             MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
+            /* Waveform metering */ \
+            CONTROL("wfoff", "Waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
+            CONTROL("wflen", "Waveform frame length", U_SEC, referencer::WAVE_SIZE), \
             /* FFT analysis */ \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
@@ -266,6 +272,7 @@ namespace lsp
 
         #define REF_COMMON_MONO \
             MESH("dmmesh", "Dynamics display mesh", 15, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("wfmesh", "Waveform mesh", 3, referencer::WAVE_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftming", "FFT minimum extremum mesh", 3, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftmaxg", "FFT maximum extremum mesh", 3, referencer::SPC_MESH_SIZE + 4), \
@@ -277,11 +284,12 @@ namespace lsp
             COMBO("corrdis", "Correlation view mode", 0, graph_selectors), \
             COMBO("stertyp", "Stereo analysis type", 0, stereo_selectors), \
             COMBO("sterdis", "Stereo view mode", 0, graph_selectors), \
-            SWITCH("left_v", "Visibilty of FFT analysis for left channel", 0), \
-            SWITCH("right_v", "Visibilty of FFT analysis for right channel", 0), \
-            SWITCH("mid_v", "Visibilty of FFT analysis for middle channel", 1), \
-            SWITCH("side_v", "Visibilty of FFT analysis for side channel", 0), \
+            SWITCH("left_v", "Visibilty of FFT/waveform analysis for left channel", 0), \
+            SWITCH("right_v", "Visibilty of FFT/waveform analysis for right channel", 0), \
+            SWITCH("mid_v", "Visibilty of FFT/waveform analysis for middle channel", 1), \
+            SWITCH("side_v", "Visibilty of FFT/waveform analysis for side channel", 0), \
             MESH("dmmesh", "Dynamics display mesh", 21, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("wfmesh", "Waveform mesh", 9, referencer::WAVE_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftming", "FFT minimum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftmaxg", "FFT maximum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \

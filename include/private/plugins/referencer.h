@@ -32,6 +32,7 @@
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/dsp-units/stat/QuantizedCounter.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
+#include <lsp-plug.in/dsp-units/util/RawRingBuffer.h>
 #include <lsp-plug.in/dsp-units/util/ScaledMeterGraph.h>
 #include <lsp-plug.in/dsp-units/util/Sidechain.h>
 #include <lsp-plug.in/plug-fw/plug.h>
@@ -144,6 +145,18 @@ namespace lsp
                     MATCH_MIX
                 };
 
+                enum waveform_t
+                {
+                    WF_LEFT,
+                    WF_RIGHT,
+                    WF_MID,
+                    WF_SIDE,
+
+                    WF_TOTAL,
+                    WF_MONO = WF_RIGHT,
+                    WF_STEREO = WF_TOTAL
+                };
+
                 struct afile_t;
 
                 class AFLoader: public ipc::ITask
@@ -167,6 +180,9 @@ namespace lsp
                     float               fOldGain;                                   // Previous gain value
                     float               fNewGain;                                   // New gain
                     uint32_t            nTransition;                                // Gain transition
+                    bool                bFreeze;                                    // Freeze analysis
+
+                    plug::IPort        *pFreeze;                                    // Freeze analysis
                 } asource_t;
 
                 typedef struct loop_t
@@ -247,12 +263,12 @@ namespace lsp
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
                     dspu::QuantizedCounter  sPSRStats;                              // PSR statistics
+                    dspu::RawRingBuffer vWaveform[WF_TOTAL];                        // Waveform history (capture)
+                    dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
                     float              *vLoudness;                                  // Measured short-term loudness
                     float               fGain;                                      // Current gain
                     double              fTPLevel;                                   // True-peak level
-
-                    dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
 
                     plug::IPort        *pMeters[DM_TOTAL];                          // Output meters
                     plug::IPort        *pPsrPcValue;                                // PSR value in percents (over threshold)
@@ -272,6 +288,8 @@ namespace lsp
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
                 float               fMaxTime;                                   // Maximum display time
                 stereo_mode_t       enMode;                                     // Stereo mode
+                float               fWaveformOff;                               // Waveform offset
+                float               fWaveformLen;                               // Waveform length
                 uint32_t            nFftRank;                                   // FFT rank
                 uint32_t            nFftWindow;                                 // FFT window
                 uint32_t            nFftEnvelope;                               // FFT envelope
@@ -319,6 +337,9 @@ namespace lsp
                 plug::IPort        *pMaxTime;                                   // Maximum time on the graph
                 plug::IPort        *pILUFSTime;                                 // Integrated LUFS time
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
+                plug::IPort        *pWaveformMesh;                              // Waveform mesh
+                plug::IPort        *pFrameOffset;                               // Waveform frame offset
+                plug::IPort        *pFrameLength;                               // Waveform frame length
                 plug::IPort        *pFftRank;                                   // FFT rank
                 plug::IPort        *pFftWindow;                                 // FFT window
                 plug::IPort        *pFftEnvelope;                               // FFT envelope
@@ -335,11 +356,10 @@ namespace lsp
 
                 uint8_t            *pData;                                      // Allocated data
 
-//                dspu::Sample        in, lufs, tp, psr;
-
             protected:
                 static void         destroy_sample(dspu::Sample * &sample);
                 static void         make_thumbnail(float *dst, const float *src, size_t len, size_t dst_len);
+                static void         copy_waveform(float *dst, dspu::RawRingBuffer *rb, size_t offset, size_t length, size_t dst_len);
                 static dspu::equalizer_mode_t decode_equalizer_mode(size_t mode);
 
             protected:
@@ -363,6 +383,7 @@ namespace lsp
                 void                output_file_data();
                 void                output_loop_data();
                 void                output_dyna_meters();
+                void                output_waveform_meshes();
                 void                output_psr_mesh();
                 void                output_dyna_meshes();
                 void                output_spectrum_analysis(size_t type);

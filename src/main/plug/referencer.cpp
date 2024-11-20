@@ -137,16 +137,22 @@ namespace lsp
             // Initialize other parameters
             vChannels           = NULL;
             enMode              = (nChannels > 1) ? SM_STEREO : SM_MONO;
+            fWaveformOff        = 0.0f;
+            fWaveformLen        = 0.0f;
 
             sMix.fGain          = GAIN_AMP_M_INF_DB;
             sMix.fOldGain       = GAIN_AMP_M_INF_DB;
             sMix.fNewGain       = GAIN_AMP_M_INF_DB;
             sMix.nTransition    = 0;
+            sMix.bFreeze        = false;
+            sMix.pFreeze        = NULL;
 
             sRef.fGain          = GAIN_AMP_M_INF_DB;
             sRef.fOldGain       = GAIN_AMP_M_INF_DB;
             sRef.fNewGain       = GAIN_AMP_M_INF_DB;
             sRef.nTransition    = 0;
+            sRef.bFreeze        = false;
+            sRef.pFreeze        = NULL;
 
             pExecutor           = NULL;
 
@@ -176,6 +182,10 @@ namespace lsp
             pMaxTime            = NULL;
             pILUFSTime          = NULL;
             pDynaMesh           = NULL;
+
+            pWaveformMesh       = NULL;
+            pFrameOffset        = NULL;
+            pFrameLength        = NULL;
 
             pFftRank            = NULL;
             pFftWindow          = NULL;
@@ -501,7 +511,9 @@ namespace lsp
             SKIP_PORT("Mix graph visibility");
             SKIP_PORT("Reference graph visibility");
             SKIP_PORT("Minimum graphs visibility");
-            SKIP_PORT("Maxiimum graphs visibility");
+            SKIP_PORT("Maximum graphs visibility");
+            BIND_PORT(sMix.pFreeze);
+            BIND_PORT(sRef.pFreeze);
             BIND_PORT(pLoopMesh);
             BIND_PORT(pLoopLen);
             BIND_PORT(pLoopPos);
@@ -533,6 +545,10 @@ namespace lsp
             BIND_PORT(pPsrDisplay);
             BIND_PORT(pPsrMesh);
 
+            // Waveform-related ports
+            BIND_PORT(pFrameOffset);
+            BIND_PORT(pFrameLength);
+
             // FFT metering
             BIND_PORT(pFftRank);
             BIND_PORT(pFftWindow);
@@ -557,6 +573,8 @@ namespace lsp
 
             // Meshes and meters
             BIND_PORT(pDynaMesh);
+            BIND_PORT(pWaveformMesh);
+
             for (size_t i=0; i<FT_TOTAL; ++i)
                 BIND_PORT(pFftMesh[i]);
 
@@ -657,6 +675,9 @@ namespace lsp
                 dm->sPanometer.destroy();
                 dm->sMsBalance.destroy();
 
+                for (size_t j=0; j<WF_TOTAL; ++j)
+                    dm->vWaveform[j].destroy();
+
                 for (size_t j=0; j<DM_TOTAL; ++j)
                     dm->vGraphs[j].destroy();
             }
@@ -745,8 +766,11 @@ namespace lsp
                 vFftFreqs[i]            = SPEC_FREQ_MIN * expf(i * f_norm);
 
             // Update dynamics meters
+            const size_t max_wf_len     = dspu::seconds_to_samples(sr, meta::referencer::WAVE_OFFSET_MAX + meta::referencer::WAVE_SIZE_MAX);
             const size_t corr_period    = dspu::millis_to_samples(sr, meta::referencer::CORR_PERIOD);
             const size_t max_psr_period = dspu::seconds_to_samples(sr, meta::referencer::PSR_PERIOD_MAX);
+            const size_t dmesh_period   = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_MESH_SIZE);
+
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
@@ -786,9 +810,11 @@ namespace lsp
                     meta::referencer::PSR_MAX_LEVEL,
                     meta::referencer::PSR_MESH_SIZE);
 
-                const size_t period     = dspu::seconds_to_samples(sr, meta::referencer::DYNA_TIME_MAX / meta::referencer::DYNA_MESH_SIZE);
+                for (size_t j=0; j<WF_TOTAL; ++j)
+                    dm->vWaveform[j].init(max_wf_len + BUFFER_SIZE);
+
                 for (size_t j=0; j<DM_TOTAL; ++j)
-                    dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, meta::referencer::DYNA_SUBSAMPLING, period);
+                    dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, meta::referencer::DYNA_SUBSAMPLING, dmesh_period);
 
                 dm->fTPLevel            = 0.0f;
             }
@@ -936,6 +962,10 @@ namespace lsp
             fGainMatchGrow          = expf(gm_react * gm_ksr);
             fGainMatchFall          = expf(-gm_react * gm_ksr);
 
+            // Waveform analysis
+            fWaveformOff            = pFrameOffset->value();
+            fWaveformLen            = pFrameLength->value();
+
             // Apply post-filter settings
             dspu::equalizer_mode_t post_mode  = decode_equalizer_mode(pPostMode->value());
             const size_t post_slope = pPostSlope->value();
@@ -1075,6 +1105,9 @@ namespace lsp
             size_t source           = pSource->value();
             enMode                  = (pMode != NULL) ? decode_stereo_mode(pMode->value()) : SM_MONO;
 
+            sMix.bFreeze            = sMix.pFreeze->value() >= 0.5f;
+            sRef.bFreeze            = sRef.pFreeze->value() >= 0.5f;
+
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
@@ -1150,6 +1183,45 @@ namespace lsp
                     dst[i]          = dsp::abs_max(&src[first], last - first);
                 else if (first < len)
                     dst[i]          = fabsf(src[first]);
+                else
+                    dst[i]          = 0.0f;
+            }
+        }
+
+        void referencer::copy_waveform(float *dst, dspu::RawRingBuffer *rb, size_t offset, size_t length, size_t dst_len)
+        {
+            const float *src    = rb->begin();
+            const size_t limit  = rb->size();
+
+            // Compute the initial offset to start from
+            offset              = (rb->position() + limit - length - offset) % limit;
+
+            for (size_t i=0; i<dst_len; ++i)
+            {
+                size_t first    = (i * length) / dst_len;
+                size_t last     = ((i + 1) * length) / dst_len;
+                if (first < last)
+                {
+                    first           = (first + offset) % limit;
+                    last            = (last + offset) % limit;
+
+                    if (first > last)
+                    {
+//                        lsp_trace("sign_max2(%d, %d), limit=%d", int(first), int(limit - first), int(limit));
+//                        lsp_trace("sign_max2(%d, %d), limit=%d", int(0), int(last), int(limit));
+
+                        const float a   = dsp::sign_max(&src[first], limit - first);
+                        const float b   = dsp::sign_max(&src[0], last);
+                        dst[i]          = (fabsf(a) >= fabsf(b)) ? a : b;
+                    }
+                    else
+                    {
+//                        lsp_trace("sign_max1(%d, %d), limit=%d", int(first), int(last - first), int(limit));
+                        dst[i]          = dsp::sign_max(&src[first], last - first);
+                    }
+                }
+                else if (first < length)
+                    dst[i]          = fabsf(src[first % limit]);
                 else
                     dst[i]          = 0.0f;
             }
@@ -1762,12 +1834,18 @@ namespace lsp
 
             if (nChannels > 1)
             {
+                // Capture waveform for left and right
+                dm->vWaveform[WF_LEFT].push(l, samples);
+                dm->vWaveform[WF_RIGHT].push(r, samples);
+
                 // Compute stereo panorama
                 dm->sPanometer.process(b1, l, r, samples);
                 dm->vGraphs[DM_PAN].process(b1, samples);
 
                 // Compute Mid/Side balance
                 dsp::lr_to_ms(b1, b2, l, r, samples);
+                dm->vWaveform[WF_MID].push(b1, samples);
+                dm->vWaveform[WF_SIDE].push(b2, samples);
                 dm->sMsBalance.process(b1, b1, b2, samples);
                 dm->vGraphs[DM_MSBAL].process(b1, samples);
 
@@ -1808,25 +1886,12 @@ namespace lsp
                 dm->sSLUFSMeter.bind(1, NULL, r, 0);
                 dm->sSLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
                 dm->vGraphs[DM_S_LUFS].process(b2, samples);
-
-//                if (dm == &vDynaMeters[0])
-//                {
-//                    size_t offset = this->in.length();
-//                    this->in.append(samples);
-//                    dsp::copy(this->in.channel(0, offset), l, samples);
-//                    dsp::copy(this->in.channel(1, offset), r, samples);
-//
-//                    offset = lufs.length();
-//                    lufs.append(samples);
-//                    dsp::copy(lufs.channel(0, offset), b2, samples);
-//
-//                    offset = tp.length();
-//                    tp.append(samples);
-//                    dsp::copy(tp.channel(0, offset), b1, samples);
-//                }
             }
             else
             {
+                // Capture waveform
+                dm->vWaveform[WF_LEFT].write(l, samples);
+
                 // Compute Peak values
                 dsp::abs2(b1, l, samples);
                 dm->vGraphs[DM_PEAK].process(b1, samples);
@@ -2036,33 +2101,38 @@ namespace lsp
                 apply_gain_matching(to_process);
 
                 // Measure input and reference signal parameters
-                perform_metering(
-                    &vDynaMeters[0],
-                    vChannels[0].vInBuffer,
-                    (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
-                    to_process);
-                perform_metering(
-                    &vDynaMeters[1],
-                    vChannels[0].vBuffer,
-                    (nChannels > 1) ? vChannels[1].vBuffer : NULL,
-                    to_process);
+                if (!sMix.bFreeze)
+                {
+                    perform_metering(
+                        &vDynaMeters[0],
+                        vChannels[0].vInBuffer,
+                        (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
+                        to_process);
+                    perform_fft_analysis(
+                        &vFftMeters[0],
+                        vChannels[0].vInBuffer,
+                        (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
+                        to_process);
+                }
+                if (!sRef.bFreeze)
+                {
+                    perform_metering(
+                        &vDynaMeters[1],
+                        vChannels[0].vBuffer,
+                        (nChannels > 1) ? vChannels[1].vBuffer : NULL,
+                        to_process);
+                    perform_fft_analysis(
+                        &vFftMeters[1],
+                        vChannels[0].vBuffer,
+                        (nChannels > 1) ? vChannels[1].vBuffer : NULL,
+                        to_process);
+                }
 
                 if (nChannels > 1)
                     process_goniometer(
                         vChannels[0].vInBuffer, vChannels[1].vInBuffer,
                         vChannels[0].vBuffer, vChannels[1].vBuffer,
                         to_process);
-
-                perform_fft_analysis(
-                    &vFftMeters[0],
-                    vChannels[0].vInBuffer,
-                    (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
-                    to_process);
-                perform_fft_analysis(
-                    &vFftMeters[1],
-                    vChannels[0].vBuffer,
-                    (nChannels > 1) ? vChannels[1].vBuffer : NULL,
-                    to_process);
 
                 mix_channels(to_process);
                 apply_post_filters(to_process);
@@ -2085,6 +2155,7 @@ namespace lsp
 
             output_file_data();
             output_loop_data();
+            output_waveform_meshes();
             output_dyna_meters();
             output_dyna_meshes();
             output_psr_mesh();
@@ -2213,6 +2284,54 @@ namespace lsp
 
             // Commit data to mesh
             mesh->data(rows, meta::referencer::PSR_MESH_SIZE + 4);
+        }
+
+        void referencer::output_waveform_meshes()
+        {
+            // Check that mesh is ready for receiving data
+            plug::mesh_t *mesh  = reinterpret_cast<plug::mesh_t *>(pWaveformMesh->buffer());
+            if ((mesh == NULL) || (!mesh->isEmpty()) )
+                return;
+
+            // Generate timestamp
+            size_t rows = 0;
+
+            // Time
+            float *t    = mesh->pvData[rows++];
+            dsp::lramp_set1(&t[2], fWaveformLen, 0.0f, meta::referencer::WAVE_MESH_SIZE);
+            t[0]    = fWaveformLen * 1.25f;
+            t[1]    = t[0];
+            t      += meta::referencer::WAVE_MESH_SIZE + 2;
+            t[0]    = -0.25f * fWaveformLen;
+            t[1]    = t[0];
+
+            const size_t frame_len      = dspu::seconds_to_samples(fSampleRate, fWaveformLen);
+            const size_t frame_off      = dspu::seconds_to_samples(fSampleRate, fWaveformOff);
+
+            // Copy contents of all graphs
+            const size_t max_graph  = (nChannels > 1) ? WF_STEREO : WF_MONO;
+            for (size_t i=0; i<2; ++i)
+            {
+                dyna_meters_t *dm       = &vDynaMeters[i];
+
+                for (size_t j=0; j<max_graph; ++j)
+                {
+                    dspu::RawRingBuffer *rb = &dm->vWaveform[j];
+
+                    t       = mesh->pvData[rows++];
+
+                    copy_waveform(&t[2], rb, frame_off, frame_len, meta::referencer::WAVE_MESH_SIZE);
+
+                    t[0]    = 0.0f;
+                    t[1]    = t[2];
+                    t      += meta::referencer::WAVE_MESH_SIZE + 2;
+                    t[0]    = t[-1];
+                    t[1]    = 0.0f;
+                }
+            }
+
+            // Commit data to mesh
+            mesh->data(rows, meta::referencer::WAVE_MESH_SIZE + 4);
         }
 
         void referencer::output_dyna_meshes()
