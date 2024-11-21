@@ -239,7 +239,8 @@ namespace lsp
             COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
             MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
             /* Waveform metering */ \
-            CONTROL("wfoff", "Waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
+            CONTROL("mixwfof", "Mix waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
+            CONTROL("refwfof", "Reference waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
             CONTROL("wflen", "Waveform frame length", U_SEC, referencer::WAVE_SIZE), \
             /* FFT analysis */ \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \

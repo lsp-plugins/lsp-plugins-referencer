@@ -136,22 +136,25 @@ namespace lsp
             // Initialize other parameters
             vChannels           = NULL;
             enMode              = (nChannels > 1) ? SM_STEREO : SM_MONO;
-            fWaveformOff        = 0.0f;
             fWaveformLen        = 0.0f;
 
             sMix.fGain          = GAIN_AMP_M_INF_DB;
             sMix.fOldGain       = GAIN_AMP_M_INF_DB;
             sMix.fNewGain       = GAIN_AMP_M_INF_DB;
             sMix.nTransition    = 0;
+            sMix.fWaveformOff   = 0.0f;
             sMix.bFreeze        = false;
             sMix.pFreeze        = NULL;
+            sMix.pFrameOffset   = NULL;
 
             sRef.fGain          = GAIN_AMP_M_INF_DB;
             sRef.fOldGain       = GAIN_AMP_M_INF_DB;
             sRef.fNewGain       = GAIN_AMP_M_INF_DB;
             sRef.nTransition    = 0;
+            sRef.fWaveformOff   = 0.0f;
             sRef.bFreeze        = false;
             sRef.pFreeze        = NULL;
+            sRef.pFrameOffset   = NULL;
 
             pExecutor           = NULL;
 
@@ -183,7 +186,6 @@ namespace lsp
             pDynaMesh           = NULL;
 
             pWaveformMesh       = NULL;
-            pFrameOffset        = NULL;
             pFrameLength        = NULL;
 
             pFftRank            = NULL;
@@ -276,27 +278,11 @@ namespace lsp
             }
 
             pData               = NULL;
-
-//            const size_t sr = 48000;
-//            in.init(2, sr * 30, 0);
-//            lufs.init(2, sr * 30, 0);
-//            tp.init(2, sr * 30, 0);
-//            psr.init(2, sr * 30, 0);
-//
-//            in.set_sample_rate(sr);
-//            lufs.set_sample_rate(sr);
-//            tp.set_sample_rate(sr);
-//            psr.set_sample_rate(sr);
         }
 
         referencer::~referencer()
         {
             do_destroy();
-
-//            in.save("test-in.wav");
-//            lufs.save("test-lufs.wav");
-//            tp.save("test-tpeak.wav");
-//            psr.save("test-psr.wav");
         }
 
         void referencer::init(plug::IWrapper *wrapper, plug::IPort **ports)
@@ -545,7 +531,8 @@ namespace lsp
             BIND_PORT(pPsrMesh);
 
             // Waveform-related ports
-            BIND_PORT(pFrameOffset);
+            BIND_PORT(sMix.pFrameOffset);
+            BIND_PORT(sRef.pFrameOffset);
             BIND_PORT(pFrameLength);
 
             // FFT metering
@@ -963,7 +950,8 @@ namespace lsp
             fGainMatchFall          = expf(-gm_react * gm_ksr);
 
             // Waveform analysis
-            fWaveformOff            = pFrameOffset->value();
+            sMix.fWaveformOff       = sMix.pFrameOffset->value();
+            sRef.fWaveformOff       = sRef.pFrameOffset->value();
             fWaveformLen            = pFrameLength->value();
 
             // Apply post-filter settings
@@ -1196,34 +1184,45 @@ namespace lsp
             // Compute the initial offset to start from
             offset              = (rb->position() + limit - length - offset) % limit;
 
-            for (size_t i=0; i<dst_len; ++i)
+            if (length > dst_len)
             {
-                size_t first    = (i * length) / dst_len;
-                size_t last     = ((i + 1) * length) / dst_len;
-                if (first < last)
+                for (size_t i=0; i<dst_len; ++i)
                 {
-                    first           = (first + offset) % limit;
-                    last            = (last + offset) % limit;
-
-                    if (first > last)
+                    size_t first    = (i * length) / dst_len;
+                    size_t last     = ((i + 1) * length) / dst_len;
+                    if (first < last)
                     {
-//                        lsp_trace("sign_max2(%d, %d), limit=%d", int(first), int(limit - first), int(limit));
-//                        lsp_trace("sign_max2(%d, %d), limit=%d", int(0), int(last), int(limit));
+                        first           = (first + offset) % limit;
+                        last            = (last + offset) % limit;
 
-                        const float a   = dsp::sign_max(&src[first], limit - first);
-                        const float b   = dsp::sign_max(&src[0], last);
-                        dst[i]          = (fabsf(a) >= fabsf(b)) ? a : b;
+                        if (first > last)
+                        {
+    //                        lsp_trace("sign_max2(%d, %d), limit=%d", int(first), int(limit - first), int(limit));
+    //                        lsp_trace("sign_max2(%d, %d), limit=%d", int(0), int(last), int(limit));
+
+                            const float a   = dsp::sign_max(&src[first], limit - first);
+                            const float b   = dsp::sign_max(&src[0], last);
+                            dst[i]          = (fabsf(a) >= fabsf(b)) ? a : b;
+                        }
+                        else
+                        {
+    //                        lsp_trace("sign_max1(%d, %d), limit=%d", int(first), int(last - first), int(limit));
+                            dst[i]          = dsp::sign_max(&src[first], last - first);
+                        }
                     }
+                    else if (first < length)
+                        dst[i]          = src[(first + offset) % limit];
                     else
-                    {
-//                        lsp_trace("sign_max1(%d, %d), limit=%d", int(first), int(last - first), int(limit));
-                        dst[i]          = dsp::sign_max(&src[first], last - first);
-                    }
+                        dst[i]          = 0.0f;
                 }
-                else if (first < length)
-                    dst[i]          = fabsf(src[first % limit]);
-                else
-                    dst[i]          = 0.0f;
+            }
+            else
+            {
+                for (size_t i=0; i<dst_len; ++i)
+                {
+                    size_t first    = (i * length) / dst_len;
+                    dst[i]          = src[(first + offset) % limit];
+                }
             }
         }
 
@@ -2300,13 +2299,15 @@ namespace lsp
             t[1]    = t[0];
 
             const size_t frame_len      = dspu::seconds_to_samples(fSampleRate, fWaveformLen);
-            const size_t frame_off      = dspu::seconds_to_samples(fSampleRate, fWaveformOff);
 
             // Copy contents of all graphs
             const size_t max_graph  = (nChannels > 1) ? WF_STEREO : WF_MONO;
             for (size_t i=0; i<2; ++i)
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
+
+                const float wave_off    = (i == 0) ? sMix.fWaveformOff : sRef.fWaveformOff;
+                const size_t frame_off  = dspu::seconds_to_samples(fSampleRate, wave_off);
 
                 for (size_t j=0; j<max_graph; ++j)
                 {

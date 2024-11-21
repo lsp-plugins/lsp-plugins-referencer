@@ -180,9 +180,11 @@ namespace lsp
                     float               fOldGain;                                   // Previous gain value
                     float               fNewGain;                                   // New gain
                     uint32_t            nTransition;                                // Gain transition
+                    float               fWaveformOff;                               // Waveform offset
                     bool                bFreeze;                                    // Freeze analysis
 
                     plug::IPort        *pFreeze;                                    // Freeze analysis
+                    plug::IPort        *pFrameOffset;                               // Waveform frame offset
                 } asource_t;
 
                 typedef struct loop_t
@@ -290,7 +292,6 @@ namespace lsp
                 uint32_t            nCrossfadeTime;                             // Cross-fade time in samples
                 float               fMaxTime;                                   // Maximum display time
                 stereo_mode_t       enMode;                                     // Stereo mode
-                float               fWaveformOff;                               // Waveform offset
                 float               fWaveformLen;                               // Waveform length
                 uint32_t            nFftRank;                                   // FFT rank
                 uint32_t            nFftWindow;                                 // FFT window
@@ -339,7 +340,6 @@ namespace lsp
                 plug::IPort        *pILUFSTime;                                 // Integrated LUFS time
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pWaveformMesh;                              // Waveform mesh
-                plug::IPort        *pFrameOffset;                               // Waveform frame offset
                 plug::IPort        *pFrameLength;                               // Waveform frame length
                 plug::IPort        *pFftRank;                                   // FFT rank
                 plug::IPort        *pFftWindow;                                 // FFT window

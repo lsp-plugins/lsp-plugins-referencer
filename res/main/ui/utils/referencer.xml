@@ -407,6 +407,13 @@
 						<button id="right_v" text="labels.chan.right" />
 						<button id="mid_v" text="labels.chan.mid" />
 						<button id="side_v" text="labels.chan.side" />
+						<void hexpand="true" />
+						<fader id="wflen" angle="0" />
+						<value id="wflen" sline="true" />
+						<fader id="mixwfof" angle="0" />
+						<value id="mixwfof" sline="true" />
+						<fader id="refwfof" angle="0" />
+						<value id="refwfof" sline="true" />
 					</ui:if>
 				</hbox>
 			</vbox>
