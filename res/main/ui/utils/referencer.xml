@@ -1062,8 +1062,8 @@
 						<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
 	
 						<!-- Streams -->
-						<stream id="gonio" si="0" xi="3" yi="4" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
-						<stream id="gonio" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
+						<stream id="refgon" si="0" xi="1" yi="2" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
+						<stream id="mixgon" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
 	
 						<!-- Text -->
 						<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
@@ -1161,7 +1161,7 @@
 		<!-- Different common manipulations -->
 		<hbox spacing="2">
 			<group text="groups.analysis">
-				<grid rows="3" cols="5">
+				<grid rows="3" cols="6">
 					<cell rows="3">
 						<grid rows="4" cols="2">
 							<label text="labels.fft.window"/>
@@ -1183,6 +1183,7 @@
 					<label text="labels.metering.period" />
 					<label text="labels.metering.display" />
 					<button id="fftdamp" text="labels.metering.damping" />
+					<label text="labels.chan.freeze" />
 					
 					<knob id="fftrea" />
 					<knob id="maxtime" />
@@ -1195,10 +1196,15 @@
 						</grid>
 					</cell>
 					<knob id="fftbal" />
+					<vbox>
+						<button id="mixfrz" hfill="true" text="labels.signal.mix" down.color="orange" />
+						<button id="reffrz" hfill="true" text="labels.signal.reference" down.color="cyan" />
+					</vbox>
 					
 					<value id="fftrea" sline="true" />
 					<value id="maxtime" sline="true" />
 					<value id="fftbal" sline="true" />
+					<void />
 				</grid>
 			</group>
 			<group text="groups.post_filter">

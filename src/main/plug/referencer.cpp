@@ -124,7 +124,6 @@ namespace lsp
             nFftEnvelope        = -1;
             fFftTau             = 0.0f;
             fFftBal             = 0.0f;
-            nGonioStrobe        = 0;
             nGonioPeriod        = 0;
             nPsrMode            = PSR_DENSITY;
             nPsrThresh          = 0;
@@ -198,8 +197,6 @@ namespace lsp
             for (size_t i=0; i<FT_TOTAL; ++i)
                 pFftMesh[i]         = NULL;
 
-            pGoniometer         = NULL;
-
             pPsrPeriod          = NULL;
             pPsrThreshold       = NULL;
             pPsrMesh            = NULL;
@@ -212,6 +209,8 @@ namespace lsp
                 dm->vLoudness       = NULL;
                 dm->fGain           = GAIN_AMP_0_DB;
                 dm->fTPLevel        = 0.0;
+                dm->nGonioStrobe    = 0;
+                dm->pGoniometer     = NULL;
 
                 for (size_t i=0; i<DM_TOTAL; ++i)
                     dm->pMeters[i]      = NULL;
@@ -582,11 +581,12 @@ namespace lsp
             {
                 SKIP_PORT("Goniometer history size");
                 SKIP_PORT("Goniometer dots");
-                BIND_PORT(pGoniometer);
 
                 for (size_t i=0; i<2; ++i)
                 {
                     dyna_meters_t *dm   = &vDynaMeters[i];
+                    BIND_PORT(dm->pGoniometer);
+
                     for (size_t j=0; j<DM_STEREO; ++j)
                         BIND_PORT(dm->pMeters[j]);
                     BIND_PORT(dm->pPsrPcValue);
@@ -730,7 +730,6 @@ namespace lsp
 
             // Update goniometer settings
             nGonioPeriod        = dspu::hz_to_samples(fSampleRate, meta::referencer::GONIO_REFRESH_RATE);
-            nGonioStrobe        = nGonioPeriod;
 
             // Update sample rate for the bypass processors
             for (size_t i=0; i < nChannels; ++i)
@@ -817,6 +816,7 @@ namespace lsp
                     dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, meta::referencer::DYNA_SUBSAMPLING, dmesh_period);
 
                 dm->fTPLevel            = 0.0f;
+                dm->nGonioStrobe        = nGonioPeriod;
             }
         }
 
@@ -1941,14 +1941,14 @@ namespace lsp
         }
 
         void referencer::process_goniometer(
-            const float *l1, const float *r1,
-            const float *l2, const float *r2,
+            dyna_meters_t *dm,
+            const float *l, const float *r,
             size_t samples)
         {
             // Check that stream is present
-            if (pGoniometer == NULL)
+            if (dm->pGoniometer == NULL)
                 return;
-            plug::stream_t *stream = pGoniometer->buffer<plug::stream_t>();
+            plug::stream_t *stream = dm->pGoniometer->buffer<plug::stream_t>();
             if (stream == NULL)
                 return;
 
@@ -1964,32 +1964,22 @@ namespace lsp
 
                 for (size_t i=0; i < count; )
                 {
-                    if (nGonioStrobe == 0)
+                    if (dm->nGonioStrobe == 0)
                     {
                         mid[i]                  = 1.0f;
-                        nGonioStrobe            = nGonioPeriod;
+                        dm->nGonioStrobe        = nGonioPeriod;
                     }
 
-                    const size_t advance    = lsp_min(count - i, nGonioStrobe);
-                    nGonioStrobe           -= advance;
+                    const size_t advance    = lsp_min(count - i, dm->nGonioStrobe);
+                    dm->nGonioStrobe       -= advance;
                     i                      += advance;
                 }
                 stream->write_frame(0, mid, 0, count);
 
                 // Perform analysis of the first pair
-                dsp::lr_to_ms(mid, side, l1, r1, count);
-
+                dsp::lr_to_ms(mid, side, &l[offset], &r[offset], count);
                 stream->write_frame(1, side, 0, count);
                 stream->write_frame(2, mid, 0, count);
-                l1             += count;
-                r1             += count;
-
-                // Perform analysis of the second pair
-                dsp::lr_to_ms(mid, side, l2, r2, count);
-                stream->write_frame(3, side, 0, count);
-                stream->write_frame(4, mid, 0, count);
-                l2             += count;
-                r2             += count;
 
                 // Commit frame
                 stream->commit_frame();
@@ -2108,6 +2098,11 @@ namespace lsp
                         vChannels[0].vInBuffer,
                         (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
                         to_process);
+                    if (nChannels > 1)
+                        process_goniometer(
+                            &vDynaMeters[0],
+                            vChannels[0].vInBuffer, vChannels[1].vInBuffer,
+                            to_process);
                     perform_fft_analysis(
                         &vFftMeters[0],
                         vChannels[0].vInBuffer,
@@ -2121,18 +2116,17 @@ namespace lsp
                         vChannels[0].vBuffer,
                         (nChannels > 1) ? vChannels[1].vBuffer : NULL,
                         to_process);
+                    if (nChannels > 1)
+                        process_goniometer(
+                            &vDynaMeters[1],
+                            vChannels[0].vBuffer, vChannels[1].vBuffer,
+                            to_process);
                     perform_fft_analysis(
                         &vFftMeters[1],
                         vChannels[0].vBuffer,
                         (nChannels > 1) ? vChannels[1].vBuffer : NULL,
                         to_process);
                 }
-
-                if (nChannels > 1)
-                    process_goniometer(
-                        vChannels[0].vInBuffer, vChannels[1].vInBuffer,
-                        vChannels[0].vBuffer, vChannels[1].vBuffer,
-                        to_process);
 
                 mix_channels(to_process);
                 apply_post_filters(to_process);

@@ -269,8 +269,10 @@ namespace lsp
                     float              *vLoudness;                                  // Measured short-term loudness
                     float               fGain;                                      // Current gain
                     double              fTPLevel;                                   // True-peak level
+                    uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
 
                     plug::IPort        *pMeters[DM_TOTAL];                          // Output meters
+                    plug::IPort        *pGoniometer;                                // Goniometer stream
                     plug::IPort        *pPsrPcValue;                                // PSR value in percents (over threshold)
                 } dyna_meters_t;
 
@@ -295,7 +297,6 @@ namespace lsp
                 uint32_t            nFftEnvelope;                               // FFT envelope
                 float               fFftTau;                                    // FFT smooth coefficient
                 float               fFftBal;                                    // FFT ballistics coefficient
-                uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
                 uint32_t            nGonioPeriod;                               // Goniometer period
                 uint32_t            nPsrMode;                                   // PSR display mode
                 uint32_t            nPsrThresh;                                 // PSR threshold (index)
@@ -348,7 +349,6 @@ namespace lsp
                 plug::IPort        *pFftReset;                                  // Reset FFT minimum and maximum
                 plug::IPort        *pFftBallistics;                             // FFT ballistics
                 plug::IPort        *pFftMesh[3];                                // FFT mesh
-                plug::IPort        *pGoniometer;                                // Goniometer stream
                 plug::IPort        *pPsrPeriod;                                 // PSR period
                 plug::IPort        *pPsrThreshold;                              // PSR threshold
                 plug::IPort        *pPsrMesh;                                   // PSR output
@@ -376,7 +376,7 @@ namespace lsp
                 void                render_loop(afile_t *af, loop_t *al, size_t samples);
                 void                perform_fft_analysis(fft_meters_t *fm, const float *l, const float *r, size_t samples);
                 void                process_fft_frame(fft_meters_t *fm);
-                void                process_goniometer(const float *l1, const float *r1, const float *l2, const float *r2, size_t samples);
+                void                process_goniometer(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
                 void                perform_metering(dyna_meters_t *dm, const float *l, const float *r, size_t samples);
                 void                accumulate_fft(fft_meters_t *fm, size_t type, const float *buf);
                 void                reset_fft();

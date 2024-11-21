@@ -295,7 +295,8 @@ namespace lsp
             MESH("fftmaxg", "FFT maximum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
-            STREAM("gonio", "Goniometer stream buffer", 5, 128, 0x8000), \
+            STREAM("mixgon", "Mix goniometer stream buffer", 3, 128, 0x8000), \
+            STREAM("refgon", "Reference goniometer stream buffer", 3, 128, 0x8000), \
             REF_COMMON_METERS_STEREO("m", "Mix"), \
             REF_COMMON_METERS_STEREO("r", "Reference")
 
