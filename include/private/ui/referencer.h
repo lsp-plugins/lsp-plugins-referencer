@@ -37,21 +37,42 @@ namespace lsp
             protected:
                 typedef struct play_matrix_t
                 {
-                    ui::IPort      *pPlaySample;
-                    ui::IPort      *pPlayLoop;
+                    ui::IPort                  *pPlaySample;
+                    ui::IPort                  *pPlayLoop;
 
                     lltl::parray<tk::Button>    vButtons;
                 } play_matrix_t;
 
-            protected:
-                play_matrix_t       sPlayMatrix;
+                typedef struct waveform_t
+                {
+                    ui::IPort                  *pLogScale;
+                    ui::IPort                  *pLinMax;
+                    ui::IPort                  *pLogMin;
+                    ui::IPort                  *pLogMax;
+
+                    float                       fScaleMin;
+                    float                       fScaleMax;
+                    bool                        bLogScale;
+                    bool                        bEditing;
+
+                    lltl::parray<tk::GraphMesh> vMeshes;
+                } waveform_t;
 
             protected:
+                play_matrix_t               sPlayMatrix;
+                waveform_t                  sWaveform;
+
+            protected:
+                static bool         waveform_transform_func(float *dst, const float *src, size_t count, tk::GraphMesh::coord_t coord, void *data);
+
                 static status_t     slot_matrix_change(tk::Widget *sender, void *ptr, void *data);
 
             protected:
                 ui::IPort          *bind_port(const char *id);
-                void                sync_matrix_state();
+                void                sync_matrix_state(ui::IPort *port);
+                void                sync_waveform_state(ui::IPort *port, size_t flags);
+                status_t            init_waveform_graphs();
+                status_t            init_playback_matrix();
                 status_t            on_matrix_change(tk::Button *btn);
 
             public:

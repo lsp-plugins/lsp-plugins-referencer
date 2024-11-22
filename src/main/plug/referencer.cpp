@@ -534,6 +534,9 @@ namespace lsp
             BIND_PORT(sMix.pFrameOffset);
             BIND_PORT(sRef.pFrameOffset);
             BIND_PORT(pFrameLength);
+            SKIP_PORT("Logarithmic scale of waveform");
+            SKIP_PORT("Minimum Waveform scale");
+            SKIP_PORT("Maximum Waveform scale");
 
             // FFT metering
             BIND_PORT(pFftRank);

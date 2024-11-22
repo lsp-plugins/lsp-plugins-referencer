@@ -65,6 +65,7 @@ namespace lsp
             static constexpr size_t PSR_MESH_SIZE               = 360;                  // Size of PSR mesh
             static constexpr float  PSR_TRUE_PEAK_DECAY         = -0.5f;                // True peak decay for PSR (see AES Convention 143 Brief 373 for reference)
             static constexpr float  AUTOGAIN_MEASURE_PERIOD     = 3000.0f;              // Measurement period for Autogain
+            static constexpr float  WAVE_SRANGE_DIFF_MIN        = 12.0f;                // 12 dB minimum difference on logarithmic scale
 
             static constexpr float  SAMPLE_LENGTH_MIN           = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX           = 1000.0f;              // Maximum sample length (s)
@@ -78,7 +79,7 @@ namespace lsp
 
             static constexpr size_t SAMPLE_SELECTOR_MIN         = 1;                    // Minimum sample selector
             static constexpr size_t SAMPLE_SELECTOR_MAX         = AUDIO_SAMPLES;        // Maximum sample selector
-            static constexpr size_t SAMPLE_SELECTOR_DFL         = SAMPLE_SELECTOR_MIN;// Default sample selector
+            static constexpr size_t SAMPLE_SELECTOR_DFL         = SAMPLE_SELECTOR_MIN;  // Default sample selector
             static constexpr size_t SAMPLE_SELECTOR_STEP        = 1;                    // Sample selector step
 
             static constexpr size_t LOOP_SELECTOR_MIN           = 1;                    // Minimum loop selector
@@ -193,12 +194,22 @@ namespace lsp
             static constexpr float  WAVE_OFFSET_MIN             = 0.0f;                 // Minimum waveform frame offset in seconds
             static constexpr float  WAVE_OFFSET_MAX             = 2.0f;                 // Maximum waveform frame offset in seconds
             static constexpr float  WAVE_OFFSET_DFL             = 0.0f;                 // Default waveform frame offset in seconds
-            static constexpr float  WAVE_OFFSET_STEP            = 0.005f;               // Waveform frame offset step in seconds
+            static constexpr float  WAVE_OFFSET_STEP            = 0.0005f;              // Waveform frame offset step in seconds
 
             static constexpr float  WAVE_SIZE_MIN               = 0.005f;               // Minimum waveform frame size in seconds
             static constexpr float  WAVE_SIZE_MAX               = 2.0f;                 // Maximum waveform frame size in seconds
             static constexpr float  WAVE_SIZE_DFL               = 2.0f;                 // Default waveform frame size in seconds
             static constexpr float  WAVE_SIZE_STEP              = 0.005f;               // Waveform frame size step in seconds
+
+            static constexpr float  WAVE_SMIN_SCALE_MIN         = -72.0f;               // Minimum waveform mesh range begin value
+            static constexpr float  WAVE_SMIN_SCALE_MAX         = -12.0f;               // Maximum waveform mesh range begin value
+            static constexpr float  WAVE_SMIN_SCALE_DFL         = -36.0f;               // Default waveform mesh range begin value
+            static constexpr float  WAVE_SMIN_SCALE_STEP        = 0.02f;                // Default waveform mesh range step
+
+            static constexpr float  WAVE_SMAX_SCALE_MIN         = -48.0f;               // Minimum waveform mesh range end value
+            static constexpr float  WAVE_SMAX_SCALE_MAX         = 12.0f;                // Maximum waveform mesh range end value
+            static constexpr float  WAVE_SMAX_SCALE_DFL         = 0.0f;                 // Default waveform mesh range end value
+            static constexpr float  WAVE_SMAX_SCALE_STEP        = 0.02f;                // Default waveform mesh range step
 
         } referencer;
 

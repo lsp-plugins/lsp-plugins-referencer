@@ -242,6 +242,9 @@ namespace lsp
             CONTROL("mixwfof", "Mix waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
             CONTROL("refwfof", "Reference waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
             CONTROL("wflen", "Waveform frame length", U_SEC, referencer::WAVE_SIZE), \
+            SWITCH("wflog", "Logarithmic scale", 0), \
+            CONTROL("wfscmin", "Minimum graph scale", U_DB, referencer::WAVE_SMIN_SCALE), \
+            CONTROL("wfscmax", "Maximum graph scale", U_DB, referencer::WAVE_SMAX_SCALE), \
             /* FFT analysis */ \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \

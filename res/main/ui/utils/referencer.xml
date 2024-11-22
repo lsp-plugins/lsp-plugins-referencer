@@ -360,62 +360,107 @@
 			
 			<!-- Waveform -->
 			<vbox>
-				<graph width.min="256" height.min="256" expand="true" fill="true">
-					<origin hpos="1" vpos="0" visible="false"/>
+				<grid rows="6" cols="2">
+					<cell rows="5">
+						<graph width.min="256" height.min="256" expand="true" fill="true">
+							<origin hpos="1" vpos="0" visible="false"/>
+							
+							<!-- Main grid -->
+							<ui:for id="i" first="1" last="5">
+								<marker ox="1" oy="0" v="${:i / 6.0}" color="${(:i eq 3) ? 'graph_prim' : 'graph_alt_1'}" />
+								<marker ox="1" oy="0" v="${:i / -6.0}" color="${(:i eq 3) ? 'graph_prim' : 'graph_alt_1'}" />
+							</ui:for>
+							<ui:for id="i" first="1" last="9">
+								<marker ox="2" oy="1" v="${:i * 0.1}" color="${(:i % 2 == 0) ? 'graph_prim' : 'graph_alt_1'}" />
+							</ui:for>
+		
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<ui:with id="wfmesh" width="2" xi="0" fill="true" fill.color.a="0.9">
+									<mesh ui:id="waveform_ref_l" yi="5" color="left_in" fill.color="left_in" visibility=":refvis and :left_v"/>
+									<mesh ui:id="waveform_ref_r" yi="6" color="right_in" fill.color="right_in" visibility=":refvis and :right_v"/>
+									<mesh ui:id="waveform_ref_m" yi="7" color="mid_in" fill.color="mid_in" visibility=":refvis and :mid_v"/>
+									<mesh ui:id="waveform_ref_s" yi="8" color="side_in" fill.color="side_in" visibility=":refvis and :side_v"/>
+									<mesh ui:id="waveform_mix_l" yi="1" color="left" fill.color="left" visibility=":mixvis and :left_v"/>
+									<mesh ui:id="waveform_mix_r" yi="2" color="right" fill.color="right" visibility=":mixvis and :right_v"/>
+									<mesh ui:id="waveform_mix_m" yi="3" color="mid" fill.color="mid" visibility=":mixvis and :mid_v"/>
+									<mesh ui:id="waveform_mix_s" yi="4" color="side" fill.color="side" visibility=":mixvis and :side_v"/>
+								</ui:with>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<ui:with id="wfmesh" width="2" xi="0">
+									<mesh ui:id="waveform_ref" yi="2" color="mid_in" fill.color="mid_in" visibility=":refvis"/>
+									<mesh ui:id="waveform_mix" yi="1" color="mid" fill.color="mid" visibility=":mixvis"/>
+								</ui:with>
+							</ui:if>					
+							
+							<!-- Axis -->
+							<axis min="0" max=":wflen" angle="1.0" log="false" color="graph_prim" visible="true"/>
+							<axis min="-1" max="1" angle="0.5" log="false" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+		
+							<!-- Text -->
+							<ui:with x="1" ox="2" oy="1" visibility=":wflog" halign="1" valign="1" pgroup="0" priority="10">
+								<text y="1" text="graph.values.x:db:f" text.eval="true" text:value=":wfscmax" valign="-1" priority="0" />
+								<text y="0" text="graph.values.x::2f" text.eval="true" text:value=":wfscmin" priority="0" />
+															
+								<ui:for id="i" first="1" last="5">
+									<text y="${:i / 6.0}" text="graph.values.x::2f" text.eval="true" text:value=":wfscmin + ${i} * (:wfscmax - :wfscmin) / 6.0"/>
+									<text y="${:i / -6.0}" text="graph.values.x::2f" text.eval="true" text:value=":wfscmin + ${i} * (:wfscmax - :wfscmin) / 6.0"/>
+								</ui:for>
+							</ui:with>
+							<ui:with x="1" ox="2" oy="1" visibility="!:wflog" halign="1" valign="1" pgroup="0" priority="10">
+								<text y="1" text="labels.amplitude" valign="-1" priority="0" />
+								<text y="0" text="0" priority="0" />
+								
+								<ui:for id="i" first="1" last="5">
+									<text y="${:i / 6.0}" text="graph.values.x::f" text.eval="true" text:value="${i} * (10 ** (:wfscmax / 20.0)) / 6.0"/>
+									<text y="${:i / -6.0}" text="graph.values.x::f" text.eval="true" text:value="${i} * (10 ** (:wfscmax / 20.0)) / -6.0"/>
+								</ui:for>
+							</ui:with>
+							
+							<ui:with y="-1" ox="2" oy="1" visibility=":wflen ge 1.0" halign="1" valign="1" pgroup="0" priority="10">
+								<text x="0" y="-1" text="graph.units.s" halign="-1" priority="0" />
+								<ui:for id="i" first="1" last="10">
+									<text x="${:i * 0.1}" text="graph.values.x::2f" text.eval="true" text:value="${i} * :wflen * 0.1"/>
+								</ui:for>
+							</ui:with>		
+							<ui:with y="-1" ox="2" oy="1" visibility=":wflen lt 1.0" halign="1" valign="1" pgroup="0" priority="10">
+								<text x="0" text="graph.units.ms" halign="-1" priority="0" />
+								<ui:for id="i" first="1" last="10">
+									<text x="${:i * 0.1}" text="graph.values.x::2f" text.eval="true" text:value="${i} * :wflen * 100.0"/>
+								</ui:for>
+							</ui:with>
+						</graph>
+					</cell>
 					
-					<!-- Additional grid -->
-
-					<!-- Main grid -->
-					<marker ox="1" oy="0" v="0.5" color="graph_prim" />
-					<marker ox="1" oy="0" v="-0.5" color="graph_prim" />
-					<marker ox="0" oy="1" v="0.5" color="graph_prim" />
-					<marker ox="0" oy="1" v="1.0" color="graph_prim" />
-					<marker ox="0" oy="1" v="1.5" color="graph_prim" />
-
-					<!-- Meshes -->
-					<ui:if test="ex :in_r">
-						<ui:with id="wfmesh" width="2" xi="0">
-							<mesh yi="5" color="left_in" visibility=":refvis and :left_v"/>
-							<mesh yi="6" color="right_in" visibility=":refvis and :right_v"/>
-							<mesh yi="7" color="mid_in" visibility=":refvis and :mid_v"/>
-							<mesh yi="8" color="side_in" visibility=":refvis and :side_v"/>
-							<mesh yi="1" color="left" visibility=":mixvis and :left_v"/>
-							<mesh yi="2" color="right" visibility=":mixvis and :right_v"/>
-							<mesh yi="3" color="mid" visibility=":mixvis and :mid_v"/>
-							<mesh yi="4" color="side" visibility=":mixvis and :side_v"/>
-						</ui:with>
-					</ui:if>
-					<ui:if test="!ex :in_r">
-						<ui:with id="wfmesh" width="2" xi="0">
-							<mesh yi="2" color="mid_in" visibility=":refvis"/>
-							<mesh yi="1" color="mid" visibility=":mixvis"/>
-						</ui:with>
-					</ui:if>					
+					<label text="labels.zoom" />
+					<fader id="wfscmax" angle="1" hreduce="true" />
+					<value id="wfscmax" angle="1" hreduce="true" />
+					<fader id="wfscmin" angle="1" hreduce="true" />
+					<value id="wfscmin" angle="1" hreduce="true" />
 					
-					<!-- Axis -->
-					<axis min="0" max=":wflen" angle="1.0" log="false" color="graph_prim" visible="false"/>
-					<axis min="-1" max="1" angle="0.5" log="false" color="graph_prim" visible="false"/>
-
-					<!-- Text -->
-
-				</graph>
-					
-				<!-- Down panel -->
-				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
-					<ui:if test="ex :in_r">
-						<button id="left_v" text="labels.chan.left" />
-						<button id="right_v" text="labels.chan.right" />
-						<button id="mid_v" text="labels.chan.mid" />
-						<button id="side_v" text="labels.chan.side" />
-						<void hexpand="true" />
-						<fader id="wflen" angle="0" />
-						<value id="wflen" sline="true" />
-						<fader id="mixwfof" angle="0" />
-						<value id="mixwfof" sline="true" />
-						<fader id="refwfof" angle="0" />
-						<value id="refwfof" sline="true" />
-					</ui:if>
-				</hbox>
+					<!-- Down panel -->
+					<cell cols="2">
+						<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
+							<ui:if test="ex :in_r">
+								<button id="left_v" text="labels.chan.left" />
+								<button id="right_v" text="labels.chan.right" />
+								<button id="mid_v" text="labels.chan.mid" />
+								<button id="side_v" text="labels.chan.side" />
+								<void hexpand="true" />
+								<button id="wflog" text="labels.log_scale" />
+								<void hexpand="true" />
+								<fader id="wflen" angle="0" />
+								<value id="wflen" sline="true" />
+								<fader id="mixwfof" angle="0" />
+								<value id="mixwfof" sline="true" />
+								<fader id="refwfof" angle="0" />
+								<value id="refwfof" sline="true" />
+							</ui:if>
+						</hbox>
+					</cell>
+				</grid>
 			</vbox>
 			
 			<!-- Spectral analysis -->
