@@ -805,6 +805,8 @@ namespace lsp
                 for (size_t j=0; j<DM_TOTAL; ++j)
                     dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, meta::referencer::DYNA_SUBSAMPLING, dmesh_period);
 
+                dm->vGraphs[DM_CORR].set_method(dspu::MM_SIGN_MAXIMUM);
+
                 dm->fTPLevel            = 0.0f;
                 dm->nGonioStrobe        = nGonioPeriod;
             }
