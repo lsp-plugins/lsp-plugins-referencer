@@ -83,6 +83,10 @@
 		
 		<!-- Tab control for different operations -->
 		<tabs id="section" expand="true">
+			<!-- Overview -->
+			<vbox>
+			</vbox>
+		
 			<!-- Samples -->
 			<cgroup id="ssel" expand="true">
 				<ui:for id="si" first="1" count="4">
@@ -1114,8 +1118,8 @@
 						<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false" />
 	
 						<!-- Streams -->
-						<stream id="refgon" si="0" xi="1" yi="2" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
-						<stream id="mixgon" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
+						<stream id="gon_r" si="0" xi="1" yi="2" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
+						<stream id="gon_m" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
 	
 						<!-- Text -->
 						<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>

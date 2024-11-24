@@ -81,6 +81,7 @@ namespace lsp
 
         static const port_item_t tab_selectors[] =
         {
+            { "Overview",       "referencer.tab.overview"           },
             { "Samples",        "referencer.tab.samples"            },
             { "Loudness",       "referencer.tab.loudness"           },
             { "Waveform",       "referencer.tab.waveform"           },
@@ -268,6 +269,7 @@ namespace lsp
             METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
 
         #define REF_COMMON_METERS_STEREO(id, name) \
+            STREAM("gon_" id, name " goniometer stream buffer", 3, 128, 0x8000), \
             REF_COMMON_METERS(id, name), \
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
@@ -299,8 +301,6 @@ namespace lsp
             MESH("fftmaxg", "FFT maximum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
-            STREAM("mixgon", "Mix goniometer stream buffer", 3, 128, 0x8000), \
-            STREAM("refgon", "Reference goniometer stream buffer", 3, 128, 0x8000), \
             REF_COMMON_METERS_STEREO("m", "Mix"), \
             REF_COMMON_METERS_STEREO("r", "Reference")
 
