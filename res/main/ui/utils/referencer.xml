@@ -64,6 +64,7 @@
 				<!-- Playback loop -->
 				<ui:for id="si" first="1" count="4">
 					<asample
+						ui:id="loop_view${si}"
 						hexpand="true"
 						id="sf_${si}"
 						mesh_id="loop_m"
@@ -96,6 +97,7 @@
 						<hbox width.min="650" height.min="256" expand="true">
 							<!-- Sample loader/editor -->
 							<asample
+								ui:id="sample_edit${si}"
 								expand="true"
 								id="sf_${si}"
 								mesh_id="fm_${si}"

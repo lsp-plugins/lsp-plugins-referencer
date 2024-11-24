@@ -173,8 +173,8 @@ namespace lsp
 
 
         #define REF_LOOP(id, name) \
-            CONTROL("lb" id, name " start", U_SEC, referencer::SAMPLE_LENGTH), \
-            CONTROL("le" id, name " end", U_SEC, referencer::SAMPLE_LENGTH),  \
+            CONTROL("lb" id, name " start", U_SEC, referencer::LOOP_BEGIN), \
+            CONTROL("le" id, name " end", U_SEC, referencer::LOOP_END),  \
             METER("pp" id, name " play position", U_SEC, referencer::SAMPLE_PLAYBACK)
 
         #define REF_SAMPLE(id, name) \

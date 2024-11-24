@@ -79,6 +79,14 @@ namespace lsp
             return p;
         }
 
+        ui::IPort *referencer_ui::bind_port(const LSPString *id)
+        {
+            ui::IPort *p = pWrapper->port(id);
+            if (p != NULL)
+                p->bind(this);
+            return p;
+        }
+
         status_t referencer_ui::init_waveform_graphs()
         {
             static const char * const graph_ids[] =
@@ -117,13 +125,15 @@ namespace lsp
 
         status_t referencer_ui::init_playback_matrix()
         {
-//            vWaveformGraphs;
+            LSPString id;
+
             sPlayMatrix.pPlaySample     = bind_port("pssel");
             sPlayMatrix.pPlayLoop       = bind_port("plsel");
+            sPlayMatrix.pTabSel         = bind_port("section");
+            sPlayMatrix.pSampleSel      = bind_port("ssel");
 
             if ((sPlayMatrix.pPlaySample != NULL) && (sPlayMatrix.pPlayLoop != NULL))
             {
-                LSPString id;
                 for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
                 {
                     for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
@@ -142,6 +152,47 @@ namespace lsp
                 }
             }
 
+            for (size_t i=0; i < meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                sample_loader_t *loader = &sPlayMatrix.vLoaders[i];
+
+                loader->pStatus         = NULL;
+                loader->pLoopSel        = NULL;
+                loader->pFileName       = NULL;
+                loader->pView           = NULL;
+                loader->pEditor         = NULL;
+
+                for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                {
+                    loader->vLoop[j].pStart     = NULL;
+                    loader->vLoop[j].pEnd       = NULL;
+                }
+
+                if (id.fmt_ascii("loop_view%d", int(i + 1)) > 0)
+                {
+                    loader->pView           = pWrapper->controller()->widgets()->get<tk::AudioSample>(&id);
+                    if (loader->pView != NULL)
+                        loader->pView->slots()->bind(tk::SLOT_SUBMIT, slot_loop_submit, this);
+                }
+
+                if (id.fmt_ascii("sample_edit%d", int(i + 1)) > 0)
+                    loader->pEditor         = pWrapper->controller()->widgets()->get<tk::AudioSample>(&id);
+                if (id.fmt_ascii("ls_%d", int(i + 1)) > 0)
+                    loader->pLoopSel        = bind_port(&id);
+                if (id.fmt_ascii("fs_%d", int(i + 1)) > 0)
+                    loader->pStatus         = bind_port(&id);
+                if (id.fmt_ascii("sf_%d", int(i + 1)) > 0)
+                    loader->pFileName       = bind_port(&id);
+
+                for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
+                {
+                    if (id.fmt_ascii("lb_%d_%d", int(i + 1), int(j + 1)) > 0)
+                        loader->vLoop[j].pStart     = bind_port(&id);
+                    if (id.fmt_ascii("le_%d_%d", int(i + 1), int(j + 1)) > 0)
+                        loader->vLoop[j].pEnd       = bind_port(&id);
+                }
+            }
+
             return STATUS_OK;
         }
 
@@ -156,8 +207,8 @@ namespace lsp
             LSP_STATUS_ASSERT(init_waveform_graphs());
 
             // Synchronize state of the matrix
-            sync_matrix_state(NULL);
-            sync_waveform_state(NULL, 0);
+            sync_matrix_state(NULL, ui::PORT_NONE);
+            sync_waveform_state(NULL, ui::PORT_NONE);
 
             return STATUS_OK;
         }
@@ -167,29 +218,48 @@ namespace lsp
             if (port == NULL)
                 return;
 
-            sync_matrix_state(port);
+            sync_matrix_state(port, flags);
             sync_waveform_state(port, flags);
         }
 
-        void referencer_ui::sync_matrix_state(ui::IPort *port)
+        void referencer_ui::sync_matrix_state(ui::IPort *port, size_t flags)
         {
-            if (port != NULL)
+            // Activate playback of specific sample if sample or loop selector has triggered
+            if ((port == NULL) || (port == sPlayMatrix.pPlayLoop) || (port == sPlayMatrix.pPlaySample))
             {
-                if ((port != sPlayMatrix.pPlayLoop) && (port != sPlayMatrix.pPlaySample))
-                    return;
+                const ssize_t sample    = (sPlayMatrix.pPlaySample != NULL) ? sPlayMatrix.pPlaySample->value() - 1 : -1;
+                const ssize_t loop      = (sPlayMatrix.pPlayLoop != NULL) ? sPlayMatrix.pPlayLoop->value() - 1 : -1;
+                const ssize_t active    = sample * meta::referencer::AUDIO_SAMPLES + loop;
+
+                for (size_t i=0, n=sPlayMatrix.vButtons.size(); i<n; ++i)
+                {
+                    tk::Button *btn = sPlayMatrix.vButtons.uget(i);
+                    if (btn == NULL)
+                        continue;
+
+                    btn->down()->set(ssize_t(i) == active);
+                }
             }
 
-            const ssize_t sample    = (sPlayMatrix.pPlaySample != NULL) ? sPlayMatrix.pPlaySample->value() - 1 : -1;
-            const ssize_t loop      = (sPlayMatrix.pPlayLoop != NULL) ? sPlayMatrix.pPlayLoop->value() - 1 : -1;
-            const ssize_t active    = sample * meta::referencer::AUDIO_SAMPLES + loop;
-
-            for (size_t i=0, n=sPlayMatrix.vButtons.size(); i<n; ++i)
+            // Reset loop range if file name has been changed by user
+            if ((port != NULL) && (flags & ui::PORT_USER_EDIT))
             {
-                tk::Button *btn = sPlayMatrix.vButtons.uget(i);
-                if (btn == NULL)
-                    continue;
+                for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+                {
+                    sample_loader_t *sl = &sPlayMatrix.vLoaders[i];
+                    if (sl->pFileName == port)
+                    {
+                        ssize_t index = (sl->pLoopSel != NULL) ? sl->pLoopSel->value() : -1;
+                        if (index >= 0)
+                        {
+                            sl->vLoop[index].pStart->set_default();
+                            sl->vLoop[index].pEnd->set_default();
 
-                btn->down()->set(ssize_t(i) == active);
+                            sl->vLoop[index].pStart->notify_all(ui::PORT_USER_EDIT);
+                            sl->vLoop[index].pEnd->notify_all(ui::PORT_USER_EDIT);
+                        }
+                    }
+                }
             }
         }
 
@@ -225,16 +295,11 @@ namespace lsp
                 float log_max           = (wf->pLogMax != NULL) ? wf->pLogMax->value() : meta::referencer::WAVE_SMAX_SCALE_DFL;
                 float delta             = log_max - log_min;
 
-                lsp_trace("log_min = %f, log_max = %f, delta = %f",
-                    log_min, log_max, delta);
-
                 if ((flags & ui::PORT_USER_EDIT) && (delta < meta::referencer::WAVE_SRANGE_DIFF_MIN))
                 {
                     if (port == wf->pLogMin)
                     {
                         log_max             = log_min + meta::referencer::WAVE_SRANGE_DIFF_MIN;
-                        lsp_trace("new log_max = %f", log_max);
-
                         if (wf->pLogMax != NULL)
                         {
                             wf->pLogMax->set_value(log_max);
@@ -244,8 +309,6 @@ namespace lsp
                     else
                     {
                         log_min             = log_max - meta::referencer::WAVE_SRANGE_DIFF_MIN;
-                        lsp_trace("new log_min = %f", log_min);
-
                         if (wf->pLogMin != NULL)
                         {
                             wf->pLogMin->set_value(log_min);
@@ -331,6 +394,47 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t referencer_ui::on_view_submit(tk::AudioSample *s)
+        {
+            ssize_t idx = -1;
+            for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
+            {
+                if (sPlayMatrix.vLoaders[i].pView == s)
+                {
+                    idx     = i;
+                    break;
+                }
+            }
+            if (idx < 0)
+                return STATUS_OK;
+
+            sample_loader_t *sl = &sPlayMatrix.vLoaders[idx];
+
+            if (sPlayMatrix.pTabSel != NULL)
+            {
+                sPlayMatrix.pTabSel->set_value(meta::referencer::TAB_SAMPLES);
+                sPlayMatrix.pTabSel->notify_all(ui::PORT_USER_EDIT);
+            }
+
+            if (sPlayMatrix.pPlaySample != NULL)
+            {
+                sPlayMatrix.pSampleSel->set_value(idx);
+                sPlayMatrix.pSampleSel->notify_all(ui::PORT_USER_EDIT);
+            }
+
+            if (sPlayMatrix.pPlayLoop != NULL)
+            {
+                uint32_t loop_id  = sPlayMatrix.pPlayLoop->value() - meta::referencer::LOOP_SELECTOR_MIN;
+                if (sl->pLoopSel != NULL)
+                {
+                    sl->pLoopSel->set_value(loop_id);
+                    sl->pLoopSel->notify_all(ui::PORT_USER_EDIT);
+                }
+            }
+
+            return STATUS_OK;
+        }
+
         status_t referencer_ui::slot_matrix_change(tk::Widget *sender, void *ptr, void *data)
         {
             tk::Button *btn = tk::widget_cast<tk::Button>(sender);
@@ -341,6 +445,15 @@ namespace lsp
             return (self != NULL) ? self->on_matrix_change(btn) : STATUS_OK;
         }
 
+        status_t referencer_ui::slot_loop_submit(tk::Widget *sender, void *ptr, void *data)
+        {
+            tk::AudioSample *s = tk::widget_cast<tk::AudioSample>(sender);
+            if (s == NULL)
+                return STATUS_OK;
+
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            return (self != NULL) ? self->on_view_submit(s) : STATUS_OK;
+        }
 
     } /* namespace plugins */
 } /* namespace lsp */

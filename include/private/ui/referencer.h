@@ -35,12 +35,33 @@ namespace lsp
         class referencer_ui: public ui::Module, public ui::IPortListener
         {
             protected:
+                typedef struct sample_loop_t
+                {
+                    ui::IPort                      *pStart;
+                    ui::IPort                      *pEnd;
+                } sample_loop_t;
+
+                typedef struct sample_loader_t
+                {
+                    ui::IPort                      *pStatus;                // Status of sample loading
+                    ui::IPort                      *pLoopSel;               // Current loop selector
+                    ui::IPort                      *pFileName;              // Current file name
+                    tk::AudioSample                *pView;                  // Loop view widget
+                    tk::AudioSample                *pEditor;                // Sample editor widget
+                    sample_loop_t                   vLoop[meta::referencer::AUDIO_LOOPS];   // Loop parameters
+                } sample_loader_t;
+
                 typedef struct play_matrix_t
                 {
-                    ui::IPort                  *pPlaySample;
-                    ui::IPort                  *pPlayLoop;
+                    ui::IPort                      *pPlaySample;
+                    ui::IPort                      *pPlayLoop;
 
-                    lltl::parray<tk::Button>    vButtons;
+                    ui::IPort                      *pTabSel;
+                    ui::IPort                      *pSampleSel;
+
+                    sample_loader_t                 vLoaders[meta::referencer::AUDIO_SAMPLES];
+
+                    lltl::parray<tk::Button>        vButtons;
                 } play_matrix_t;
 
                 typedef struct waveform_t
@@ -66,14 +87,17 @@ namespace lsp
                 static bool         waveform_transform_func(float *dst, const float *src, size_t count, tk::GraphMesh::coord_t coord, void *data);
 
                 static status_t     slot_matrix_change(tk::Widget *sender, void *ptr, void *data);
+                static status_t     slot_loop_submit(tk::Widget *sender, void *ptr, void *data);
 
             protected:
                 ui::IPort          *bind_port(const char *id);
-                void                sync_matrix_state(ui::IPort *port);
+                ui::IPort          *bind_port(const LSPString *id);
+                void                sync_matrix_state(ui::IPort *port, size_t flags);
                 void                sync_waveform_state(ui::IPort *port, size_t flags);
                 status_t            init_waveform_graphs();
                 status_t            init_playback_matrix();
                 status_t            on_matrix_change(tk::Button *btn);
+                status_t            on_view_submit(tk::AudioSample *s);
 
             public:
                 explicit referencer_ui(const meta::plugin_t *meta);

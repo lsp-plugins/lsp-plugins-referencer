@@ -72,10 +72,20 @@ namespace lsp
             static constexpr float  SAMPLE_LENGTH_DFL           = 0.0f;                 // Sample length (s)
             static constexpr float  SAMPLE_LENGTH_STEP          = 0.01f;                // Sample step (s)
 
+            static constexpr float  LOOP_BEGIN_MIN              = SAMPLE_LENGTH_MIN;    // Minimum loop begin position (s)
+            static constexpr float  LOOP_BEGIN_MAX              = SAMPLE_LENGTH_MAX;    // Maximum loop begin position (s)
+            static constexpr float  LOOP_BEGIN_DFL              = SAMPLE_LENGTH_MIN;    // Default loop begin position (s)
+            static constexpr float  LOOP_BEGIN_STEP             = SAMPLE_LENGTH_STEP;   // Loop begin position step (s)
+
+            static constexpr float  LOOP_END_MIN                = SAMPLE_LENGTH_MIN;    // Minimum loop end position (s)
+            static constexpr float  LOOP_END_MAX                = SAMPLE_LENGTH_MAX;    // Maximum loop end position (s)
+            static constexpr float  LOOP_END_DFL                = SAMPLE_LENGTH_MAX;    // Default loop end position (s)
+            static constexpr float  LOOP_END_STEP               = SAMPLE_LENGTH_STEP;   // Loop end position step (s)
+
             static constexpr float  SAMPLE_PLAYBACK_MIN         = -1.0f;                // Minimum playback position (s)
             static constexpr float  SAMPLE_PLAYBACK_MAX         = 1000.0f;              // Maximum playback posotion (s)
             static constexpr float  SAMPLE_PLAYBACK_DFL         = -1.0f;                // Default playback position (s)
-            static constexpr float  SAMPLE_PLAYBACK_STEP        = 0.01f;               // Playback step (s)
+            static constexpr float  SAMPLE_PLAYBACK_STEP        = 0.01f;                // Playback step (s)
 
             static constexpr size_t SAMPLE_SELECTOR_MIN         = 1;                    // Minimum sample selector
             static constexpr size_t SAMPLE_SELECTOR_MAX         = AUDIO_SAMPLES;        // Maximum sample selector
@@ -210,6 +220,18 @@ namespace lsp
             static constexpr float  WAVE_SMAX_SCALE_MAX         = 12.0f;                // Maximum waveform mesh range end value
             static constexpr float  WAVE_SMAX_SCALE_DFL         = 0.0f;                 // Default waveform mesh range end value
             static constexpr float  WAVE_SMAX_SCALE_STEP        = 0.02f;                // Default waveform mesh range step
+
+            enum tabs_t
+            {
+                TAB_OVERVIEW,
+                TAB_SAMPLES,
+                TAB_LOUDNESS,
+                TAB_WAVEFORM,
+                TAB_SPECTRUM,
+                TAB_DYNAMICS,
+                TAB_CORRELATION,
+                TAB_STEREO
+            };
 
         } referencer;
 
