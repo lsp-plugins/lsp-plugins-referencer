@@ -64,12 +64,14 @@
 				<!-- Playback loop -->
 				<ui:for id="si" first="1" count="4">
 					<asample
-						active="false"
 						hexpand="true"
 						id="sf_${si}"
 						mesh_id="loop_m"
+						path_id="_ui_dlg_sample_path"
+						head.visibility="false"
+						tail.visibility="false"
 						length=":loop_l"
-						status="0"
+						status=":fs_${si}"
 						loop.enabled="false"
 						play.position=":loop_p"
 						width.min="192"
@@ -100,6 +102,8 @@
 								path_id="_ui_dlg_sample_path"
 								length=":fl_${si}"
 								status=":fs_${si}"
+								head.visibility="false"
+								tail.visibility="false"
 								loop.enabled="true"
 								loop.color="loop_color"
 								loop.border.color="loop_border_color"
