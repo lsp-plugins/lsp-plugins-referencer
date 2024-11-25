@@ -187,6 +187,26 @@ namespace lsp
             { NULL, NULL }
         };
 
+        static const port_item_t fft_chan_selectors_mono[] =
+        {
+            { "Mix",                "referencer.fft.mix"            },
+            { "Reference",          "referencer.fft.ref"            },
+            { NULL, NULL }
+        };
+
+        static const port_item_t fft_chan_selectors_stereo[] =
+        {
+            { "Mix Left",           "referencer.fft.mix_left"       },
+            { "Mix Right",          "referencer.fft.mix_right"      },
+            { "Mix Mid",            "referencer.fft.mix_mid"        },
+            { "Mix Side",           "referencer.fft.mix_side"       },
+            { "Reference Left",     "referencer.fft.ref_left"       },
+            { "Reference Right",    "referencer.fft.ref_right"      },
+            { "Reference Mid",      "referencer.fft.ref_mid"        },
+            { "Reference Side",     "referencer.fft.ref_side"       },
+            { NULL, NULL }
+        };
+
 
 
         #define REF_LOOP(id, name) \
@@ -213,7 +233,7 @@ namespace lsp
             REF_SAMPLE("_3", "Sample 3"), \
             REF_SAMPLE("_4", "Sample 4")
 
-        #define REF_COMMON(tab_selectors) \
+        #define REF_COMMON(tab_selectors, dfl_chan_selector, chan_selectors) \
             SWITCH("play", "Playback", 0), \
             INT_CONTROL("pssel", "Playback sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
             INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
@@ -265,6 +285,11 @@ namespace lsp
             CONTROL("wfscmin", "Minimum graph scale", U_DB, referencer::WAVE_SMIN_SCALE), \
             CONTROL("wfscmax", "Maximum graph scale", U_DB, referencer::WAVE_SMAX_SCALE), \
             /* FFT analysis */ \
+            LOG_CONTROL("fam_hor", "FFT horizontal marker", U_GAIN_AMP, referencer::FFT_HMARK), \
+            SWITCH("fam_horv", "FFT horizontal marker visibility", 0), \
+            COMBO("fam_vers", "FFT vertical marker source", dfl_chan_selector, chan_selectors), \
+            LOG_CONTROL("fam_ver", "FFT vertical marker", U_HZ, referencer::FFT_VMARK), \
+            METER("fam_verv", "Vertical marker frequency level", U_GAIN_AMP, referencer::MTR_VMARK), \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
@@ -327,7 +352,7 @@ namespace lsp
             PORTS_MONO_PLUGIN,
 
             BYPASS,
-            REF_COMMON(mono_tab_selectors),
+            REF_COMMON(mono_tab_selectors, 0, fft_chan_selectors_mono),
             REF_COMMON_MONO,
             REF_SAMPLES,
 
@@ -339,7 +364,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
 
             BYPASS,
-            REF_COMMON(stereo_tab_selectors),
+            REF_COMMON(stereo_tab_selectors, 2, fft_chan_selectors_stereo),
             REF_COMMON_STEREO,
             REF_SAMPLES,
 

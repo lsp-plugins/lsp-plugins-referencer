@@ -46,8 +46,8 @@ namespace lsp
                     ui::IPort                      *pStatus;                // Status of sample loading
                     ui::IPort                      *pLoopSel;               // Current loop selector
                     ui::IPort                      *pFileName;              // Current file name
-                    tk::AudioSample                *pView;                  // Loop view widget
-                    tk::AudioSample                *pEditor;                // Sample editor widget
+                    tk::AudioSample                *wView;                  // Loop view widget
+                    tk::AudioSample                *wEditor;                // Sample editor widget
                     sample_loop_t                   vLoop[meta::referencer::AUDIO_LOOPS];   // Loop parameters
                 } sample_loader_t;
 
@@ -79,9 +79,21 @@ namespace lsp
                     lltl::parray<tk::GraphMesh> vMeshes;
                 } waveform_t;
 
+                typedef struct fft_meters_t
+                {
+                    ui::IPort                  *pHorLevel;
+                    ui::IPort                  *pVerSel;
+                    ui::IPort                  *pVerFreq;
+                    ui::IPort                  *pVerMeter;
+                    tk::GraphText              *wHorText;
+                    tk::GraphText              *wVerText;
+                } fft_meters_t;
+
             protected:
                 play_matrix_t               sPlayMatrix;
                 waveform_t                  sWaveform;
+                fft_meters_t                sFftMeters;
+                bool                        bStereo;
 
             protected:
                 static bool         waveform_transform_func(float *dst, const float *src, size_t count, tk::GraphMesh::coord_t coord, void *data);
@@ -94,10 +106,13 @@ namespace lsp
                 ui::IPort          *bind_port(const LSPString *id);
                 void                sync_matrix_state(ui::IPort *port, size_t flags);
                 void                sync_waveform_state(ui::IPort *port, size_t flags);
+                void                sync_meter_state(ui::IPort *port);
                 status_t            init_waveform_graphs();
                 status_t            init_playback_matrix();
+                status_t            init_fft_meters();
                 status_t            on_matrix_change(tk::Button *btn);
                 status_t            on_view_submit(tk::AudioSample *s);
+                const char         *get_channel_key(ssize_t index) const;
 
             public:
                 explicit referencer_ui(const meta::plugin_t *meta);

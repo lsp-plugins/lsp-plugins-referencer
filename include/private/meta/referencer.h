@@ -141,6 +141,21 @@ namespace lsp
             static constexpr float  FFT_BALLISTICS_DFL          = 10.000f;              // Spectrum analysis reactivity default value
             static constexpr float  FFT_BALLISTICS_STEP         = 0.01f;                // Spectrum analysis reactivity step
 
+            static constexpr float  FFT_HMARK_MIN               = GAIN_AMP_M_72_DB;     // Minimum position of horizontal marker
+            static constexpr float  FFT_HMARK_MAX               = GAIN_AMP_P_24_DB;     // Maximum position of horizontal marker
+            static constexpr float  FFT_HMARK_DFL               = FFT_HMARK_MIN;        // Default position of horizontal marker
+            static constexpr float  FFT_HMARK_STEP              = 0.005f;               // Step of position of horizontal marker
+
+            static constexpr float  FFT_VMARK_MIN               = SPEC_FREQ_MIN;        // Minimum position of vertical marker
+            static constexpr float  FFT_VMARK_MAX               = SPEC_FREQ_MAX;        // Maximum position of vertical marker
+            static constexpr float  FFT_VMARK_DFL               = FFT_VMARK_MAX;        // Default position of vertical marker
+            static constexpr float  FFT_VMARK_STEP              = 0.005f;               // Step of position of vertical marker
+
+            static constexpr float  MTR_VMARK_MIN               = GAIN_AMP_M_INF_DB;    // Minimum gain for vertical marker
+            static constexpr float  MTR_VMARK_MAX               = GAIN_AMP_P_48_DB;     // Maximum gain of vertical marker
+            static constexpr float  MTR_VMARK_DFL               = MTR_VMARK_MIN;        // Default gain of vertical marker
+            static constexpr float  MTR_VMARK_STEP              = 0.005f;               // Step of gain of vertical marker
+
             static constexpr float  GONIO_DOTS_MAX              = 8192.0f;              // Maximum dots in goniometer
             static constexpr float  GONIO_DOTS_MIN              = 512.0f;               // Minimum dots in goniometer
             static constexpr float  GONIO_DOTS_DFL              = 2048.0f;              // Default number of dots in goniometer

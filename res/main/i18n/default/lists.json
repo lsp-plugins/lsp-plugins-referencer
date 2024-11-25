@@ -1,5 +1,9 @@
 {
 	"referencer": {
+		"display" : {
+			"full" : "{@channel}\n{@frequency} Hz\n{@note}{@octave}{@cents}\n{@level_db%+.2f} dB",
+			"unknown" : "{@channel}\n{@fft_frequency} Hz\n{@level_db%+.2f} dB"
+		},
 		"dynamics": {
 			"ilufs": "Integrated LUFS",
 			"mlufs": "Momentary LUFS",
@@ -8,6 +12,18 @@
 			"rms": "RMS",
 			"slufs": "Short-term LUFS",
 			"true_peak": "True Peak"
+		},
+		"fft": {
+			"mix": "Mix",
+			"mix_left": "Mix Left",
+			"mix_mid": "Mix Mid",
+			"mix_right": "Mix Right",
+			"mix_side": "Mix Side",
+			"ref": "Reference",
+			"ref_left": "Reference Left",
+			"ref_mid": "Reference Mid",
+			"ref_right": "Reference Right",
+			"ref_side": "Reference Side"
 		},
 		"filter": {
 			"bass": "Bass",

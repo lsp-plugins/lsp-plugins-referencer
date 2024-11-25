@@ -22,6 +22,7 @@
 #include <lsp-plug.in/common/debug.h>
 #include <lsp-plug.in/dsp-units/units.h>
 #include <lsp-plug.in/plug-fw/ui.h>
+#include <lsp-plug.in/stdlib/locale.h>
 
 #include <private/meta/referencer.h>
 #include <private/ui/referencer.h>
@@ -46,6 +47,12 @@ namespace lsp
         static ui::Factory factory(ui_factory, plugin_uis, 2);
 
         //---------------------------------------------------------------------
+        static const char *note_names[] =
+        {
+            "c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"
+        };
+
+        //---------------------------------------------------------------------
         referencer_ui::referencer_ui(const meta::plugin_t *meta):
             ui::Module(meta)
         {
@@ -65,6 +72,15 @@ namespace lsp
             wf->fScaleMax       = 0.0f;
             wf->bLogScale       = false;
             wf->bEditing        = false;
+
+            fft_meters_t *fm    = &sFftMeters;
+            fm->pHorLevel       = NULL;
+            fm->pVerFreq        = NULL;
+            fm->pVerMeter       = NULL;
+            fm->wHorText        = NULL;
+            fm->wVerText        = NULL;
+
+            bStereo             = (strcmp(meta->uid, meta::referencer_stereo.uid) == 0);
         }
 
         referencer_ui::~referencer_ui()
@@ -159,8 +175,8 @@ namespace lsp
                 loader->pStatus         = NULL;
                 loader->pLoopSel        = NULL;
                 loader->pFileName       = NULL;
-                loader->pView           = NULL;
-                loader->pEditor         = NULL;
+                loader->wView           = NULL;
+                loader->wEditor         = NULL;
 
                 for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
                 {
@@ -170,13 +186,13 @@ namespace lsp
 
                 if (id.fmt_ascii("loop_view%d", int(i + 1)) > 0)
                 {
-                    loader->pView           = pWrapper->controller()->widgets()->get<tk::AudioSample>(&id);
-                    if (loader->pView != NULL)
-                        loader->pView->slots()->bind(tk::SLOT_SUBMIT, slot_loop_submit, this);
+                    loader->wView           = pWrapper->controller()->widgets()->get<tk::AudioSample>(&id);
+                    if (loader->wView != NULL)
+                        loader->wView->slots()->bind(tk::SLOT_SUBMIT, slot_loop_submit, this);
                 }
 
                 if (id.fmt_ascii("sample_edit%d", int(i + 1)) > 0)
-                    loader->pEditor         = pWrapper->controller()->widgets()->get<tk::AudioSample>(&id);
+                    loader->wEditor         = pWrapper->controller()->widgets()->get<tk::AudioSample>(&id);
                 if (id.fmt_ascii("ls_%d", int(i + 1)) > 0)
                     loader->pLoopSel        = bind_port(&id);
                 if (id.fmt_ascii("fs_%d", int(i + 1)) > 0)
@@ -196,6 +212,20 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t referencer_ui::init_fft_meters()
+        {
+            fft_meters_t *fm    = &sFftMeters;
+
+            fm->pHorLevel       = bind_port("fam_hor");
+            fm->pVerSel         = bind_port("fam_vers");
+            fm->pVerFreq        = bind_port("fam_ver");
+            fm->pVerMeter       = bind_port("fam_verv");
+            fm->wHorText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_hor");
+            fm->wVerText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_ver");
+
+            return STATUS_OK;
+        }
+
         status_t referencer_ui::post_init()
         {
             // Initialize parent class
@@ -205,10 +235,12 @@ namespace lsp
 
             LSP_STATUS_ASSERT(init_playback_matrix());
             LSP_STATUS_ASSERT(init_waveform_graphs());
+            LSP_STATUS_ASSERT(init_fft_meters());
 
             // Synchronize state of the matrix
             sync_matrix_state(NULL, ui::PORT_NONE);
             sync_waveform_state(NULL, ui::PORT_NONE);
+            sync_meter_state(NULL);
 
             return STATUS_OK;
         }
@@ -220,6 +252,7 @@ namespace lsp
 
             sync_matrix_state(port, flags);
             sync_waveform_state(port, flags);
+            sync_meter_state(port);
         }
 
         void referencer_ui::sync_matrix_state(ui::IPort *port, size_t flags)
@@ -336,6 +369,103 @@ namespace lsp
             }
         }
 
+        const char *referencer_ui::get_channel_key(ssize_t index) const
+        {
+            if (!bStereo)
+                return (index == 0) ? "mix" : "ref";
+
+            switch (index)
+            {
+                case 0: return "mix_left";
+                case 1: return "mix_right";
+                case 2: return "mix_mid";
+                case 3: return "mix_side";
+                case 4: return "ref_left";
+                case 5: return "ref_right";
+                case 6: return "ref_mid";
+                case 7: return "ref_side";
+                default: break;
+            }
+            return "mix_mid";
+        }
+
+        void referencer_ui::sync_meter_state(ui::IPort *port)
+        {
+            fft_meters_t *fm    = &sFftMeters;
+
+            if ((fm->pHorLevel != NULL) && ((port == NULL) || (port == fm->pHorLevel)))
+            {
+                float mlvalue   = fm->pHorLevel->value();
+                LSPString text;
+
+                SET_LOCALE_SCOPED(LC_NUMERIC, "C");
+                text.fmt_ascii("%.1f", dspu::gain_to_db(mlvalue));
+
+                fm->wHorText->text()->params()->set_string("value", &text);
+                fm->wHorText->text()->set_key("labels.values.x_db");
+            }
+
+            if (((fm->pVerFreq != NULL) && (fm->pVerMeter != NULL) && (fm->pVerSel != NULL)) &&
+                ((port == NULL) || (port == fm->pVerFreq) || (port == fm->pVerMeter) || (port == fm->pVerSel)))
+            {
+                float freq = fm->pVerFreq->value();
+                float level = fm->pVerMeter->value();
+
+                // Update the note name displayed in the text
+                // Fill the parameters
+                expr::Parameters params;
+                tk::prop::String snote;
+                LSPString text;
+                snote.bind(fm->wVerText->style(), pDisplay->dictionary());
+                SET_LOCALE_SCOPED(LC_NUMERIC, "C");
+
+                // Channels
+                text.fmt_ascii("lists.referencer.fft.%s", get_channel_key(fm->pVerSel->value()));
+                snote.set(&text);
+                snote.format(&text);
+                params.set_string("channel", &text);
+
+                // Frequency
+                text.fmt_ascii("%.2f", freq);
+                params.set_string("frequency", &text);
+
+                // Gain Level
+                params.set_float("level", level);
+                params.set_float("level_db", dspu::gain_to_db(level));
+
+                // Note
+                float note_full = dspu::frequency_to_note(freq);
+                if (note_full != dspu::NOTE_OUT_OF_RANGE)
+                {
+                    note_full += 0.5f;
+                    ssize_t note_number = ssize_t(note_full);
+
+                    // Note name
+                    ssize_t note        = note_number % 12;
+                    text.fmt_ascii("lists.notes.names.%s", note_names[note]);
+                    snote.set(&text);
+                    snote.format(&text);
+                    params.set_string("note", &text);
+
+                    // Octave number
+                    ssize_t octave      = (note_number / 12) - 1;
+                    params.set_int("octave", octave);
+
+                    // Cents
+                    ssize_t note_cents  = (note_full - float(note_number)) * 100 - 50;
+                    if (note_cents < 0)
+                        text.fmt_ascii(" - %02d", -note_cents);
+                    else
+                        text.fmt_ascii(" + %02d", note_cents);
+                    params.set_string("cents", &text);
+
+                    fm->wVerText->text()->set("lists.referencer.display.full", &params);
+                }
+                else
+                    fm->wVerText->text()->set("lists.referencer.display.unknown", &params);
+            }
+        }
+
         bool referencer_ui::waveform_transform_func(float *dst, const float *src, size_t count, tk::GraphMesh::coord_t coord, void *data)
         {
             if (coord != tk::GraphMesh::COORD_Y)
@@ -399,7 +529,7 @@ namespace lsp
             ssize_t idx = -1;
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
             {
-                if (sPlayMatrix.vLoaders[i].pView == s)
+                if (sPlayMatrix.vLoaders[i].wView == s)
                 {
                     idx     = i;
                     break;

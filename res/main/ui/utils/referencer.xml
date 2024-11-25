@@ -550,6 +550,10 @@
 							<mesh yi="1" color="mono" visibility=":mixvis" />
 						</ui:with>
 					</ui:if>
+					
+					<!-- Frequency selector -->
+					<marker id="fam_ver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="graph_marker" hcolor="graph_marker_left" pointer="hsize" />
+					<marker id="fam_hor" ox="1" oy="0" width="2" hwidth="2" editable="true" color="graph_marker" hcolor="graph_marker_line_hover" pointer="vsize" visibility=":fam_horv"/>
 	
 					<!-- Axis -->
 					<axis angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
@@ -577,6 +581,9 @@
 						<text x="10" y="${t} db" text="${t}" halign="1" valign="1"/>
 					</ui:for>
 					<text x="10" y="1" ox="0" oy="2" text="graph.units.db" halign="1" valign="-1"/>
+					
+					<text ui:id="freq_analysis_hor" x="24000" y=":fam_hor" ox="0" oy="1" text="XXX" color="graph_marker" halign="-1" valign="(:fam_hor lt -24 db) ? 1 : -1" visibility=":fam_horv"/>
+					<text ui:id="freq_analysis_ver" x=":fam_ver" y="1" ox="0" oy="2" text="YYY" color="graph_marker" valign="-1" halign="(:fam_ver lt 500) ? 1 : -1" text.halign="(:fam_ver lt 500) ? -1 : 1" />
 				</graph>
 
 				<!-- Bottom menu -->
@@ -588,6 +595,8 @@
 						<button id="side_v" text="labels.chan.side" />
 					</ui:if>
 					<void hexpand="true"/>
+					<combo id="fam_vers" />
+					<button ui:inject="Button_cyan" text="labels.metering.measure_line" id="fam_horv" size="16" />
 				</hbox>
 			</vbox>
 			

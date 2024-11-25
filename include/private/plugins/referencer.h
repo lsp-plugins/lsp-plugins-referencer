@@ -299,6 +299,8 @@ namespace lsp
                 uint32_t            nFftEnvelope;                               // FFT envelope
                 float               fFftTau;                                    // FFT smooth coefficient
                 float               fFftBal;                                    // FFT ballistics coefficient
+                uint32_t            nFftSrc;                                    // FFT marker source
+                float               fFftFreq;                                   // FFT marker frequency
                 uint32_t            nGonioPeriod;                               // Goniometer period
                 uint32_t            nPsrMode;                                   // PSR display mode
                 uint32_t            nPsrThresh;                                 // PSR threshold (index)
@@ -351,6 +353,9 @@ namespace lsp
                 plug::IPort        *pFftReset;                                  // Reset FFT minimum and maximum
                 plug::IPort        *pFftBallistics;                             // FFT ballistics
                 plug::IPort        *pFftMesh[3];                                // FFT mesh
+                plug::IPort        *pFftVMarkSrc;                               // Vertical marker source
+                plug::IPort        *pFftVMarkFreq;                              // Vertical marker frequency
+                plug::IPort        *pFftVMarkVal;                               // Vertical marker value
                 plug::IPort        *pPsrPeriod;                                 // PSR period
                 plug::IPort        *pPsrThreshold;                              // PSR threshold
                 plug::IPort        *pPsrMesh;                                   // PSR output

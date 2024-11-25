@@ -1,5 +1,9 @@
 {
 	"referencer": {
+		"display" : {
+			"full" : "{@channel}\n{@frequency} Гц\n{@note}{@octave}{@cents}\n{@level_db%+.2f} дБ",
+			"unknown" : "{@channel}\n{@fft_frequency} Гц\n{@level_db%+.2f} дБ"
+		},
 		"dynamics": {
 			"ilufs": "Интегрированный LUFS",
 			"mlufs": "Моментальный LUFS",
@@ -17,6 +21,18 @@
 			"mid": "Сер",
 			"off": "Выкл",
 			"sub_bass": "Суббас"
+		},
+		"fft": {
+			"mix": "Микс",
+			"mix_left": "Микс левый",
+			"mix_mid": "Микс середина",
+			"mix_right": "Микс правый",
+			"mix_side": "Микс сторона",
+			"ref": "Референс",
+			"ref_left": "Референс левый",
+			"ref_mid": "Референс середина",
+			"ref_right": "Референс правый",
+			"ref_side": "Сторона"
 		},
 		"graph": {
 			"history" : "История",

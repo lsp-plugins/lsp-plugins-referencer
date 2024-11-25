@@ -124,6 +124,8 @@ namespace lsp
             nFftEnvelope        = -1;
             fFftTau             = 0.0f;
             fFftBal             = 0.0f;
+            nFftSrc             = 0;
+            fFftFreq            = 0.0f;
             nGonioPeriod        = 0;
             nPsrMode            = PSR_DENSITY;
             nPsrThresh          = 0;
@@ -196,9 +198,11 @@ namespace lsp
             pFftDamping         = NULL;
             pFftReset           = NULL;
             pFftBallistics      = NULL;
-
             for (size_t i=0; i<FT_TOTAL; ++i)
                 pFftMesh[i]         = NULL;
+            pFftVMarkSrc        = NULL;
+            pFftVMarkFreq       = NULL;
+            pFftVMarkVal        = NULL;
 
             pPsrPeriod          = NULL;
             pPsrThreshold       = NULL;
@@ -549,6 +553,11 @@ namespace lsp
             SKIP_PORT("Maximum Waveform scale");
 
             // FFT metering
+            SKIP_PORT("FFT horizontal marker");
+            SKIP_PORT("FFT horizontal marker visibility");
+            BIND_PORT(pFftVMarkSrc);
+            BIND_PORT(pFftVMarkFreq);
+            BIND_PORT(pFftVMarkVal);
             BIND_PORT(pFftRank);
             BIND_PORT(pFftWindow);
             BIND_PORT(pFftEnvelope);
@@ -1066,6 +1075,8 @@ namespace lsp
             fFftTau                 = expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_react));
             fFftBal                 = expf(logf(1.0f - M_SQRT1_2) / dspu::seconds_to_samples(meta::referencer::SPC_REFRESH_RATE, fft_ball));
             bFftDamping             = pFftDamping->value() >= 0.5f;
+            nFftSrc                 = pFftVMarkSrc->value();
+            fFftFreq                = pFftVMarkFreq->value();
             if (nFftRank != fft_rank)
             {
                 nFftRank                = fft_rank;
@@ -1758,6 +1769,30 @@ namespace lsp
                 dsp::pmin2(fg->vData[FT_MIN], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
                 // Maximum
                 dsp::pmax2(fg->vData[FT_MAX], fg->vData[FT_CURR], meta::referencer::SPC_MESH_SIZE);
+            }
+
+            // Check if we have to report frequency meter
+            switch (type)
+            {
+                case FG_LEFT:
+                case FG_RIGHT:
+                case FG_MID:
+                case FG_SIDE:
+                    break;
+                default:
+                    return;
+            }
+
+            const size_t index = (nChannels > 1) ?
+                (fm - &vFftMeters[0]) * 4 + (type - FG_LEFT) :
+                (fm - &vFftMeters[0]);
+
+            if (index == nFftSrc)
+            {
+                const ssize_t findex = logf(fFftFreq/SPEC_FREQ_MIN) * (meta::referencer::SPC_MESH_SIZE-1) / logf(SPEC_FREQ_MAX / SPEC_FREQ_MIN);
+                const float level = ((findex >= 0) && (size_t(findex) < meta::referencer::SPC_MESH_SIZE)) ?
+                        fg->vData[FT_CURR][findex] * vFftEnvelope[findex] : GAIN_AMP_M_INF_DB;
+                pFftVMarkVal->set_value(level);
             }
         }
 
