@@ -79,7 +79,17 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t tab_selectors[] =
+        static const port_item_t mono_tab_selectors[] =
+        {
+            { "Overview",       "referencer.tab.overview"           },
+            { "Samples",        "referencer.tab.samples"            },
+            { "Loudness",       "referencer.tab.loudness"           },
+            { "Waveform",       "referencer.tab.waveform"           },
+            { "Spectrum",       "referencer.tab.spectrum"           },
+            { NULL, NULL }
+        };
+
+        static const port_item_t stereo_tab_selectors[] =
         {
             { "Overview",       "referencer.tab.overview"           },
             { "Samples",        "referencer.tab.samples"            },
@@ -110,7 +120,14 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t post_filter_slopes[] =
+        static const port_item_t filter_positions[] =
+        {
+            { "Pre-eq",         "eq.pos.pre_eq"                     },
+            { "Post-eq",        "eq.pos.post_eq"                    },
+            { NULL, NULL }
+        };
+
+        static const port_item_t filter_slopes[] =
         {
             { "12 dB/oct",      "eq.slope.12dbo"                    },
             { "24 dB/oct",      "eq.slope.24dbo"                    },
@@ -123,7 +140,7 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t post_filter_modes[] =
+        static const port_item_t filter_modes[] =
         {
             { "IIR",            "eq.type.iir"                       },
             { "FIR",            "eq.type.fir"                       },
@@ -132,7 +149,7 @@ namespace lsp
             { NULL, NULL }
         };
 
-        static const port_item_t post_filter_selector[] =
+        static const port_item_t filter_selector[] =
         {
             { "Off",            "referencer.filter.off"             },
             { "Sub Bass",       "referencer.filter.sub_bass"        },
@@ -196,7 +213,7 @@ namespace lsp
             REF_SAMPLE("_3", "Sample 3"), \
             REF_SAMPLE("_4", "Sample 4")
 
-        #define REF_COMMON \
+        #define REF_COMMON(tab_selectors) \
             SWITCH("play", "Playback", 0), \
             INT_CONTROL("pssel", "Playback sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
             INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
@@ -216,14 +233,15 @@ namespace lsp
             COMBO("gmmode", "Gain matching mode", 0, gain_matching), \
             LOG_CONTROL("gmreact", "Gain matching reactivity", U_SEC, referencer::GAIN_MATCH_REACT), \
             /* post-filter */ \
-            COMBO("pfmode", "Post-filter mode", 0, post_filter_modes), \
-            COMBO("pfslope", "Post-filter slope", 3, post_filter_slopes), \
-            COMBO("pfsel", "Post-filter selector", 0, post_filter_selector), \
-            LOG_CONTROL("pfsub", "Post-filter sub-bass high frequency", U_HZ, referencer::POST_SUB_BASS), \
-            LOG_CONTROL("pfbass", "Post-filter bass high frequency", U_HZ, referencer::POST_BASS), \
-            LOG_CONTROL("pflomid", "Post-filter low-mid frequency", U_HZ, referencer::POST_LOW_MID), \
-            LOG_CONTROL("pfmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
-            LOG_CONTROL("pfhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
+            COMBO("fpos", "Filter position in the chain", 0, filter_positions), \
+            COMBO("fmode", "Filter mode", 0, filter_modes), \
+            COMBO("fslope", "Filter slope", 3, filter_slopes), \
+            COMBO("fsel", "Filter selector", 0, filter_selector), \
+            LOG_CONTROL("fsub", "Post-filter sub-bass high frequency", U_HZ, referencer::POST_SUB_BASS), \
+            LOG_CONTROL("fbass", "Post-filter bass high frequency", U_HZ, referencer::POST_BASS), \
+            LOG_CONTROL("flomid", "Post-filter low-mid frequency", U_HZ, referencer::POST_LOW_MID), \
+            LOG_CONTROL("fmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
+            LOG_CONTROL("fhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
             /* graph display maximum time */ \
             CONTROL("maxtime", "Graph display maximum time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
@@ -309,7 +327,7 @@ namespace lsp
             PORTS_MONO_PLUGIN,
 
             BYPASS,
-            REF_COMMON,
+            REF_COMMON(mono_tab_selectors),
             REF_COMMON_MONO,
             REF_SAMPLES,
 
@@ -321,7 +339,7 @@ namespace lsp
             PORTS_STEREO_PLUGIN,
 
             BYPASS,
-            REF_COMMON,
+            REF_COMMON(stereo_tab_selectors),
             REF_COMMON_STEREO,
             REF_SAMPLES,
 

@@ -174,12 +174,13 @@ namespace lsp
             bFftDamping         = true;
             pMode               = NULL;
 
-            pPostMode           = NULL;
-            pPostSlope          = NULL;
-            pPostSel            = NULL;
+            pFltPos             = NULL;
+            pFltMode            = NULL;
+            pFltSlope           = NULL;
+            pFltSel             = NULL;
 
-            for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
-                pPostSplit[i]       = NULL;
+            for (size_t i=0; i < meta::referencer::FLT_SPLITS; ++i)
+                pFltSplit[i]       = NULL;
 
             pMaxTime            = NULL;
             pILUFSTime          = NULL;
@@ -346,11 +347,19 @@ namespace lsp
 
                 // Construct in-place DSP processors
                 c->sBypass.construct();
+                c->vPreFilters[0].construct();
+                c->vPreFilters[1].construct();
                 c->sPostFilter.construct();
 
                 // Initialize DSP processors
+                if (!c->vPreFilters[0].init(1, meta::referencer::EQ_RANK))
+                    return;
+                if (!c->vPreFilters[1].init(1, meta::referencer::EQ_RANK))
+                    return;
                 if (!c->sPostFilter.init(1, meta::referencer::EQ_RANK))
                     return;
+                c->vPreFilters[0].set_smooth(true);
+                c->vPreFilters[1].set_smooth(true);
                 c->sPostFilter.set_smooth(true);
 
                 // Initialize fields
@@ -506,11 +515,12 @@ namespace lsp
             BIND_PORT(pGainMatchReact);
 
             // Post-filter controls
-            BIND_PORT(pPostMode);
-            BIND_PORT(pPostSlope);
-            BIND_PORT(pPostSel);
-            for (size_t i=0; i < meta::referencer::POST_SPLITS; ++i)
-                BIND_PORT(pPostSplit[i]);
+            BIND_PORT(pFltPos);
+            BIND_PORT(pFltMode);
+            BIND_PORT(pFltSlope);
+            BIND_PORT(pFltSel);
+            for (size_t i=0; i < meta::referencer::FLT_SPLITS; ++i)
+                BIND_PORT(pFltSplit[i]);
 
             // Common graph parameters
             BIND_PORT(pMaxTime);
@@ -679,6 +689,8 @@ namespace lsp
                 {
                     channel_t *c    = &vChannels[i];
                     c->sBypass.destroy();
+                    c->vPreFilters[0].destroy();
+                    c->vPreFilters[1].destroy();
                     c->sPostFilter.destroy();
                 }
                 vChannels   = NULL;
@@ -726,6 +738,8 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
                 c->sBypass.init(sr);
+                c->vPreFilters[0].set_sample_rate(sr);
+                c->vPreFilters[1].set_sample_rate(sr);
                 c->sPostFilter.set_sample_rate(sr);
             }
 
@@ -849,6 +863,55 @@ namespace lsp
             return dspu::EQM_BYPASS;
         }
 
+        void referencer::configure_filter(dspu::Equalizer *eq, bool enable)
+        {
+            dspu::equalizer_mode_t mode     = decode_equalizer_mode(pFltMode->value());
+            const size_t post_slope         = pFltSlope->value();
+            const size_t post_sel           = pFltSel->value();
+            const float post_hpf            = (post_sel >= PF_BASS) ? pFltSplit[post_sel - PF_BASS]->value() : -1.0f;
+            const float post_lpf            = ((post_sel >= PF_SUB_BASS) && (post_sel < PF_HIGH)) ? pFltSplit[post_sel - PF_SUB_BASS]->value() : -1.0f;
+
+            dspu::filter_params_t fp;
+            fp.nSlope               = post_slope * 2;
+            fp.fGain                = 1.0f;
+            fp.fQuality             = 0.0f;
+
+            if (post_hpf > 0.0f)
+            {
+                if (post_lpf > 0.0f)
+                {
+                    fp.nType            = dspu::FLT_BT_BWC_BANDPASS;
+                    fp.fFreq            = post_hpf;
+                    fp.fFreq2           = post_lpf;
+                }
+                else // post_lpf <= 0.0f
+                {
+                    fp.nType            = dspu::FLT_BT_BWC_HIPASS;
+                    fp.fFreq            = post_hpf;
+                    fp.fFreq2           = post_hpf;
+                }
+            }
+            else // post_hpf <= 0.0f
+            {
+                if (post_lpf > 0.0f)
+                {
+                    fp.nType            = dspu::FLT_BT_BWC_LOPASS;
+                    fp.fFreq            = post_lpf;
+                    fp.fFreq2           = post_lpf;
+                }
+                else // post_lpf <= 0.0f
+                {
+                    fp.nType            = dspu::FLT_NONE;
+                    fp.fFreq            = post_hpf;
+                    fp.fFreq2           = post_lpf;
+                    mode                = dspu::EQM_BYPASS;
+                }
+            }
+
+            eq->set_params(0, &fp);
+            eq->set_mode((enable) ? mode : dspu::EQM_BYPASS);
+        }
+
         void referencer::update_settings()
         {
             // Update playback state
@@ -959,58 +1022,18 @@ namespace lsp
             sRef.fWaveformOff       = sRef.pFrameOffset->value();
             fWaveformLen            = pFrameLength->value();
 
-            // Apply post-filter settings
-            dspu::equalizer_mode_t post_mode  = decode_equalizer_mode(pPostMode->value());
-            const size_t post_slope = pPostSlope->value();
-            const size_t post_sel   = pPostSel->value();
-            const float post_hpf    = (post_sel >= PF_BASS) ? pPostSplit[post_sel - PF_BASS]->value() : -1.0f;
-            const float post_lpf    = ((post_sel >= PF_SUB_BASS) && (post_sel < PF_HIGH)) ? pPostSplit[post_sel - PF_SUB_BASS]->value() : -1.0f;
-
-            dspu::filter_params_t fp;
-            fp.nSlope               = post_slope * 2;
-            fp.fGain                = 1.0f;
-            fp.fQuality             = 0.0f;
-
-            if (post_hpf > 0.0f)
-            {
-                if (post_lpf > 0.0f)
-                {
-                    fp.nType            = dspu::FLT_BT_BWC_BANDPASS;
-                    fp.fFreq            = post_hpf;
-                    fp.fFreq2           = post_lpf;
-                }
-                else // post_lpf <= 0.0f
-                {
-                    fp.nType            = dspu::FLT_BT_BWC_HIPASS;
-                    fp.fFreq            = post_hpf;
-                    fp.fFreq2           = post_hpf;
-                }
-            }
-            else // post_hpf <= 0.0f
-            {
-                if (post_lpf > 0.0f)
-                {
-                    fp.nType            = dspu::FLT_BT_BWC_LOPASS;
-                    fp.fFreq            = post_lpf;
-                    fp.fFreq2           = post_lpf;
-                }
-                else // post_lpf <= 0.0f
-                {
-                    fp.nType            = dspu::FLT_NONE;
-                    fp.fFreq            = post_hpf;
-                    fp.fFreq2           = post_lpf;
-                    post_mode           = dspu::EQM_BYPASS;
-                }
-            }
-
+            // Apply filter settings
+            bool pre_filter         = pFltPos->value() < 0.5f;
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c            = &vChannels[i];
 
-                c->sPostFilter.set_params(0, &fp);
-                c->sPostFilter.set_mode(post_mode);
+                configure_filter(&c->vPreFilters[0], pre_filter);
+                configure_filter(&c->vPreFilters[1], pre_filter);
+                configure_filter(&c->sPostFilter, !pre_filter);
             }
 
+            // Update dynamics analysis
             fMaxTime                = pMaxTime->value();
             const float ilufs_time  = pILUFSTime->value();
             const size_t period     = dspu::seconds_to_samples(fSampleRate, fMaxTime / float(meta::referencer::DYNA_MESH_SIZE));
@@ -1556,6 +1579,17 @@ namespace lsp
             }
         }
 
+        void referencer::apply_pre_filters(size_t samples)
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c = &vChannels[i];
+                c->vPreFilters[0].process(c->vInBuffer, c->vInBuffer, samples);
+                c->vPreFilters[1].process(c->vBuffer, c->vBuffer, samples);
+            }
+        }
+
+
         void referencer::apply_post_filters(size_t samples)
         {
             for (size_t i=0; i<nChannels; ++i)
@@ -2093,6 +2127,7 @@ namespace lsp
 
                 prepare_reference_signal(to_process);
                 apply_gain_matching(to_process);
+                apply_pre_filters(to_process);
 
                 // Measure input and reference signal parameters
                 if (!sMix.bFreeze)

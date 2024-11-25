@@ -48,8 +48,8 @@ namespace lsp
             static constexpr size_t DYNA_MESH_SIZE              = 640;                  // Dynamics graph mesh size
             static constexpr size_t DYNA_SUBSAMPLING            = 64;                   // Dynamics graph mesh sub-sampling
             static constexpr size_t WAVE_MESH_SIZE              = 640;                  // Waveform graph mesh size
-            static constexpr size_t POST_BANDS                  = 6;                    // Number of post-filter bands
-            static constexpr size_t POST_SPLITS                 = POST_BANDS - 1;       // Number of post-filter frequency splits
+            static constexpr size_t FLT_BANDS                   = 6;                    // Number of post-filter bands
+            static constexpr size_t FLT_SPLITS                  = FLT_BANDS - 1;        // Number of post-filter frequency splits
             static constexpr size_t EQ_RANK                     = 12;                   // Equalizer rank
             static constexpr float  CROSSFADE_TIME              = 5.0f;                 // Cross-fade time in milliseconds
             static constexpr size_t SPC_MAX_RANK                = 14;

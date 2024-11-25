@@ -224,6 +224,7 @@ namespace lsp
                 {
                     // DSP processing modules
                     dspu::Bypass        sBypass;                                    // Bypass
+                    dspu::Equalizer     vPreFilters[2];                             // Pre-filters for mix and reference
                     dspu::Equalizer     sPostFilter;                                // Post-filter
 
                     float              *vIn;                                        // Input buffer
@@ -332,10 +333,11 @@ namespace lsp
                 plug::IPort        *pGainMatching;                              // Gain matching mode
                 plug::IPort        *pGainMatchReact;                            // Gain matching reactivity
                 plug::IPort        *pMode;                                      // Output mode
-                plug::IPort        *pPostMode;                                  // Post-filter mode
-                plug::IPort        *pPostSlope;                                 // Post-filter slope
-                plug::IPort        *pPostSel;                                   // Post-filter selector
-                plug::IPort        *pPostSplit[meta::referencer::POST_SPLITS];  // Post-filter split frequencies
+                plug::IPort        *pFltPos;                                    // Filter position
+                plug::IPort        *pFltMode;                                   // Filter mode
+                plug::IPort        *pFltSlope;                                  // Filter slope
+                plug::IPort        *pFltSel;                                    // Filter selector
+                plug::IPort        *pFltSplit[meta::referencer::FLT_SPLITS];    // Filter split frequencies
                 plug::IPort        *pMaxTime;                                   // Maximum time on the graph
                 plug::IPort        *pILUFSTime;                                 // Integrated LUFS time
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
@@ -370,6 +372,7 @@ namespace lsp
                 void                process_file_requests();
                 void                prepare_reference_signal(size_t samples);
                 void                mix_channels(size_t samples);
+                void                apply_pre_filters(size_t samples);
                 void                apply_post_filters(size_t samples);
                 void                apply_stereo_mode(size_t samples);
                 void                apply_gain_matching(size_t samples);
@@ -389,6 +392,7 @@ namespace lsp
                 void                output_spectrum_analysis(size_t type);
                 void                reduce_spectrum(float *dst, const float *src);
                 void                reduce_cspectrum(float *dst, const float *src);
+                void                configure_filter(dspu::Equalizer *eq, bool enable);
                 void                do_destroy();
 
             public:
