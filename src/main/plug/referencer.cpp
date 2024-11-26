@@ -1862,7 +1862,26 @@ namespace lsp
             }
             else
             {
-                // Mono processing
+                float *fl       = vBuffer;
+                float *ft1      = &fl[fft_xsize];
+
+                // Prepare buffers
+                if (split >= fft_size)
+                    dsp::mul3(fl, &fm->vHistory[0][head], &vFftWindow[0], fft_size);
+                else
+                {
+                    dsp::mul3(fl, &fm->vHistory[0][head], &vFftWindow[0], split);
+                    dsp::mul3(&fl[split], &fm->vHistory[0][0], &vFftWindow[split], fft_size - split);
+                }
+
+                // Perform FFT transform
+                dsp::pcomplex_r2c(ft1, fl, fft_size);
+                dsp::packed_direct_fft(ft1, ft1, nFftRank);
+                reduce_cspectrum(fl, ft1);
+
+                // Analyze channel
+                dsp::pcomplex_mod(fl, fl, meta::referencer::SPC_MESH_SIZE);
+                accumulate_fft(fm, FG_LEFT, fl);
             }
         }
 
@@ -1963,7 +1982,7 @@ namespace lsp
             else
             {
                 // Capture waveform
-                dm->vWaveform[WF_LEFT].write(l, samples);
+                dm->vWaveform[WF_LEFT].push(l, samples);
 
                 // Compute Peak values
                 dsp::abs2(b1, l, samples);

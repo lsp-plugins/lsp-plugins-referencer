@@ -86,6 +86,7 @@ namespace lsp
             { "Loudness",       "referencer.tab.loudness"           },
             { "Waveform",       "referencer.tab.waveform"           },
             { "Spectrum",       "referencer.tab.spectrum"           },
+            { "Dynamics",       "referencer.tab.dynamics"           },
             { NULL, NULL }
         };
 

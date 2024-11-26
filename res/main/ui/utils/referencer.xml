@@ -362,6 +362,7 @@
 						<button id="lmslufs" text="lists.referencer.dynamics.slufs" />
 						<button id="lmilufs" text="lists.referencer.dynamics.ilufs" />
 						<void hexpand="true" />
+						<label text="labels.metering.integration" />
 						<fader id="ilufsit" angle="0" />
 						<value id="ilufsit" sline="true" />
 					</hbox>
@@ -398,9 +399,9 @@
 								</ui:with>
 							</ui:if>
 							<ui:if test="!ex :in_r">
-								<ui:with id="wfmesh" width="2" xi="0">
-									<mesh ui:id="waveform_ref" yi="2" color="mid_in" fill.color="mid_in" visibility=":refvis"/>
-									<mesh ui:id="waveform_mix" yi="1" color="mid" fill.color="mid" visibility=":mixvis"/>
+								<ui:with id="wfmesh" width="2" xi="0" fill="true" fill.color.a="0.9">
+									<mesh ui:id="waveform_ref" yi="2" color="mono_in" fill.color="mono_in" visibility=":refvis"/>
+									<mesh ui:id="waveform_mix" yi="1" color="mono" fill.color="mono" visibility=":mixvis"/>
 								</ui:with>
 							</ui:if>					
 							
@@ -461,10 +462,14 @@
 								<void hexpand="true" />
 								<button id="wflog" text="labels.log_scale" />
 								<void hexpand="true" />
+								<label text="labels.metering.frame" />
 								<fader id="wflen" angle="0" />
 								<value id="wflen" sline="true" />
+								<label text="labels.metering.shift" />
+								<label text="labels.signal.mix" />
 								<fader id="mixwfof" angle="0" />
 								<value id="mixwfof" sline="true" />
+								<label text="labels.signal.reference" />
 								<fader id="refwfof" angle="0" />
 								<value id="refwfof" sline="true" />
 							</ui:if>
@@ -545,7 +550,17 @@
 						</ui:with>
 					</ui:if>
 					<ui:if test="!ex :in_r">
-						<ui:with id="fftgr" xi="0" width=":lthick+1" fill="false">
+						<ui:with id="fftming" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh yi="2" color="mono_in" fill.color="mono_in" visibility=":refvis and :minvis"/>
+							<mesh yi="1" color="mono" fill.color="mono" visibility=":mixvis and :minvis" />
+						</ui:with>
+					
+						<ui:with id="fftmaxg" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
+							<mesh yi="2" color="mono_in" fill.color="mono_in" visibility=":refvis and :maxvis"/>
+							<mesh yi="1" color="mono" fill.color="mono" visibility=":mixvis and :maxvis" />
+						</ui:with>
+					
+						<ui:with id="fftgr" xi="0" fill="false">
 							<mesh yi="2" color="mono_in" visibility=":refvis" />
 							<mesh yi="1" color="mono" visibility=":mixvis" />
 						</ui:with>
@@ -767,10 +782,13 @@
 					
 				<!-- Down panel -->
 				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
+					<label text="labels.mode" />
 					<combo id="psrmode" />
+					<label text="labels.metering.period" />
 					<fader id="psrtime" angle="0" />
 					<value id="psrtime" sline="true" />
 					<void hexpand="true" />
+					<label text="labels.threshold" />
 					<knob id="psrthr" scolor="threshold" size="10" scale.width="2" />
 					<value id="psrthr" sline="true" />
 				</hbox>
@@ -1224,6 +1242,7 @@
 					
 					<!-- Bottom menu -->
 					<hbox>
+						<label text="labels.mode" />
 						<combo id="stertyp" />
 						<combo id="sterdis" />
 						<void expand="true" bg.color="bg_schema" />

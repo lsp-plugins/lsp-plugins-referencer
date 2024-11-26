@@ -730,7 +730,7 @@ namespace lsp
                 // Apply vertical shift
                 if (wf->pZoomMax != NULL)
                 {
-                    const float zoom    = calc_zoom(wf, ev->nLeft, ev->nTop, accel);
+                    const float zoom    = calc_zoom(wf, ev->nLeft, ev->nTop, lsp_min(accel, 1.0f));
 
                     wf->pZoomMax->set_value(zoom);
                     wf->pZoomMax->notify_all(ui::PORT_USER_EDIT);
