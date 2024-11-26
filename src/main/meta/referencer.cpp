@@ -285,11 +285,11 @@ namespace lsp
             CONTROL("wfscmin", "Minimum graph scale", U_DB, referencer::WAVE_SMIN_SCALE), \
             CONTROL("wfscmax", "Maximum graph scale", U_DB, referencer::WAVE_SMAX_SCALE), \
             /* FFT analysis */ \
-            LOG_CONTROL("fam_hor", "FFT horizontal marker", U_GAIN_AMP, referencer::FFT_HMARK), \
-            SWITCH("fam_horv", "FFT horizontal marker visibility", 0), \
-            COMBO("fam_vers", "FFT vertical marker source", dfl_chan_selector, chan_selectors), \
-            LOG_CONTROL("fam_ver", "FFT vertical marker", U_HZ, referencer::FFT_VMARK), \
-            METER("fam_verv", "Vertical marker frequency level", U_GAIN_AMP, referencer::MTR_VMARK), \
+            LOG_CONTROL("famhor", "FFT horizontal marker", U_GAIN_AMP, referencer::FFT_HMARK), \
+            SWITCH("famhorv", "FFT horizontal marker visibility", 0), \
+            COMBO("famvers", "FFT vertical marker source", dfl_chan_selector, chan_selectors), \
+            LOG_CONTROL("famver", "FFT vertical marker", U_HZ, referencer::FFT_VMARK), \
+            METER("famverv", "Vertical marker frequency level", U_GAIN_AMP, referencer::MTR_VMARK), \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \

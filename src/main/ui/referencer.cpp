@@ -216,10 +216,10 @@ namespace lsp
         {
             fft_meters_t *fm    = &sFftMeters;
 
-            fm->pHorLevel       = bind_port("fam_hor");
-            fm->pVerSel         = bind_port("fam_vers");
-            fm->pVerFreq        = bind_port("fam_ver");
-            fm->pVerMeter       = bind_port("fam_verv");
+            fm->pHorLevel       = bind_port("famhor");
+            fm->pVerSel         = bind_port("famvers");
+            fm->pVerFreq        = bind_port("famver");
+            fm->pVerMeter       = bind_port("famverv");
             fm->wHorText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_hor");
             fm->wVerText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_ver");
 
