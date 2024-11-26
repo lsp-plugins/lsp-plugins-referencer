@@ -372,7 +372,7 @@
 			<vbox>
 				<grid rows="6" cols="2">
 					<cell rows="5">
-						<graph width.min="256" height.min="256" expand="true" fill="true">
+						<graph ui:id="waveform_graph" width.min="256" height.min="256" expand="true" fill="true">
 							<origin hpos="1" vpos="0" visible="false"/>
 							
 							<!-- Main grid -->
@@ -406,7 +406,7 @@
 							
 							<!-- Axis -->
 							<axis min="0" max=":wflen" angle="1.0" log="false" color="graph_prim" visible="true"/>
-							<axis min="-1" max="1" angle="0.5" log="false" color="graph_prim" visible="false"/>
+							<axis ui:id="waveform_graph_oy" min="-1" max="1" angle="0.5" log="false" color="graph_prim" visible="false"/>
 							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
 		
 							<!-- Text -->

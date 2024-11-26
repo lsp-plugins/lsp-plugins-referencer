@@ -64,12 +64,21 @@ namespace lsp
             waveform_t *wf      = &sWaveform;
 
             wf->pLogScale       = NULL;
-            wf->pLinMax         = NULL;
-            wf->pLogMin         = NULL;
-            wf->pLogMax         = NULL;
+            wf->pZoomMin        = NULL;
+            wf->pZoomMax        = NULL;
+            wf->pTimePeriod     = NULL;
+            wf->pMixShift       = NULL;
+            wf->pRefShift       = NULL;
 
             wf->fScaleMin       = 0.0f;
             wf->fScaleMax       = 0.0f;
+            wf->fOldMixShift    = 0.0f;
+            wf->fOldRefShift    = 0.0f;
+            wf->fOldZoom        = 0.0f;
+            wf->nMouseX         = 0;
+            wf->nMouseY         = 0;
+            wf->nBtnState       = 0;
+            wf->nKeyState       = 0;
             wf->bLogScale       = false;
             wf->bEditing        = false;
 
@@ -120,9 +129,14 @@ namespace lsp
                 NULL
             };
 
-            sWaveform.pLogScale         = bind_port("wflog");
-            sWaveform.pLogMin           = bind_port("wfscmin");
-            sWaveform.pLogMax           = bind_port("wfscmax");
+            waveform_t *wf              = &sWaveform;
+
+            wf->pLogScale               = bind_port("wflog");
+            wf->pZoomMin                = bind_port("wfscmin");
+            wf->pZoomMax                = bind_port("wfscmax");
+            wf->pTimePeriod             = bind_port("wflen");
+            wf->pMixShift               = bind_port("mixwfof");
+            wf->pRefShift               = bind_port("refwfof");
 
             for (const char * const *uid = graph_ids; *uid != NULL; ++uid)
             {
@@ -130,10 +144,22 @@ namespace lsp
                 if (mesh == NULL)
                     continue;
 
-                if (!sWaveform.vMeshes.add(mesh))
+                if (!wf->vMeshes.add(mesh))
                     return STATUS_NO_MEM;
 
                 mesh->set_transform(waveform_transform_func, this);
+            }
+
+            wf->wGraph                  = pWrapper->controller()->widgets()->get<tk::Graph>("waveform_graph");
+            if (wf->wGraph != NULL)
+            {
+                wf->wGraph->slots()->bind(tk::SLOT_MOUSE_DOWN, slot_waveform_mouse_down, this);
+                wf->wGraph->slots()->bind(tk::SLOT_MOUSE_UP, slot_waveform_mouse_up, this);
+                wf->wGraph->slots()->bind(tk::SLOT_MOUSE_MOVE, slot_waveform_mouse_move, this);
+                wf->wGraph->slots()->bind(tk::SLOT_MOUSE_SCROLL, slot_waveform_mouse_scroll, this);
+                wf->wGraph->slots()->bind(tk::SLOT_MOUSE_DBL_CLICK, slot_waveform_mouse_dbl_click, this);
+                wf->wGraph->slots()->bind(tk::SLOT_KEY_DOWN, slot_waveform_key_down, this);
+                wf->wGraph->slots()->bind(tk::SLOT_KEY_UP, slot_waveform_key_up, this);
             }
 
             return STATUS_OK;
@@ -322,30 +348,30 @@ namespace lsp
             }
 
             // Synchronize minimum and maximum scales
-            if ((port == NULL) || (port == wf->pLogMin) || (port == wf->pLogMax))
+            if ((port == NULL) || (port == wf->pZoomMin) || (port == wf->pZoomMax))
             {
-                float log_min           = (wf->pLogMin != NULL) ? wf->pLogMin->value() : meta::referencer::WAVE_SMIN_SCALE_DFL;
-                float log_max           = (wf->pLogMax != NULL) ? wf->pLogMax->value() : meta::referencer::WAVE_SMAX_SCALE_DFL;
+                float log_min           = (wf->pZoomMin != NULL) ? wf->pZoomMin->value() : meta::referencer::WAVE_SMIN_SCALE_DFL;
+                float log_max           = (wf->pZoomMax != NULL) ? wf->pZoomMax->value() : meta::referencer::WAVE_SMAX_SCALE_DFL;
                 float delta             = log_max - log_min;
 
                 if ((flags & ui::PORT_USER_EDIT) && (delta < meta::referencer::WAVE_SRANGE_DIFF_MIN))
                 {
-                    if (port == wf->pLogMin)
+                    if (port == wf->pZoomMin)
                     {
                         log_max             = log_min + meta::referencer::WAVE_SRANGE_DIFF_MIN;
-                        if (wf->pLogMax != NULL)
+                        if (wf->pZoomMax != NULL)
                         {
-                            wf->pLogMax->set_value(log_max);
-                            wf->pLogMax->notify_all(ui::PORT_USER_EDIT);
+                            wf->pZoomMax->set_value(log_max);
+                            wf->pZoomMax->notify_all(ui::PORT_USER_EDIT);
                         }
                     }
                     else
                     {
                         log_min             = log_max - meta::referencer::WAVE_SRANGE_DIFF_MIN;
-                        if (wf->pLogMin != NULL)
+                        if (wf->pZoomMin != NULL)
                         {
-                            wf->pLogMin->set_value(log_min);
-                            wf->pLogMin->notify_all(ui::PORT_USER_EDIT);
+                            wf->pZoomMin->set_value(log_min);
+                            wf->pZoomMin->notify_all(ui::PORT_USER_EDIT);
                         }
                     }
                 }
@@ -583,6 +609,234 @@ namespace lsp
 
             referencer_ui *self = static_cast<referencer_ui *>(ptr);
             return (self != NULL) ? self->on_view_submit(s) : STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_waveform_mouse_down(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            // Remember new button state if needed
+            waveform_t *wf = &self->sWaveform;
+            if (wf->nBtnState == 0)
+            {
+                wf->nMouseX         = ev->nLeft;
+                wf->nMouseY         = ev->nTop;
+
+                wf->fOldMixShift    = (wf->pMixShift != NULL) ? wf->pMixShift->value() : 0.0f;
+                wf->fOldRefShift    = (wf->pRefShift != NULL) ? wf->pRefShift->value() : 0.0f;
+                wf->fOldZoom        = (wf->pZoomMax  != NULL) ? wf->pZoomMax->value() : 0.0f;
+            }
+            wf->nBtnState      |= 1 << ev->nCode;
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_waveform_mouse_up(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            // Reset button state if needed
+            waveform_t *wf      = &self->sWaveform;
+            wf->nBtnState      &= ~(1 << ev->nCode);
+
+            return STATUS_OK;
+        }
+
+        float referencer_ui::calc_zoom(waveform_t *wf, ssize_t x, ssize_t y, float accel)
+        {
+            if ((wf->pZoomMax == NULL) || (wf->pZoomMin == NULL))
+                return wf->fOldZoom;
+            if (wf->wGraph == NULL)
+                return wf->fOldZoom;
+
+            ws::rectangle_t rect;
+            wf->wGraph->get_rectangle(&rect);
+
+            const float delta       = wf->nMouseY - y;
+            const float range       = accel * (meta::referencer::WAVE_SMAX_SCALE_MAX - meta::referencer::WAVE_SMAX_SCALE_MIN) * 2.0f;
+            return wf->fOldZoom - range * delta / rect.nHeight;
+        }
+
+        status_t referencer_ui::slot_waveform_mouse_move(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            // Apply mouse movement
+            waveform_t *wf      = &self->sWaveform;
+            if (wf->pTimePeriod == NULL)
+                return false;
+
+            // Compute acceleration
+            float accel         = 1.0f;
+            if (ev->nState & ws::MCF_CONTROL)
+                accel               = (wf->nBtnState == ws::MCF_RIGHT) ? 1.0f : 10.0f;
+            else if (ev->nState & ws::MCF_SHIFT)
+                accel               = (wf->nBtnState == ws::MCF_LEFT) ? 0.1f : 1.0f;
+            else
+                accel               = (wf->nBtnState == ws::MCF_RIGHT) ? 0.1f : 1.0f;
+
+            if ((wf->nBtnState == ws::MCF_LEFT) || (wf->nBtnState == ws::MCF_RIGHT))
+            {
+                ws::rectangle_t rect;
+                wf->wGraph->get_rectangle(&rect);
+
+                // Apply horizontal shift
+                const bool use_ref  = wf->nKeyState & KS_ALT;
+                lsp_trace("use_ref = %s, key_state=0x%x", (use_ref) ? "true" : "false", int(wf->nKeyState));
+
+                ui::IPort *p_shift  = (use_ref) ? wf->pRefShift : wf->pMixShift;
+                if ((wf->pTimePeriod != NULL) && (p_shift != NULL))
+                {
+                    ssize_t h_shift     = ev->nLeft - wf->nMouseX;
+                    float *shift        = (use_ref) ? &wf->fOldRefShift: &wf->fOldMixShift;
+                    const float len     = wf->pTimePeriod->value();
+                    float dx            = (h_shift * accel * len) / rect.nWidth;
+
+                    p_shift->set_value(*shift + dx);
+                    p_shift->notify_all(ui::PORT_USER_EDIT);
+                }
+
+                // Apply vertical shift
+                if (wf->pZoomMax != NULL)
+                {
+                    const float zoom    = calc_zoom(wf, ev->nLeft, ev->nTop, accel);
+
+                    wf->pZoomMax->set_value(zoom);
+                    wf->pZoomMax->notify_all(ui::PORT_USER_EDIT);
+                }
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_waveform_key_down(tk::Widget *sender, void *ptr, void *data)
+        {
+            return slot_waveform_key_change(sender, ptr, data, true);
+        }
+
+        status_t referencer_ui::slot_waveform_key_up(tk::Widget *sender, void *ptr, void *data)
+        {
+            return slot_waveform_key_change(sender, ptr, data, false);
+        }
+
+        status_t referencer_ui::slot_waveform_key_change(tk::Widget *sender, void *ptr, void *data, bool down)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            // Apply key press
+            waveform_t *wf      = &self->sWaveform;
+            if (wf->pTimePeriod == NULL)
+                return false;
+
+            size_t state        = wf->nKeyState;
+
+            if (ev->nCode == ws::WSK_ALT_L)
+                state               = lsp_setflag(state, KS_ALT_LEFT, down);
+            if (ev->nCode == ws::WSK_ALT_R)
+                state               = lsp_setflag(state, KS_ALT_RIGHT, down);
+
+            if ((state ^ wf->nKeyState) & KS_ALT)
+            {
+                wf->nMouseX         = ev->nLeft;
+                wf->nMouseY         = ev->nTop;
+
+                wf->fOldMixShift    = (wf->pMixShift != NULL) ? wf->pMixShift->value() : 0.0f;
+                wf->fOldRefShift    = (wf->pRefShift != NULL) ? wf->pRefShift->value() : 0.0f;
+            }
+            wf->nKeyState       = state;
+
+            lsp_trace(" key_state=0x%x", int(wf->nKeyState));
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_waveform_mouse_scroll(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            // Apply mouse scroll
+            waveform_t *wf      = &self->sWaveform;
+            if (wf->pTimePeriod == NULL)
+                return false;
+
+            // Compute acceleration
+            float accel         = 1.0f;
+            const bool ctrl     = (ev->nState & ws::MCF_CONTROL);
+            const bool shift    = (ev->nState & ws::MCF_SHIFT);
+            if (ctrl != shift)
+                accel           = (ctrl) ? 10.0f : 0.1f;
+
+            // Apply scrolling over time
+            float time      = wf->pTimePeriod->value();
+            if (ev->nCode == ws::MCD_DOWN)
+                time           *= (1.0f + accel * 0.2f);
+            else if (ev->nCode == ws::MCD_UP)
+                time           /= (1.0f + accel * 0.2f);
+            else
+                return STATUS_OK;
+
+            wf->pTimePeriod->set_value(time);
+            wf->pTimePeriod->notify_all(ui::PORT_USER_EDIT);
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_waveform_mouse_dbl_click(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            if (ev->nCode != ws::MCB_LEFT)
+                return STATUS_OK;
+
+            // Apply mouse scroll
+            waveform_t *wf      = &self->sWaveform;
+            if (wf->pTimePeriod != NULL)
+            {
+                wf->pTimePeriod->set_default();
+                wf->pTimePeriod->notify_all(ui::PORT_USER_EDIT);
+            }
+            if (wf->pZoomMax != NULL)
+            {
+                wf->pZoomMax->set_default();
+                wf->pZoomMax->notify_all(ui::PORT_USER_EDIT);
+            }
+            if (wf->pZoomMin != NULL)
+            {
+                wf->pZoomMin->set_default();
+                wf->pZoomMin->notify_all(ui::PORT_USER_EDIT);
+            }
+
+            return STATUS_OK;
         }
 
     } /* namespace plugins */
