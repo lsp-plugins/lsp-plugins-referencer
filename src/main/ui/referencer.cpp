@@ -84,10 +84,16 @@ namespace lsp
 
             fft_meters_t *fm    = &sFftMeters;
             fm->pHorLevel       = NULL;
+            fm->pVerSel         = NULL;
             fm->pVerFreq        = NULL;
             fm->pVerMeter       = NULL;
+
+            fm->nBtnState       = 0;
+
             fm->wHorText        = NULL;
             fm->wVerText        = NULL;
+            fm->wGraph          = NULL;
+            fm->wAxis           = NULL;
 
             bStereo             = (strcmp(meta->uid, meta::referencer_stereo.uid) == 0);
         }
@@ -246,8 +252,18 @@ namespace lsp
             fm->pVerSel         = bind_port("famvers");
             fm->pVerFreq        = bind_port("famver");
             fm->pVerMeter       = bind_port("famverv");
+
             fm->wHorText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_hor");
             fm->wVerText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_ver");
+            fm->wGraph          = pWrapper->controller()->widgets()->get<tk::Graph>("spectrum_graph");
+            fm->wAxis           = pWrapper->controller()->widgets()->get<tk::GraphAxis>("spectrum_graph_ox");
+
+            if (fm->wGraph != NULL)
+            {
+                fm->wGraph->slots()->bind(tk::SLOT_MOUSE_DOWN, slot_spectrum_mouse_down, this);
+                fm->wGraph->slots()->bind(tk::SLOT_MOUSE_UP, slot_spectrum_mouse_up, this);
+                fm->wGraph->slots()->bind(tk::SLOT_MOUSE_MOVE, slot_spectrum_mouse_move, this);
+            }
 
             return STATUS_OK;
         }
@@ -835,6 +851,69 @@ namespace lsp
                 wf->pZoomMin->set_default();
                 wf->pZoomMin->notify_all(ui::PORT_USER_EDIT);
             }
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_spectrum_mouse_down(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            fft_meters_t *fm        = &self->sFftMeters;
+            fm->nBtnState          |= (size_t(1) << ev->nCode);
+            slot_spectrum_mouse_move(sender, ptr, data);
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_spectrum_mouse_up(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            fft_meters_t *fm        = &self->sFftMeters;
+            fm->nBtnState          &= ~(size_t(1) << ev->nCode);
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_spectrum_mouse_move(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            fft_meters_t *fm        = &self->sFftMeters;
+            if (fm->nBtnState != (size_t(1) << ws::MCB_LEFT))
+                return STATUS_OK;
+            if ((fm->wGraph == NULL) || (fm->wAxis == NULL) || (fm->pVerFreq == NULL))
+                return STATUS_OK;
+
+            // Translate coordinates
+            const ssize_t index = fm->wGraph->indexof_axis(fm->wAxis);
+            if (index < 0)
+                return STATUS_OK;
+
+            float freq = 0.0f;
+            if (fm->wGraph->xy_to_axis(index, &freq, ev->nLeft, ev->nTop) != STATUS_OK)
+                return STATUS_OK;;
+
+            lsp_trace("Spectrum Graph apply: x=%d, y=%d, freq=%.2f", ev->nLeft, ev->nTop, freq);
+
+            fm->pVerFreq->set_value(freq);
+            fm->pVerFreq->notify_all(ui::PORT_USER_EDIT);
 
             return STATUS_OK;
         }

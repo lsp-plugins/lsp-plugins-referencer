@@ -103,8 +103,13 @@ namespace lsp
                     ui::IPort                  *pVerSel;
                     ui::IPort                  *pVerFreq;
                     ui::IPort                  *pVerMeter;
+
+                    size_t                      nBtnState;
+
                     tk::GraphText              *wHorText;
                     tk::GraphText              *wVerText;
+                    tk::Graph                  *wGraph;
+                    tk::GraphAxis              *wAxis;
                 } fft_meters_t;
 
             protected:
@@ -129,6 +134,10 @@ namespace lsp
                 static status_t     slot_waveform_key_down(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_waveform_key_up(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_waveform_key_change(tk::Widget *sender, void *ptr, void *data, bool down);
+
+                static status_t     slot_spectrum_mouse_down(tk::Widget *sender, void *ptr, void *data);
+                static status_t     slot_spectrum_mouse_up(tk::Widget *sender, void *ptr, void *data);
+                static status_t     slot_spectrum_mouse_move(tk::Widget *sender, void *ptr, void *data);
 
             protected:
                 status_t            on_matrix_change(tk::Button *btn);
