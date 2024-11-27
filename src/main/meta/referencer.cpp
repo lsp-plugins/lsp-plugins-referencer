@@ -391,7 +391,7 @@ namespace lsp
             "Referencer Mono",
             "Referencer Mono",
             "Referencer Mono",
-            "R1M",
+            "RF1M",
             &developers::v_sadovnikov,
             "referencer_mono",
             {
@@ -421,7 +421,7 @@ namespace lsp
             "Referencer Stereo",
             "Referencer Stereo",
             "Referencer Stereo",
-            "R1S",
+            "RF1S",
             &developers::v_sadovnikov,
             "referencer_stereo",
             {
