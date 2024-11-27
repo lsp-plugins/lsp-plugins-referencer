@@ -242,6 +242,7 @@ namespace lsp
             COMBO("section", "Tab section selector", 0, tab_selectors), \
             SWITCH("mixvis", "Mix graphs visibility", 1), \
             SWITCH("refvis", "Reference graphs visibility", 1), \
+            SWITCH("currvis", "Current value graphs visibility", 1), \
             SWITCH("minvis", "Minimum graphs visibility", 0), \
             SWITCH("maxvis", "Maximum graphs visibility", 0), \
             SWITCH("mixfrz", "Freeze mix graphs", 0), \

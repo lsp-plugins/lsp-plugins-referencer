@@ -538,15 +538,15 @@
 						</ui:with>
 					
 						<ui:with id="fftgr" xi="0" fill="false">
-							<mesh yi="8" color="left_in" visibility=":refvis and :left_v"/>
-							<mesh yi="9" color="right_in" visibility=":refvis and :right_v" />
-							<mesh yi="10" color="mid_in" visibility=":refvis and :mid_v" />
-							<mesh yi="11" color="side_in" visibility=":refvis and :side_v" />
+							<mesh yi="8" color="left_in" visibility=":refvis and :currvis and :left_v"/>
+							<mesh yi="9" color="right_in" visibility=":refvis and :currvis and :right_v" />
+							<mesh yi="10" color="mid_in" visibility=":refvis and :currvis and :mid_v" />
+							<mesh yi="11" color="side_in" visibility=":refvis and :currvis and :side_v" />
 													
-							<mesh yi="1" color="left" visibility=":mixvis and :left_v" />
-							<mesh yi="2" color="right" visibility=":mixvis and :right_v" />
-							<mesh yi="3" color="mid" visibility=":mixvis and :mid_v" />
-							<mesh yi="4" color="side" visibility=":mixvis and :side_v" />
+							<mesh yi="1" color="left" visibility=":mixvis and :currvis and :left_v" />
+							<mesh yi="2" color="right" visibility=":mixvis and :currvis and :right_v" />
+							<mesh yi="3" color="mid" visibility=":mixvis and :currvis and :mid_v" />
+							<mesh yi="4" color="side" visibility=":mixvis and :currvis and :side_v" />
 						</ui:with>
 					</ui:if>
 					<ui:if test="!ex :in_r">
@@ -561,8 +561,8 @@
 						</ui:with>
 					
 						<ui:with id="fftgr" xi="0" fill="false">
-							<mesh yi="2" color="mono_in" visibility=":refvis" />
-							<mesh yi="1" color="mono" visibility=":mixvis" />
+							<mesh yi="2" color="mono_in" visibility=":refvis and :currvis" />
+							<mesh yi="1" color="mono" visibility=":mixvis and :currvis" />
 						</ui:with>
 					</ui:if>
 					
@@ -838,8 +838,8 @@
 								<mesh yi="5" color="orange" fill.color="orange" visibility=":mixvis and :maxvis" />
 							</ui:with>
 							<ui:with id="fftgr" xi="0" fill="false" >
-								<mesh yi="12" color="cyan" visibility=":refvis" />
-								<mesh yi="5" color="orange" visibility=":mixvis" />
+								<mesh yi="12" color="cyan" visibility=":refvis and :currvis" />
+								<mesh yi="5" color="orange" visibility=":mixvis and :currvis" />
 							</ui:with>
 			
 							<!-- Axis -->
@@ -1023,8 +1023,8 @@
 								<mesh xi=":stertyp + 6" color="orange" fill.color="orange" visibility=":mixvis and :maxvis"/>
 							</ui:with>
 							<ui:with id="fftgr" yi="0" fill="false">
-								<mesh xi=":stertyp + 13" color="cyan" visibility=":refvis"/>
-								<mesh xi=":stertyp + 6" color="orange" visibility=":mixvis"/>
+								<mesh xi=":stertyp + 13" color="cyan" visibility=":refvis and :currvis"/>
+								<mesh xi=":stertyp + 6" color="orange" visibility=":mixvis and :currvis"/>
 							</ui:with>
 			
 							<!-- Axis -->
@@ -1281,9 +1281,10 @@
 					<knob id="fftrea" />
 					<knob id="maxtime" />
 					<cell rows="2">
-						<grid rows="3" cols="2">
-							<cell cols="2"><button id="mixvis" hfill="true" text="labels.signal.mix" down.color="orange" /></cell>
-							<cell cols="2"><button id="refvis" hfill="true" text="labels.signal.reference" down.color="cyan" /></cell>
+						<grid rows="3" cols="3">
+							<cell cols="3"><button id="mixvis" hfill="true" text="labels.signal.mix" down.color="orange" /></cell>
+							<cell cols="3"><button id="refvis" hfill="true" text="labels.signal.reference" down.color="cyan" /></cell>
+							<button id="currvis" hfill="true" text="labels.signal.curr_ent" color="yellow" />
 							<button id="minvis" hfill="true" text="labels.signal.min" color="yellow" />
 							<button id="maxvis" hfill="true" text="labels.signal.max" color="yellow" />
 						</grid>

@@ -508,6 +508,7 @@ namespace lsp
             SKIP_PORT("Tab section selector");
             SKIP_PORT("Mix graph visibility");
             SKIP_PORT("Reference graph visibility");
+            SKIP_PORT("Current graphs visibility");
             SKIP_PORT("Minimum graphs visibility");
             SKIP_PORT("Maximum graphs visibility");
             BIND_PORT(sMix.pFreeze);
