@@ -922,9 +922,21 @@ namespace lsp
             eq->set_mode((enable) ? mode : dspu::EQM_BYPASS);
         }
 
-        void referencer::update_settings()
+        void referencer::set_loop_range(loop_t *al, ssize_t begin, ssize_t end, ssize_t limit)
         {
-            // Update playback state
+            const ssize_t first     = lsp_min(begin, limit);
+            const ssize_t last      = lsp_min(end, limit);
+
+            al->nStart              = lsp_min(first, last);
+            al->nEnd                = lsp_max(first, last);
+            if (al->nStart < al->nEnd)
+                al->nPos                = lsp_limit(al->nPos, al->nStart, al->nEnd - 1);
+            else
+                al->nPos                = -1;
+        }
+
+        void referencer::update_playback_state()
+        {
             bool play               = pPlay->value() < 0.5f;
             uint32_t play_sample    = pPlaySample->value() - 1.0f;
             uint32_t play_loop      = pPlayLoop->value() - 1.0f;
@@ -992,24 +1004,26 @@ namespace lsp
                 nPlaySample             = play_sample;
                 nPlayLoop               = play_loop;
             }
+        }
 
-            // Update loop ranges
+        void referencer::update_loop_ranges()
+        {
             for (size_t i=0; i<meta::referencer::AUDIO_SAMPLES; ++i)
             {
                 afile_t *af             = &vSamples[i];
                 af->fGain               = af->pGain->value();
+                ssize_t len             = (af->pSample != NULL) ? af->pSample->length() : 0;
 
                 for (size_t j=0; j<meta::referencer::AUDIO_LOOPS; ++j)
                 {
                     loop_t *al              = &af->vLoops[j];
 
-                    const ssize_t first     = dspu::seconds_to_samples(fSampleRate, al->pStart->value());
-                    const ssize_t last      = dspu::seconds_to_samples(fSampleRate, al->pEnd->value());
                     const ssize_t l_start   = al->nStart;
                     const ssize_t l_end     = al->nEnd;
-
-                    al->nStart              = lsp_min(first, last);
-                    al->nEnd                = lsp_max(first, last);
+                    set_loop_range(al,
+                        dspu::seconds_to_samples(fSampleRate, al->pStart->value()),
+                        dspu::seconds_to_samples(fSampleRate, al->pEnd->value()),
+                        len);
 
                     // Check if we need to syncrhonize loop mesh
                     if ((i == nPlaySample) && (j == nPlayLoop))
@@ -1019,6 +1033,13 @@ namespace lsp
                     }
                 }
             }
+        }
+
+
+        void referencer::update_settings()
+        {
+            update_playback_state();
+            update_loop_ranges();
 
             // Enable gain matching
             const float gm_react    = 10.0f / pGainMatchReact->value();
@@ -1367,16 +1388,19 @@ namespace lsp
                 {
                     // Commit the result and trigger for sync
                     lsp::swap(af->pLoaded, af->pSample);
-                    af->nStatus     = af->pLoader->code();
-                    af->nLength     = (af->nStatus == STATUS_OK) ? af->pSample->length() : 0;
-                    af->bSync       = true;
-
-                    if (i == nPlaySample)
-                        bSyncLoopMesh   = true;
+                    af->nStatus             = af->pLoader->code();
+                    af->nLength             = (af->nStatus == STATUS_OK) ? af->pSample->length() : 0;
+                    af->bSync               = true;
 
                     // Now we can surely commit changes and reset task state
                     path->commit();
                     af->pLoader->reset();
+
+                    // Update loop range to make not possible to go out of sample memory region
+                    if (i == nPlaySample)
+                        bSyncLoopMesh   = true;
+                    update_playback_state();
+                    update_loop_ranges();
                 }
             }
         }

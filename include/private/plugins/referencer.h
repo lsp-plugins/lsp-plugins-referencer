@@ -368,11 +368,14 @@ namespace lsp
                 static void         make_thumbnail(float *dst, const float *src, size_t len, size_t dst_len);
                 static void         copy_waveform(float *dst, dspu::RawRingBuffer *rb, size_t offset, size_t length, size_t dst_len);
                 static dspu::equalizer_mode_t decode_equalizer_mode(size_t mode);
+                static void         set_loop_range(loop_t *al, ssize_t begin, ssize_t end, ssize_t limit);
 
             protected:
                 status_t            load_file(afile_t *file);
                 stereo_mode_t       decode_stereo_mode(size_t mode);
                 void                unload_afile(afile_t *file);
+                void                update_playback_state();
+                void                update_loop_ranges();
                 void                preprocess_audio_channels();
                 void                process_file_requests();
                 void                prepare_reference_signal(size_t samples);
