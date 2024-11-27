@@ -130,6 +130,11 @@ namespace lsp
             nPsrMode            = PSR_DENSITY;
             nPsrThresh          = 0;
             fTPDecay            = 0.0f;
+            bPlay               = false;
+            bSyncLoopMesh       = true;
+            bUpdFft             = true;
+            bFftDamping         = true;
+            bFreeze             = false;
 
             for (const meta::port_t *p = meta->ports; p->id != NULL; ++p)
                 if (meta::is_audio_in_port(p))
@@ -145,8 +150,6 @@ namespace lsp
             sMix.fNewGain       = GAIN_AMP_M_INF_DB;
             sMix.nTransition    = 0;
             sMix.fWaveformOff   = 0.0f;
-            sMix.bFreeze        = false;
-            sMix.pFreeze        = NULL;
             sMix.pFrameOffset   = NULL;
 
             sRef.fGain          = GAIN_AMP_M_INF_DB;
@@ -154,13 +157,12 @@ namespace lsp
             sRef.fNewGain       = GAIN_AMP_M_INF_DB;
             sRef.nTransition    = 0;
             sRef.fWaveformOff   = 0.0f;
-            sRef.bFreeze        = false;
-            sRef.pFreeze        = NULL;
             sRef.pFrameOffset   = NULL;
 
             pExecutor           = NULL;
 
             pBypass             = NULL;
+            pFreeze             = NULL;
             pPlay               = NULL;
             pPlaySample         = NULL;
             pPlayLoop           = NULL;
@@ -170,10 +172,6 @@ namespace lsp
             pLoopPos            = NULL;
             pGainMatching       = NULL;
             pGainMatchReact     = NULL;
-            bPlay               = false;
-            bSyncLoopMesh       = true;
-            bUpdFft             = true;
-            bFftDamping         = true;
             pMode               = NULL;
 
             pFltPos             = NULL;
@@ -511,8 +509,7 @@ namespace lsp
             SKIP_PORT("Current graphs visibility");
             SKIP_PORT("Minimum graphs visibility");
             SKIP_PORT("Maximum graphs visibility");
-            BIND_PORT(sMix.pFreeze);
-            BIND_PORT(sRef.pFreeze);
+            BIND_PORT(pFreeze);
             BIND_PORT(pLoopMesh);
             BIND_PORT(pLoopLen);
             BIND_PORT(pLoopPos);
@@ -1154,8 +1151,7 @@ namespace lsp
             size_t source           = pSource->value();
             enMode                  = (pMode != NULL) ? decode_stereo_mode(pMode->value()) : SM_MONO;
 
-            sMix.bFreeze            = sMix.pFreeze->value() >= 0.5f;
-            sRef.bFreeze            = sRef.pFreeze->value() >= 0.5f;
+            bFreeze                 = pFreeze->value() >= 0.5f;
 
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -2209,7 +2205,7 @@ namespace lsp
                 apply_pre_filters(to_process);
 
                 // Measure input and reference signal parameters
-                if (!sMix.bFreeze)
+                if (!bFreeze)
                 {
                     perform_metering(
                         &vDynaMeters[0],
@@ -2226,9 +2222,7 @@ namespace lsp
                         vChannels[0].vInBuffer,
                         (nChannels > 1) ? vChannels[1].vInBuffer : NULL,
                         to_process);
-                }
-                if (!sRef.bFreeze)
-                {
+
                     perform_metering(
                         &vDynaMeters[1],
                         vChannels[0].vBuffer,

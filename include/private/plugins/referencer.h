@@ -181,9 +181,7 @@ namespace lsp
                     float               fNewGain;                                   // New gain
                     uint32_t            nTransition;                                // Gain transition
                     float               fWaveformOff;                               // Waveform offset
-                    bool                bFreeze;                                    // Freeze analysis
 
-                    plug::IPort        *pFreeze;                                    // Freeze analysis
                     plug::IPort        *pFrameOffset;                               // Waveform frame offset
                 } asource_t;
 
@@ -305,6 +303,11 @@ namespace lsp
                 uint32_t            nPsrMode;                                   // PSR display mode
                 uint32_t            nPsrThresh;                                 // PSR threshold (index)
                 double              fTPDecay;                                   // True-peak decay for PSR
+                bool                bPlay;                                      // Play
+                bool                bSyncLoopMesh;                              // Sync loop mesh
+                bool                bUpdFft;                                    // Update FFT-related data
+                bool                bFftDamping;                                // FFT damping
+                bool                bFreeze;                                    // Freeze analysis
 
                 float              *vBuffer;                                    // Temporary buffer
                 float              *vFftFreqs;                                  // FFT frequencies
@@ -312,10 +315,7 @@ namespace lsp
                 float              *vFftWindow;                                 // FFT window
                 float              *vFftEnvelope;                               // FFT envelope
                 float              *vPsrLevels;                                 // PSR levels
-                bool                bPlay;                                      // Play
-                bool                bSyncLoopMesh;                              // Sync loop mesh
-                bool                bUpdFft;                                    // Update FFT-related data
-                bool                bFftDamping;                                // FFT damping
+
                 channel_t          *vChannels;                                  // Delay channels
                 asource_t           sMix;                                       // Mix signal characteristics
                 asource_t           sRef;                                       // Reference signal characteristics
@@ -325,6 +325,7 @@ namespace lsp
                 fft_meters_t        vFftMeters[2];                              // FFT meters
 
                 plug::IPort        *pBypass;                                    // Bypass
+                plug::IPort        *pFreeze;                                    // Freeze analysis
                 plug::IPort        *pPlay;                                      // Play switch
                 plug::IPort        *pPlaySample;                                // Current sample index
                 plug::IPort        *pPlayLoop;                                  // Current loop index

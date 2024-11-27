@@ -1254,7 +1254,7 @@
 		<!-- Different common manipulations -->
 		<hbox spacing="2">
 			<group text="groups.analysis">
-				<grid rows="3" cols="6">
+				<grid rows="3" cols="5">
 					<cell rows="3">
 						<grid rows="4" cols="2">
 							<label text="labels.fft.window"/>
@@ -1267,7 +1267,10 @@
 							<combo id="fftenv" pad.r="15"/>
 							
 							<cell cols="3">
-								<button id="fftrst" text="labels.reset" />
+								<hbox>
+									<button id="fftrst" text="labels.reset" />
+									<button id="freeze" text="labels.chan.freeze" />
+								</hbox>
 							</cell>
 						</grid>
 					</cell>
@@ -1276,7 +1279,6 @@
 					<label text="labels.metering.period" />
 					<label text="labels.metering.display" />
 					<button id="fftdamp" text="labels.metering.damping" />
-					<label text="labels.chan.freeze" />
 					
 					<knob id="fftrea" />
 					<knob id="maxtime" />
@@ -1290,15 +1292,10 @@
 						</grid>
 					</cell>
 					<knob id="fftbal" />
-					<vbox>
-						<button id="mixfrz" hfill="true" text="labels.signal.mix" down.color="orange" />
-						<button id="reffrz" hfill="true" text="labels.signal.reference" down.color="cyan" />
-					</vbox>
 					
 					<value id="fftrea" sline="true" />
 					<value id="maxtime" sline="true" />
 					<value id="fftbal" sline="true" />
-					<void />
 				</grid>
 			</group>
 			<group text="groups.filter">

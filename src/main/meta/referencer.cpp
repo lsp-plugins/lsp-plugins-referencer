@@ -245,8 +245,7 @@ namespace lsp
             SWITCH("currvis", "Current value graphs visibility", 1), \
             SWITCH("minvis", "Minimum graphs visibility", 0), \
             SWITCH("maxvis", "Maximum graphs visibility", 0), \
-            SWITCH("mixfrz", "Freeze mix graphs", 0), \
-            SWITCH("reffrz", "Freeze reference graphs", 0), \
+            SWITCH("freeze", "Freeze graphs", 0), \
             /* playback loop display */ \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
