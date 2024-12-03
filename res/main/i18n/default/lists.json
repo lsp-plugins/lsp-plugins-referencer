@@ -49,12 +49,12 @@
 			"none": "None",
 			"reference": "Reference"
 		},
-		"mode": {
-			"inverse_stereo": "Inverse Stereo",
+		"mode": {			
 			"left": "Left",
 			"left_only": "Left Only",
 			"mid_side": "Mid/Side",
 			"mono": "Mono",
+			"reverse_stereo": "Reverse Stereo",
 			"right": "Right",
 			"right_only": "Right Only",
 			"side": "Side",
@@ -75,6 +75,7 @@
 		},
 		"source": {
 			"mix": "Mix",
+			"ref": "Ref",
 			"reference": "Reference",
 			"both": "Both"
 		},

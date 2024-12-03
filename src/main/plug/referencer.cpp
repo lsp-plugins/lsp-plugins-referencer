@@ -1318,6 +1318,13 @@ namespace lsp
                 lsp_trace("load failed: status=%d (%s)", status, get_status(status));
                 return status;
             }
+            status = source->resample(fSampleRate);
+            if (status != STATUS_OK)
+            {
+                lsp_trace("resampling failed: status=%d (%s)", status, get_status(status));
+                return status;
+            }
+
             const size_t channels   = lsp_min(nChannels, source->channels());
             if (!source->set_channels(channels))
             {

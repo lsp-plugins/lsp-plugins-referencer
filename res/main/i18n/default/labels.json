@@ -2,9 +2,11 @@
 	"referencer": {
 		"ilufs": "I",
 		"mlufs": "M",
+		"monitoring_mode": "Monitoring Mode",
 		"peak": "PK",
 		"psr" : "PSR",
 		"rms": "RMS",
+		"sample_loop_matrix": "Sample-loop Matrix",
 		"slufs": "S",
 		"true_peak": "TP"
 	}
