@@ -143,7 +143,7 @@ namespace lsp
 
             static constexpr float  FFT_HMARK_MIN               = GAIN_AMP_M_72_DB;     // Minimum position of horizontal marker
             static constexpr float  FFT_HMARK_MAX               = GAIN_AMP_P_24_DB;     // Maximum position of horizontal marker
-            static constexpr float  FFT_HMARK_DFL               = FFT_HMARK_MIN;        // Default position of horizontal marker
+            static constexpr float  FFT_HMARK_DFL               = GAIN_AMP_0_DB;        // Default position of horizontal marker
             static constexpr float  FFT_HMARK_STEP              = 0.005f;               // Step of position of horizontal marker
 
             static constexpr float  FFT_VMARK_MIN               = SPEC_FREQ_MIN;        // Minimum position of vertical marker
