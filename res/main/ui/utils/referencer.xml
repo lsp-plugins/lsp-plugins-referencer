@@ -237,28 +237,28 @@
 
 						<!-- Meshes -->
 						<ui:if test="ex :in_r">
-							<mesh id="dmmesh" width="2" xi="0" yi="11" color="ref_mesh_1" visibility=":refvis and :lmpk"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="12" color="ref_mesh_1" visibility=":refvis and :lmtp"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="13" color="ref_mesh_1" visibility=":refvis and :lmrms"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="14" color="ref_mesh_1" visibility=":refvis and :lmmlufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="15" color="ref_mesh_1" visibility=":refvis and :lmslufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="16" color="ref_mesh_1" visibility=":refvis and :lmilufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis and :lmpk"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis and :lmtp"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis and :lmrms"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="14" color="reference_ref_1" visibility=":refvis and :lmmlufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="15" color="reference_ref_1" visibility=":refvis and :lmslufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="16" color="reference_ref_1" visibility=":refvis and :lmilufs"/>
 						</ui:if>
 						<ui:if test="!ex :in_r">
-							<mesh id="dmmesh" width="2" xi="0" yi="8" color="ref_mesh_1" visibility=":refvis and :lmpk"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="9" color="ref_mesh_1" visibility=":refvis and :lmtp"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="10" color="ref_mesh_1" visibility=":refvis and :lmrms"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="11" color="ref_mesh_1" visibility=":refvis and :lmmlufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="12" color="ref_mesh_1" visibility=":refvis and :lmslufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="13" color="ref_mesh_1" visibility=":refvis and :lmilufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="8" color="reference_ref_1" visibility=":refvis and :lmpk"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="9" color="reference_ref_1" visibility=":refvis and :lmtp"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="10" color="reference_ref_1" visibility=":refvis and :lmrms"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis and :lmmlufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis and :lmslufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis and :lmilufs"/>
 						</ui:if>
 
-						<mesh id="dmmesh" width="2" xi="0" yi="1" color="mix_mesh_1" visibility=":mixvis and :lmpk"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="2" color="mix_mesh_1" visibility=":mixvis and :lmtp"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="3" color="mix_mesh_1" visibility=":mixvis and :lmrms"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="4" color="mix_mesh_1" visibility=":mixvis and :lmmlufs"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="5" color="mix_mesh_1" visibility=":mixvis and :lmslufs"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="6" color="mix_mesh_1" visibility=":mixvis and :lmilufs"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="1" color="reference_mix_1" visibility=":mixvis and :lmpk"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="2" color="reference_mix_1" visibility=":mixvis and :lmtp"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="3" color="reference_mix_1" visibility=":mixvis and :lmrms"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="4" color="reference_mix_1" visibility=":mixvis and :lmmlufs"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="5" color="reference_mix_1" visibility=":mixvis and :lmslufs"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="6" color="reference_mix_1" visibility=":mixvis and :lmilufs"/>
 
 						<!-- Axis -->
 						<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
@@ -307,33 +307,33 @@
 				<label text="labels.referencer.ilufs" vreduce="true"/>
 
 				<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
-					<ledchannel id="pk_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="mix_mesh_1"/>
-					<ledchannel id="pk_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="ref_mesh_1"/>
+					<ledchannel id="pk_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1"/>
+					<ledchannel id="pk_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1"/>
 				</ledmeter>
 				<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
-					<ledchannel id="tp_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="mix_mesh_1"/>
-					<ledchannel id="tp_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="ref_mesh_1"/>
+					<ledchannel id="tp_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1"/>
+					<ledchannel id="tp_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1"/>
 				</ledmeter>
 				<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
-					<ledchannel id="rms_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="mix_mesh_1"/>
-					<ledchannel id="rms_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="ref_mesh_1"/>
+					<ledchannel id="rms_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1"/>
+					<ledchannel id="rms_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1"/>
 				</ledmeter>
 				<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
-					<ledchannel id="mlufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="mix_mesh_1"/>
-					<ledchannel id="mlufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="ref_mesh_1"/>
+					<ledchannel id="mlufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1"/>
+					<ledchannel id="mlufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1"/>
 				</ledmeter>
 				<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
-					<ledchannel id="slufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="mix_mesh_1"/>
-					<ledchannel id="slufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="ref_mesh_1"/>
+					<ledchannel id="slufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1"/>
+					<ledchannel id="slufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1"/>
 				</ledmeter>
 				<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
-					<ledchannel id="ilufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="mix_mesh_1"/>
-					<ledchannel id="ilufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="ref_mesh_1"/>
+					<ledchannel id="ilufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1"/>
+					<ledchannel id="ilufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1"/>
 				</ledmeter>
 
 				<!-- Down panel -->
 				<cell cols="7">
-					<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
+					<hbox pad.h="6" pad.v="4" bg.color="bg_schema">
 						<button id="lmpk" text="lists.referencer.dynamics.peak"/>
 						<button id="lmtp" text="lists.referencer.dynamics.true_peak"/>
 						<button id="lmrms" text="lists.referencer.dynamics.rms"/>
@@ -367,20 +367,20 @@
 							<!-- Meshes -->
 							<ui:if test="ex :in_r">
 								<ui:with id="wfmesh" width="2" xi="0" fill="true" fill.color.a="0.9">
-									<mesh ui:id="waveform_ref_l" yi="5" color="ref_mesh_4" fill.color="ref_mesh_4" visibility=":refvis and :left_v"/>
-									<mesh ui:id="waveform_ref_r" yi="6" color="ref_mesh_3" fill.color="ref_mesh_3" visibility=":refvis and :right_v"/>
-									<mesh ui:id="waveform_ref_m" yi="7" color="ref_mesh_1" fill.color="ref_mesh_1" visibility=":refvis and :mid_v"/>
-									<mesh ui:id="waveform_ref_s" yi="8" color="ref_mesh_2" fill.color="ref_mesh_2" visibility=":refvis and :side_v"/>
-									<mesh ui:id="waveform_mix_l" yi="1" color="mix_mesh_4" fill.color="mix_mesh_4" visibility=":mixvis and :left_v"/>
-									<mesh ui:id="waveform_mix_r" yi="2" color="mix_mesh_3" fill.color="mix_mesh_3" visibility=":mixvis and :right_v"/>
-									<mesh ui:id="waveform_mix_m" yi="3" color="mix_mesh_1" fill.color="mix_mesh_1" visibility=":mixvis and :mid_v"/>
-									<mesh ui:id="waveform_mix_s" yi="4" color="mix_mesh_2" fill.color="mix_mesh_2" visibility=":mixvis and :side_v"/>
+									<mesh ui:id="waveform_ref_l" yi="5" color="reference_ref_4" fill.color="reference_ref_4" visibility=":refvis and :left_v"/>
+									<mesh ui:id="waveform_ref_r" yi="6" color="reference_ref_3" fill.color="reference_ref_3" visibility=":refvis and :right_v"/>
+									<mesh ui:id="waveform_ref_m" yi="7" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :mid_v"/>
+									<mesh ui:id="waveform_ref_s" yi="8" color="reference_ref_2" fill.color="reference_ref_2" visibility=":refvis and :side_v"/>
+									<mesh ui:id="waveform_mix_l" yi="1" color="reference_mix_4" fill.color="reference_mix_4" visibility=":mixvis and :left_v"/>
+									<mesh ui:id="waveform_mix_r" yi="2" color="reference_mix_3" fill.color="reference_mix_3" visibility=":mixvis and :right_v"/>
+									<mesh ui:id="waveform_mix_m" yi="3" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :mid_v"/>
+									<mesh ui:id="waveform_mix_s" yi="4" color="reference_mix_2" fill.color="reference_mix_2" visibility=":mixvis and :side_v"/>
 								</ui:with>
 							</ui:if>
 							<ui:if test="!ex :in_r">
 								<ui:with id="wfmesh" width="2" xi="0" fill="true" fill.color.a="0.9">
-									<mesh ui:id="waveform_ref" yi="2" color="mix_mesh_1" fill.color="mix_mesh_1" visibility=":refvis"/>
-									<mesh ui:id="waveform_mix" yi="1" color="ref_mesh_1" fill.color="ref_mesh_1" visibility=":mixvis"/>
+									<mesh ui:id="waveform_ref" yi="2" color="reference_mix_1" fill.color="reference_mix_1" visibility=":refvis"/>
+									<mesh ui:id="waveform_mix" yi="1" color="reference_ref_1" fill.color="reference_ref_1" visibility=":mixvis"/>
 								</ui:with>
 							</ui:if>
 
@@ -432,7 +432,7 @@
 
 					<!-- Down panel -->
 					<cell cols="2">
-						<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" bg.color="bg_schema">
+						<hbox pad.h="6" pad.v="4" bg.color="bg_schema">
 							<ui:if test="ex :in_r">
 								<button id="left_v" text="labels.chan.left"/>
 								<button id="right_v" text="labels.chan.right"/>
@@ -493,39 +493,39 @@
 					<ui:if test="ex :in_r">
 
 						<ui:with id="fftming" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
-							<mesh yi="8" color="ref_mesh_4" fill.color="ref_mesh_4" visibility=":refvis and :minvis and :left_v"/>
-							<mesh yi="9" color="ref_mesh_3" fill.color="ref_mesh_3" visibility=":refvis and :minvis and :right_v"/>
-							<mesh yi="10" color="ref_mesh_1" fill.color="ref_mesh_1" visibility=":refvis and :minvis and :mid_v"/>
-							<mesh yi="11" color="ref_mesh_2" fill.color="ref_mesh_2" visibility=":refvis and :minvis and :side_v"/>
+							<mesh yi="8" color="reference_ref_4" fill.color="reference_ref_4" visibility=":refvis and :minvis and :left_v"/>
+							<mesh yi="9" color="reference_ref_3" fill.color="reference_ref_3" visibility=":refvis and :minvis and :right_v"/>
+							<mesh yi="10" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :minvis and :mid_v"/>
+							<mesh yi="11" color="reference_ref_2" fill.color="reference_ref_2" visibility=":refvis and :minvis and :side_v"/>
 
-							<mesh yi="1" color="mix_mesh_4" fill.color="mix_mesh_4" visibility=":mixvis and :minvis and :left_v"/>
-							<mesh yi="2" color="mix_mesh_3" fill.color="mix_mesh_3" visibility=":mixvis and :minvis and :right_v"/>
-							<mesh yi="3" color="mix_mesh_1" fill.color="mix_mesh_1" visibility=":mixvis and :minvis and :mid_v"/>
-							<mesh yi="4" color="mix_mesh_2" fill.color="mix_mesh_2" visibility=":mixvis and :minvis and :side_v"/>
+							<mesh yi="1" color="reference_mix_4" fill.color="reference_mix_4" visibility=":mixvis and :minvis and :left_v"/>
+							<mesh yi="2" color="reference_mix_3" fill.color="reference_mix_3" visibility=":mixvis and :minvis and :right_v"/>
+							<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :minvis and :mid_v"/>
+							<mesh yi="4" color="reference_mix_2" fill.color="reference_mix_2" visibility=":mixvis and :minvis and :side_v"/>
 						</ui:with>
 
 						<ui:with id="fftmaxg" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
-							<mesh yi="8" color="ref_mesh_4" fill.color="ref_mesh_4" visibility=":refvis and :maxvis and :left_v"/>
-							<mesh yi="9" color="ref_mesh_3" fill.color="ref_mesh_3" visibility=":refvis and :maxvis and :right_v"/>
-							<mesh yi="10" color="ref_mesh_1" fill.color="ref_mesh_1" visibility=":refvis and :maxvis and :mid_v"/>
-							<mesh yi="11" color="ref_mesh_2" fill.color="ref_mesh_2" visibility=":refvis and :maxvis and :side_v"/>
+							<mesh yi="8" color="reference_ref_4" fill.color="reference_ref_4" visibility=":refvis and :maxvis and :left_v"/>
+							<mesh yi="9" color="reference_ref_3" fill.color="reference_ref_3" visibility=":refvis and :maxvis and :right_v"/>
+							<mesh yi="10" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :maxvis and :mid_v"/>
+							<mesh yi="11" color="reference_ref_2" fill.color="reference_ref_2" visibility=":refvis and :maxvis and :side_v"/>
 
-							<mesh yi="1" color="mix_mesh_4" fill.color="mix_mesh_4" visibility=":mixvis and :maxvis and :left_v"/>
-							<mesh yi="2" color="mix_mesh_3" fill.color="mix_mesh_3" visibility=":mixvis and :maxvis and :right_v"/>
-							<mesh yi="3" color="mix_mesh_1" fill.color="mix_mesh_1" ui:tag="42" visibility=":mixvis and :maxvis and :mid_v"/>
-							<mesh yi="4" color="mix_mesh_2" fill.color="mix_mesh_2" visibility=":mixvis and :maxvis and :side_v"/>
+							<mesh yi="1" color="reference_mix_4" fill.color="reference_mix_4" visibility=":mixvis and :maxvis and :left_v"/>
+							<mesh yi="2" color="reference_mix_3" fill.color="reference_mix_3" visibility=":mixvis and :maxvis and :right_v"/>
+							<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" ui:tag="42" visibility=":mixvis and :maxvis and :mid_v"/>
+							<mesh yi="4" color="reference_mix_2" fill.color="reference_mix_2" visibility=":mixvis and :maxvis and :side_v"/>
 						</ui:with>
 
 						<ui:with id="fftgr" xi="0" fill="false">
-							<mesh yi="8" color="ref_mesh_4" visibility=":refvis and :currvis and :left_v"/>
-							<mesh yi="9" color="ref_mesh_3" visibility=":refvis and :currvis and :right_v"/>
-							<mesh yi="10" color="ref_mesh_1" visibility=":refvis and :currvis and :mid_v"/>
-							<mesh yi="11" color="ref_mesh_2" visibility=":refvis and :currvis and :side_v"/>
+							<mesh yi="8" color="reference_ref_4" visibility=":refvis and :currvis and :left_v"/>
+							<mesh yi="9" color="reference_ref_3" visibility=":refvis and :currvis and :right_v"/>
+							<mesh yi="10" color="reference_ref_1" visibility=":refvis and :currvis and :mid_v"/>
+							<mesh yi="11" color="reference_ref_2" visibility=":refvis and :currvis and :side_v"/>
 
-							<mesh yi="1" color="mix_mesh_4" visibility=":mixvis and :currvis and :left_v"/>
-							<mesh yi="2" color="mix_mesh_3" visibility=":mixvis and :currvis and :right_v"/>
-							<mesh yi="3" color="mix_mesh_1" visibility=":mixvis and :currvis and :mid_v"/>
-							<mesh yi="4" color="mix_mesh_2" visibility=":mixvis and :currvis and :side_v"/>
+							<mesh yi="1" color="reference_mix_4" visibility=":mixvis and :currvis and :left_v"/>
+							<mesh yi="2" color="reference_mix_3" visibility=":mixvis and :currvis and :right_v"/>
+							<mesh yi="3" color="reference_mix_1" visibility=":mixvis and :currvis and :mid_v"/>
+							<mesh yi="4" color="reference_mix_2" visibility=":mixvis and :currvis and :side_v"/>
 						</ui:with>
 					</ui:if>
 					<ui:if test="!ex :in_r">
@@ -547,15 +547,15 @@
 
 					<!-- Frequency selector -->
 					<!-- Vertical line -->
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="mix_mesh_1" hcolor="mix_mesh_1" pointer="hsize" visibility=":famvers ieq 2"/>
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="mix_mesh_2" hcolor="mix_mesh_2" pointer="hsize" visibility=":famvers ieq 3"/>
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="mix_mesh_3" hcolor="mix_mesh_3" pointer="hsize" visibility=":famvers ieq 1"/>
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="mix_mesh_4" hcolor="mix_mesh_4" pointer="hsize" visibility=":famvers ieq 0"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_mix_1" hcolor="reference_mix_1" pointer="hsize" visibility=":famvers ieq 2"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_mix_2" hcolor="reference_mix_2" pointer="hsize" visibility=":famvers ieq 3"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_mix_3" hcolor="reference_mix_3" pointer="hsize" visibility=":famvers ieq 1"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_mix_4" hcolor="reference_mix_4" pointer="hsize" visibility=":famvers ieq 0"/>
 
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="ref_mesh_1" hcolor="ref_mesh_1" pointer="hsize" visibility=":famvers ieq 6"/>
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="ref_mesh_2" hcolor="ref_mesh_2" pointer="hsize" visibility=":famvers ieq 7"/>
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="ref_mesh_3" hcolor="ref_mesh_3" pointer="hsize" visibility=":famvers ieq 5"/>
-					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="ref_mesh_4" hcolor="ref_mesh_4" pointer="hsize" visibility=":famvers ieq 4"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_ref_1" hcolor="reference_ref_1" pointer="hsize" visibility=":famvers ieq 6"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_ref_2" hcolor="reference_ref_2" pointer="hsize" visibility=":famvers ieq 7"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_ref_3" hcolor="reference_ref_3" pointer="hsize" visibility=":famvers ieq 5"/>
+					<marker id="famver" ox="0" oy="1" width="2" hwidth="2" editable="true" color="reference_ref_4" hcolor="reference_ref_4" pointer="hsize" visibility=":famvers ieq 4"/>
 
 					<!-- Horizontal line -->
 					<marker id="famhor" ox="1" oy="0" width="2" hwidth="2" editable="true" color="graph_marker_line" hcolor="graph_marker_line_hover" pointer="vsize" visibility=":famhorv"/>
@@ -588,15 +588,15 @@
 					<text x="10" y="1" ox="0" oy="2" text="graph.units.db" halign="1" valign="-1"/>
 
 					<!-- Vertical line -->
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="mix_mesh_1" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 2"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="mix_mesh_2" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 3"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="mix_mesh_3" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 1"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="mix_mesh_4" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 0"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_1" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 2"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_2" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 3"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_3" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 1"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_4" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 0"/>
 
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="ref_mesh_1" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 6"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="ref_mesh_2" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 7"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="ref_mesh_3" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 5"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="ref_mesh_4" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 4"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_1" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 6"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_2" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 7"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_3" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 5"/>
+					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_4" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 4"/>
 
 					<!-- Horizontal line -->
 					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="XXX" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
@@ -604,7 +604,7 @@
 				</graph>
 
 				<!-- Bottom menu -->
-				<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
+				<hbox pad.h="6" pad.v="4" spacing="8" bg.color="bg_schema">
 					<ui:if test="ex :in_r">
 						<button id="left_v" text="labels.chan.left"/>
 						<button id="right_v" text="labels.chan.right"/>
@@ -659,8 +659,8 @@
 						</ui:with>
 
 						<!-- Meshes -->
-						<mesh id="dmmesh" width="2" xi="0" yi="(ex :in_r) ? 17 : 14" color="ref_mesh_1" visibility=":refvis"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="7" color="mix_mesh_1" visibility=":mixvis"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="(ex :in_r) ? 17 : 14" color="reference_ref_1" visibility=":refvis"/>
+						<mesh id="dmmesh" width="2" xi="0" yi="7" color="reference_mix_1" visibility=":mixvis"/>
 
 						<marker id="psrthr" ox="1" oy="0" width="2" hwidth="2" color="threshold" hcolor="threshold" pointer="vsize" editable="true"/>
 
@@ -699,8 +699,8 @@
 					</graph>
 
 					<ui:with angle="1" min="0 db" max="18 db" balance.visibility="false" log="true" type="peak" text.visibility="true" header.visibility="false" vexpand="true">
-						<ledchannel id="psr_m" bg.color="bg_schema" value.color="mix_mesh_1" activity=":mixvis"/>
-						<ledchannel id="psr_r" bg.color="bg_schema" value.color="ref_mesh_1" activity=":refvis"/>
+						<ledchannel id="psr_m" bg.color="bg_schema" value.color="reference_mix_1" activity=":mixvis"/>
+						<ledchannel id="psr_r" bg.color="bg_schema" value.color="reference_ref_1" activity=":refvis"/>
 					</ui:with>
 
 					<graph width.min="192" height.min="256" vexpand="true" fill="true" border.size="1" border.color="bg_light">
@@ -730,8 +730,8 @@
 
 						<!-- Meshes -->
 						<ui:with id="psrmesh" xi="0" width="2" fill="true" fill.color.a="0.9">
-							<mesh yi="2" color="ref_mesh_1" fill.color="ref_mesh_1" visibility=":refvis"/>
-							<mesh yi="1" color="mix_mesh_1" fill.color="mix_mesh_1" visibility=":mixvis"/>
+							<mesh yi="2" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis"/>
+							<mesh yi="1" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis"/>
 						</ui:with>
 
 						<marker id="psrthr" ox="0" oy="1" width="2" hwidth="2" color="threshold" hcolor="threshold" pointer="vsize" editable="true"/>
@@ -758,28 +758,28 @@
 						</ui:with>
 
 						<!-- PSR percentage -->
-						<text x=":psrthr" y="25" font.size="20" text="graph.values.x:pc:f" color="ref_mesh_1" text:value=":psrpc_r" text.eval="true" halign="0" valign="1"/>
-						<text x=":psrthr" y="75" font.size="20" text="graph.values.x:pc:f" color="mix_mesh_1" text:value=":psrpc_m" text.eval="true" halign="0" valign="1"/>
+						<text x=":psrthr" y="25" font.size="20" text="graph.values.x:pc:f" color="reference_ref_1" text:value=":psrpc_r" text.eval="true" halign="0" valign="1"/>
+						<text x=":psrthr" y="75" font.size="20" text="graph.values.x:pc:f" color="reference_mix_1" text:value=":psrpc_m" text.eval="true" halign="0" valign="1"/>
 						<text x=":psrthr" y="75" font.size="20" text="graph.values.x:s:2f" color="threshold" text:value=":psrtime" text.eval="true" halign="0" valign="-1"/>
 						<text x=":psrthr" y="25" font.size="20" text="graph.values.x:db:f" color="threshold" text:value="20*logd(:psrthr)" text.eval="true" halign="0" valign="-1"/>
 					</graph>
 				</hbox>
 
 				<!-- Down panel -->
-				<hbox pad.l="6" pad.r="6" pad.t="2" pad.b="2" bg.color="bg_schema" vfill="false">
+				<hbox pad.l="6" pad.r="4" pad.v="2" bg.color="bg_schema" vfill="false">
 					<label text="labels.mode" pad.r="4"/>
 					<combo id="psrmode"/>
 					<void hexpand="true"/>
 					<vbox vreduce="true" pad.b="2" width="120" pad.r="20">
-						<hbox >
+						<hbox pad.h="2">
 							<label text="labels.threshold"/>
 							<void hexpand="true"/>
 							<value id="psrthr" sline="true"/>
 						</hbox>
-						<fader id="psrthr" scolor="threshold" angle="0"/>
+						<fader id="psrthr" scolor="threshold" angle="0" hfill="true"/>
 					</vbox>
 					<vbox vreduce="true" pad.b="2" width="120">
-						<hbox >
+						<hbox pad.h="2">
 							<label text="labels.metering.period"/>
 							<void hexpand="true"/>
 							<value id="psrtime" sline="true"/>
@@ -792,9 +792,9 @@
 			<!-- STEREO-SPECIFIC TABS -->
 			<ui:if test="ex :in_r">
 				<!-- Correllation -->
-				<vbox>
+				<vbox spacing="4" expand="true">
 					<hbox expand="true">
-						<graph width.min="640" height.min="256" expand="true" fill="true" visibility=":corrdis ieq 0">
+						<graph width.min="640" height.min="256" expand="true" fill="true" visibility=":corrdis ieq 0" border.size="1" border.color="bg_light">
 							<origin hpos="-1" vpos="0" visibility="false"/>
 
 							<!-- Secondary grid -->
@@ -825,16 +825,16 @@
 
 							<!-- Meshes -->
 							<ui:with id="fftming" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
-								<mesh yi="12" color="cyan" fill.color="cyan" visibility=":refvis and :minvis"/>
-								<mesh yi="5" color="orange" fill.color="orange" visibility=":mixvis and :minvis"/>
+								<mesh yi="12" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :minvis"/>
+								<mesh yi="5" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :minvis"/>
 							</ui:with>
 							<ui:with id="fftmaxg" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
-								<mesh yi="12" color="cyan" fill.color="cyan" visibility=":refvis and :maxvis"/>
-								<mesh yi="5" color="orange" fill.color="orange" visibility=":mixvis and :maxvis"/>
+								<mesh yi="12" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :maxvis"/>
+								<mesh yi="5" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :maxvis"/>
 							</ui:with>
 							<ui:with id="fftgr" xi="0" fill="false">
-								<mesh yi="12" color="cyan" visibility=":refvis and :currvis"/>
-								<mesh yi="5" color="orange" visibility=":mixvis and :currvis"/>
+								<mesh yi="12" color="reference_ref_1" visibility=":refvis and :currvis"/>
+								<mesh yi="5" color="reference_mix_1" visibility=":mixvis and :currvis"/>
 							</ui:with>
 
 							<!-- Axis -->
@@ -868,7 +868,7 @@
 							<text x="10" y="0" text="0" halign="1" valign="1" cgroup="0" priority="0"/>
 						</graph>
 
-						<graph width.min="640" height.min="256" expand="true" fill="true" visibility=":corrdis ieq 1">
+						<graph width.min="640" height.min="256" expand="true" fill="true" visibility=":corrdis ieq 1" border.size="1" border.color="bg_light">
 							<origin hpos="1" vpos="0" visibility="false"/>
 
 							<!-- Additional grid -->
@@ -909,8 +909,8 @@
 							</ui:with>
 
 							<!-- Meshes -->
-							<mesh id="dmmesh" xi="0" yi="18" color="cyan" fill="false" visibility=":refvis"/>
-							<mesh id="dmmesh" xi="0" yi="8" color="orange" fill="false" visibility=":mixvis"/>
+							<mesh id="dmmesh" xi="0" yi="18" color="reference_ref_1" fill="false" visibility=":refvis"/>
+							<mesh id="dmmesh" xi="0" yi="8" color="reference_mix_1" fill="false" visibility=":mixvis"/>
 
 							<!-- Axis -->
 							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="true"/>
@@ -947,13 +947,13 @@
 						</graph>
 
 						<ui:with angle="1" min="-1" max="1" balance="0" balance.visibility="true" log="false" type="peak" text.visibility="true" header.visibility="false" vexpand="true">
-							<ledchannel id="corr_m" bg.color="bg_schema" balance.color="cyan" value.color="orange" activity=":mixvis"/>
-							<ledchannel id="corr_r" bg.color="bg_schema" balance.color="orange" value.color="cyan" activity=":refvis"/>
+							<ledchannel id="corr_m" bg.color="bg_schema" balance.color="reference_mix_1" value.color="reference_mix_1" activity=":mixvis"/>
+							<ledchannel id="corr_r" bg.color="bg_schema" balance.color="reference_ref_1" value.color="reference_ref_1" activity=":refvis"/>
 						</ui:with>
 					</hbox>
 
 					<!-- Bottom menu -->
-					<hbox pad.l="6" pad.r="6" pad.t="4" pad.b="4" spacing="8" bg.color="bg_schema">
+					<hbox pad.l="6" pad.r="6" pad.v="4" spacing="4" bg.color="bg_schema">
 						<label text="labels.mode"/>
 						<combo id="corrdis"/>
 						<void hexpand="true"/>
@@ -961,10 +961,10 @@
 				</vbox>
 
 				<!-- Stereo -->
-				<vbox>
-					<grid rows="2" cols="3" expand="true">
+				<vbox spacing="4" expand="true">
+					<grid rows="2" cols="4" expand="true">
 						<!-- Stereo Frequency graph -->
-						<graph width.min="256" height.min="256" expand="true" fill="true" visibility=":sterdis ieq 0">
+						<graph width.min="256" height.min="256" expand="true" fill="true" visibility=":sterdis ieq 0" border.size="1" border.color="bg_light">
 							<origin hpos="-1" vpos="-1" visibility="false"/>
 
 							<!-- Secondary grid -->
@@ -990,16 +990,16 @@
 
 							<!-- Meshes -->
 							<ui:with id="fftming" yi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
-								<mesh xi=":stertyp + 13" color="cyan" fill.color="cyan" visibility=":refvis and :minvis"/>
-								<mesh xi=":stertyp + 6" color="orange" fill.color="orange" visibility=":mixvis and :minvis"/>
+								<mesh xi=":stertyp + 13" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :minvis"/>
+								<mesh xi=":stertyp + 6" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :minvis"/>
 							</ui:with>
 							<ui:with id="fftmaxg" yi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
-								<mesh xi=":stertyp + 13" color="cyan" fill.color="cyan" visibility=":refvis and :maxvis"/>
-								<mesh xi=":stertyp + 6" color="orange" fill.color="orange" visibility=":mixvis and :maxvis"/>
+								<mesh xi=":stertyp + 13" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :maxvis"/>
+								<mesh xi=":stertyp + 6" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :maxvis"/>
 							</ui:with>
-							<ui:with id="fftgr" yi="0" fill="false">
-								<mesh xi=":stertyp + 13" color="cyan" visibility=":refvis and :currvis"/>
-								<mesh xi=":stertyp + 6" color="orange" visibility=":mixvis and :currvis"/>
+							<ui:with id="fftgr" yi="0" width="2" fill="false">
+								<mesh xi=":stertyp + 13" color="reference_ref_1" visibility=":refvis and :currvis"/>
+								<mesh xi=":stertyp + 6" color="reference_mix_1" visibility=":mixvis and :currvis"/>
 							</ui:with>
 
 							<!-- Axis -->
@@ -1031,7 +1031,7 @@
 						</graph>
 
 						<!-- Stereo history graph -->
-						<graph width.min="256" height.min="256" expand="true" fill="true" visibility=":sterdis ieq 1">
+						<graph width.min="256" height.min="256" expand="true" fill="true" visibility=":sterdis ieq 1" border.size="1" border.color="bg_light">
 							<origin hpos="-1" vpos="-1" visibility="false"/>
 
 							<!-- Additional grid -->
@@ -1072,8 +1072,8 @@
 							<marker v="0.5" ox="1" oy="0" color="graph_prim"/>
 
 							<!-- Meshes -->
-							<mesh id="dmmesh" xi="0" yi=":stertyp + 19" color="cyan" fill="false" visibility=":refvis"/>
-							<mesh id="dmmesh" xi="0" yi=":stertyp + 9" color="orange" fill="false" visibility=":mixvis"/>
+							<mesh id="dmmesh" xi="0" yi=":stertyp + 19" color="reference_ref_1" fill="false" visibility=":refvis"/>
+							<mesh id="dmmesh" xi="0" yi=":stertyp + 9" color="reference_mix_1" fill="false" visibility=":mixvis"/>
 
 							<!-- Axis -->
 							<axis min="0" max=":maxtime" angle="0.5" log="false" color="graph_prim" visible="true"/>
@@ -1105,93 +1105,96 @@
 							<text x="0" y="1" text="labels.chan.side" halign="-1" valign="1" pgroup="0" priority="0" visibility=":stertyp ieq 1"/>
 						</graph>
 
+<cell rows="2"><void pad.h="2" bg.color="bg" hreduce="true"/></cell>
 						<!-- Goniometer graph -->
-						<graph width.min="256" height.min="256" expand="true" fill="true">
-							<!-- Origin -->
-							<origin halign="0.0" valign="0.0" visible="false"/>
+						<cell rows="2">
+							<graph width.min="256" height.min="256" expand="true" fill="true" border.size="1" border.color="bg_light">
+								<!-- Origin -->
+								<origin halign="0.0" valign="0.0" visible="false"/>
 
-							<marker v="0" dy=":_a_width" dx="+:_a_height" color="graph_alt_1" smooth="true"/>
-							<marker v="0" dy=":_a_width" dx="-:_a_height" color="graph_alt_1" smooth="true"/>
+								<marker v="0" dy=":_a_width" dx="+:_a_height" color="graph_alt_1" smooth="true"/>
+								<marker v="0" dy=":_a_width" dx="-:_a_height" color="graph_alt_1" smooth="true"/>
 
-							<!-- Secondary color -->
-							<marker v="1" ox="1" oy="0" color="graph_sec"/>
-							<marker v="0.5" ox="1" oy="0" color="graph_sec"/>
-							<marker v="-0.5" ox="1" oy="0" color="graph_sec"/>
-							<marker v="-1" ox="1" oy="0" color="graph_sec"/>
-							<marker v="1" ox="0" oy="1" color="graph_sec"/>
-							<marker v="0.5" ox="0" oy="1" color="graph_sec"/>
-							<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
-							<marker v="-1" ox="0" oy="1" color="graph_sec"/>
+								<!-- Secondary color -->
+								<marker v="1" ox="1" oy="0" color="graph_sec"/>
+								<marker v="0.5" ox="1" oy="0" color="graph_sec"/>
+								<marker v="-0.5" ox="1" oy="0" color="graph_sec"/>
+								<marker v="-1" ox="1" oy="0" color="graph_sec"/>
+								<marker v="1" ox="0" oy="1" color="graph_sec"/>
+								<marker v="0.5" ox="0" oy="1" color="graph_sec"/>
+								<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
+								<marker v="-1" ox="0" oy="1" color="graph_sec"/>
 
-							<!-- Axes -->
-							<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false"/>
-							<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false"/>
+								<!-- Axes -->
+								<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false"/>
+								<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false"/>
 
-							<!-- Streams -->
-							<stream id="gon_r" si="0" xi="1" yi="2" width="2" color="cyan" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
-							<stream id="gon_m" si="0" xi="1" yi="2" width="2" color="orange" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
+								<!-- Streams -->
+								<stream id="gon_r" si="0" xi="1" yi="2" width="2" color="reference_ref_1" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
+								<stream id="gon_m" si="0" xi="1" yi="2" width="2" color="reference_mix_1" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
 
-							<!-- Text -->
-							<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
-							<text x="-1" y="1" text="labels.chan.right" halign="-1" valign="-1" pgroup="0" priority="0"/>
+								<!-- Text -->
+								<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
+								<text x="-1" y="1" text="labels.chan.right" halign="-1" valign="-1" pgroup="0" priority="0"/>
 
-							<ui:with y="0" halign="1" valign="-1">
-								<text x="-1.125" text="labels.chan.side" pgroup="0" priority="0"/>
-								<text x="-1" text="1" pgroup="0" priority="10"/>
-								<text x="-0.5" text="0.5"/>
-								<text x="0.5" text="-0.5"/>
-								<text x="1" text="-1" halign="-1"/>
-							</ui:with>
+								<ui:with y="0" halign="1" valign="-1">
+									<text x="-1.125" text="labels.chan.side" pgroup="0" priority="0"/>
+									<text x="-1" text="1" pgroup="0" priority="10"/>
+									<text x="-0.5" text="0.5"/>
+									<text x="0.5" text="-0.5"/>
+									<text x="1" text="-1" halign="-1"/>
+								</ui:with>
 
-							<ui:with x="0" halign="1" valign="-1">
-								<text y="1.125" text="labels.chan.mid" valign="1" pgroup="0" priority="0"/>
-								<text y="1" text="1" pgroup="0" priority="10"/>
-								<text y="0.5" text="0.5"/>
-								<text y="0" text="0"/>
-								<text y="-0.5" text="-0.5"/>
-								<text y="-1" text="-1"/>
-							</ui:with>
-						</graph>
-
+								<ui:with x="0" halign="1" valign="-1">
+									<text y="1.125" text="labels.chan.mid" valign="1" pgroup="0" priority="0"/>
+									<text y="1" text="1" pgroup="0" priority="10"/>
+									<text y="0.5" text="0.5"/>
+									<text y="0" text="0"/>
+									<text y="-0.5" text="-0.5"/>
+									<text y="-1" text="-1"/>
+								</ui:with>
+							</graph>
+						</cell>
 						<!-- Pan meters -->
-						<cell cols="2">
+						<cell cols="2" vreduce="true">
 							<ledmeter text.visible="false" header.visible="false" hexpand="true">
 								<ui:with min="0" max="1" log="false" type="peak" vexpand="true">
-									<ledchannel id="pan_m" balance="0.5" balance.visibility="true" balance.color="cyan" value.color="orange" activity=":mixvis" visibility=":stertyp ieq 0"/>
+									<ledchannel id="pan_m" balance="0.5" balance.visibility="true" balance.color="reference_mix_1" value.color="reference_mix_1" activity=":mixvis" visibility=":stertyp ieq 0"/>
 
-									<ledchannel id="pan_r" balance="0.5" balance.visibility="true" balance.color="orange" value.color="cyan" activity=":refvis" visibility=":stertyp ieq 0"/>
+									<ledchannel id="pan_r" balance="0.5" balance.visibility="true" balance.color="reference_ref_1" value.color="reference_ref_1" activity=":refvis" visibility=":stertyp ieq 0"/>
 
-									<ledchannel id="msbal_m" balance.color="cyan" value.color="orange" activity=":mixvis" visibility=":stertyp ieq 1"/>
+									<ledchannel id="msbal_m" balance.color="reference_mix_1" value.color="reference_mix_1" activity=":mixvis" visibility=":stertyp ieq 1"/>
 
-									<ledchannel id="msbal_r" balance.color="orange" value.color="cyan" activity=":refvis" visibility=":stertyp ieq 1"/>
+									<ledchannel id="msbal_r" balance.color="reference_ref_1" value.color="reference_ref_1" activity=":refvis" visibility=":stertyp ieq 1"/>
 								</ui:with>
 							</ledmeter>
 						</cell>
 
-						<!-- Goniometer settings -->
-						<hbox>
-							<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
-								<label text="labels.history"/>
-								<fader id="goniohs" angle="0" expand="true"/>
-								<value id="goniohs" sline="true" width="12"/>
-							</hbox>
-							<vsep pad.h="2" bg.color="bg" hreduce="true"/>
-							<hbox bg.color="bg_schema" pad.v="4" pad.h="6" spacing="6">
-								<label text="labels.oscilloscope.max_dots"/>
-								<fader id="goniond" angle="0" expand="true"/>
-								<value id="goniond" sline="true" width="30"/>
-							</hbox>
-							<vsep pad.h="2" bg.color="bg" hreduce="true"/>
-							<void expand="true" bg.color="bg_schema"/>
-						</hbox>
 					</grid>
 
 					<!-- Bottom menu -->
-					<hbox>
-						<label text="labels.mode"/>
-						<combo id="stertyp"/>
+					<hbox pad.l="6" pad.r="4" pad.v="2" bg.color="bg_schema" vfill="false">
+						<label text="labels.mode" pad.r="4"/>
+						<combo id="stertyp" pad.r="4"/>
 						<combo id="sterdis"/>
-						<void expand="true" bg.color="bg_schema"/>
+						<void expand="true"/>
+						<!-- Goniometer settings -->
+						<vbox vreduce="true" pad.b="2" width="120" pad.r="20">
+							<hbox pad.h="2">
+								<label text="labels.history"/>
+								<void hexpand="true"/>
+								<value id="goniohs" sline="true"/>
+							</hbox>
+							<fader id="goniohs" angle="0" hfill="true" pad="0"/>
+						</vbox>
+						<vbox vreduce="true" pad.b="2" width="120">
+							<hbox pad.h="2">
+								<label text="labels.oscilloscope.max_dots"/>
+								<void hexpand="true"/>
+								<value id="goniond" sline="true"/>
+							</hbox>
+							<fader id="goniond" angle="0" hfill="true"/>
+						</vbox>
 					</hbox>
 				</vbox>
 			</ui:if>
