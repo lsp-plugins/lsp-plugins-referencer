@@ -79,6 +79,9 @@
 						path_id="_ui_dlg_sample_path"
 						head.visibility="false"
 						tail.visibility="false"
+						channel1.style="AudioChannel_reference_ch1"
+						channel2.style="AudioChannel_reference_ch2"
+						line.color ="reference_ch_1"
 						length=":loop_l"
 						status=":fs_${si}"
 						loop.enabled="false"
@@ -164,7 +167,7 @@
 									<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" ui:tag="42" visibility=":mixvis and :maxvis"/>
 								</ui:with>
 
-								<ui:with id="fftgr" xi="0" fill="false">
+								<ui:with id="fftgr" xi="0" fill="false" width="2">
 									<mesh yi="10" color="reference_ref_1" visibility=":refvis and :currvis"/>
 									<mesh yi="3" color="reference_mix_1" visibility=":mixvis and :currvis"/>
 								</ui:with>
@@ -598,6 +601,9 @@
 								status=":fs_${si}"
 								head.visibility="false"
 								tail.visibility="false"
+								channel1.style="AudioChannel_reference_ch1"
+								channel2.style="AudioChannel_reference_ch2"
+								line.color ="reference_ch_1"
 								loop.enabled="true"
 								loop.color="loop_color"
 								loop.border.color="loop_border_color"
@@ -634,26 +640,33 @@
 								</ui:with>
 							</vbox>
 						</hbox>
-
-						<grid rows="4" cols="9" transpose="true">
+						<void bg.color="bg" hfill="true" vreduce="true" pad.v="2"/>
+						<grid rows="2" cols="21" transpose="true">
 							<cell rows="2">
-								<label text="labels.gain"/>
+
+								<hbox fill="false" pad.h="6" pad.v="4">
+									<knob id="sg_${si}"/>
+									<vbox fill="false" width="50">
+										<label text="labels.gain"/>
+										<value id="sg_${si}" sline="true"/>
+									</vbox>
+								</hbox>
 							</cell>
-							<knob id="sg_${si}"/>
-							<value id="sg_${si}"/>
 
 							<ui:for id="li" first="1" count="4">
-								<cell cols="2">
-									<button id="ls_${si}" text="lists.referencer.loop.${li}" value="${:li - 1}"/>
+								<cell rows="2">
+									<vsep vfill="true" hreduce="true" pad.h="2"/>
+								</cell>
+								<cell rows="2">
+									<button id="ls_${si}" text="lists.referencer.loop.${li}" value="${:li - 1}" pad.h="6" pad.v="4" fill="true"/>
 								</cell>
 
 								<label text="labels.sedit.loop_start"/>
-								<knob id="lb_${si}_${li}" max=":fl_${si}"/>
-								<value id="lb_${si}_${li}"/>
-
 								<label text="labels.sedit.loop_end"/>
-								<knob id="le_${si}_${li}" max=":fl_${si}"/>
-								<value id="le_${si}_${li}"/>
+								<fader id="lb_${si}_${li}" angle="0" max=":fl_${si}" hfill="true" hexpand="true" pad.h="6"/>
+								<fader id="le_${si}_${li}" angle="0" max=":fl_${si}" hfill="true" hexpand="true" pad.h="6"/>
+								<value id="lb_${si}_${li}" sline="true" pad.r="6"/>
+								<value id="le_${si}_${li}" sline="true" pad.r="6"/>
 							</ui:for>
 						</grid>
 					</vbox>
