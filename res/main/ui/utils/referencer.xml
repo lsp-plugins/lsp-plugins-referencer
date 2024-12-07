@@ -529,7 +529,7 @@
 					<ui:if test="ex :in_r">
 
 						<!-- Goniometer -->
-						<group ui:inject="GraphGroup" ipadding="0" text="lists.referencer.tab.goniometer" expand="true">
+						<group ui:inject="GraphGroup" ipadding="0" text="labels.referencer.goniometer" expand="true">
 							<graph width.min="200" height.min="200" expand="true" fill="true">
 								<!-- Origin -->
 								<origin halign="0.0" valign="0.0" visible="false"/>
