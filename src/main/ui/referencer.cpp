@@ -90,9 +90,12 @@ namespace lsp
 
             fm->nBtnState       = 0;
 
-            fm->wHorText        = NULL;
             fm->wGraph          = NULL;
-            fm->wAxis           = NULL;
+            fm->wHorText        = NULL;
+            fm->wXAxis          = NULL;
+            fm->wYAxis          = NULL;
+            fm->wMouseDot       = NULL;
+            fm->wMouseText      = NULL;
 
             bStereo             = (strcmp(meta->uid, meta::referencer_stereo.uid) == 0);
         }
@@ -274,13 +277,18 @@ namespace lsp
 
             fm->wGraph          = pWrapper->controller()->widgets()->get<tk::Graph>("spectrum_graph");
             fm->wHorText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_hor");
-            fm->wAxis           = pWrapper->controller()->widgets()->get<tk::GraphAxis>("spectrum_graph_ox");
+            fm->wXAxis          = pWrapper->controller()->widgets()->get<tk::GraphAxis>("freq_analysis_ox");
+            fm->wYAxis          = pWrapper->controller()->widgets()->get<tk::GraphAxis>("freq_analysis_oy");
+            fm->wMouseDot       = pWrapper->controller()->widgets()->get<tk::GraphDot>("freq_analysis_mouse_dot");
+            fm->wMouseText      = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_mouse_text");
 
             for (const char * const * pm = (bStereo) ? ver_meters_stereo : ver_meters_mono; *pm != NULL; ++pm)
                 fm->vVerText.add(pWrapper->controller()->widgets()->get<tk::GraphText>(*pm));
 
             if (fm->wGraph != NULL)
             {
+                fm->wGraph->slots()->bind(tk::SLOT_MOUSE_IN, slot_spectrum_mouse_in, this);
+                fm->wGraph->slots()->bind(tk::SLOT_MOUSE_OUT, slot_spectrum_mouse_out, this);
                 fm->wGraph->slots()->bind(tk::SLOT_MOUSE_DOWN, slot_spectrum_mouse_down, this);
                 fm->wGraph->slots()->bind(tk::SLOT_MOUSE_UP, slot_spectrum_mouse_up, this);
                 fm->wGraph->slots()->bind(tk::SLOT_MOUSE_MOVE, slot_spectrum_mouse_move, this);
@@ -452,6 +460,41 @@ namespace lsp
             return "mix_mid";
         }
 
+        bool referencer_ui::fmt_note_name(tk::Widget *w, expr::Parameters *params, float freq)
+        {
+            float note_full = dspu::frequency_to_note(freq);
+            if (note_full == dspu::NOTE_OUT_OF_RANGE)
+                return false;
+
+            LSPString text;
+            tk::prop::String snote;
+            snote.bind(w->style(), w->display()->dictionary());
+
+            note_full += 0.5f;
+            ssize_t note_number = ssize_t(note_full);
+
+            // Note name
+            ssize_t note        = note_number % 12;
+            text.fmt_ascii("lists.notes.names.%s", note_names[note]);
+            snote.set(&text);
+            snote.format(&text);
+            params->set_string("note", &text);
+
+            // Octave number
+            ssize_t octave      = (note_number / 12) - 1;
+            params->set_int("octave", octave);
+
+            // Cents
+            ssize_t note_cents  = (note_full - float(note_number)) * 100 - 50;
+            if (note_cents < 0)
+                text.fmt_ascii(" - %02d", -note_cents);
+            else
+                text.fmt_ascii(" + %02d", note_cents);
+            params->set_string("cents", &text);
+
+            return true;
+        }
+
         void referencer_ui::sync_meter_state(ui::IPort *port)
         {
             fft_meters_t *fm    = &sFftMeters;
@@ -481,15 +524,15 @@ namespace lsp
                     // Update the note name displayed in the text
                     // Fill the parameters
                     expr::Parameters params;
-                    tk::prop::String snote;
+                    tk::prop::String schannel;
                     LSPString text;
-                    snote.bind(ver_text->style(), pDisplay->dictionary());
+                    schannel.bind(ver_text->style(), pDisplay->dictionary());
                     SET_LOCALE_SCOPED(LC_NUMERIC, "C");
 
                     // Channels
                     text.fmt_ascii("lists.referencer.fft.%s", get_channel_key(channel));
-                    snote.set(&text);
-                    snote.format(&text);
+                    schannel.set(&text);
+                    schannel.format(&text);
                     params.set_string("channel", &text);
 
                     // Frequency
@@ -501,33 +544,8 @@ namespace lsp
                     params.set_float("level_db", dspu::gain_to_db(level));
 
                     // Note
-                    float note_full = dspu::frequency_to_note(freq);
-                    if (note_full != dspu::NOTE_OUT_OF_RANGE)
-                    {
-                        note_full += 0.5f;
-                        ssize_t note_number = ssize_t(note_full);
-
-                        // Note name
-                        ssize_t note        = note_number % 12;
-                        text.fmt_ascii("lists.notes.names.%s", note_names[note]);
-                        snote.set(&text);
-                        snote.format(&text);
-                        params.set_string("note", &text);
-
-                        // Octave number
-                        ssize_t octave      = (note_number / 12) - 1;
-                        params.set_int("octave", octave);
-
-                        // Cents
-                        ssize_t note_cents  = (note_full - float(note_number)) * 100 - 50;
-                        if (note_cents < 0)
-                            text.fmt_ascii(" - %02d", -note_cents);
-                        else
-                            text.fmt_ascii(" + %02d", note_cents);
-                        params.set_string("cents", &text);
-
+                    if (fmt_note_name(ver_text, &params, freq))
                         ver_text->text()->set("lists.referencer.display.full", &params);
-                    }
                     else
                         ver_text->text()->set("lists.referencer.display.unknown", &params);
                 }
@@ -881,6 +899,41 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t referencer_ui::slot_spectrum_mouse_in(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            fft_meters_t *fm        = &self->sFftMeters;
+            if (fm->wMouseDot != NULL)
+                fm->wMouseDot->visibility()->set(true);
+            if (fm->wMouseText != NULL)
+                fm->wMouseText->visibility()->set(true);
+            sync_spectrum_mouse_dot(fm, ev);
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_spectrum_mouse_out(tk::Widget *sender, void *ptr, void *data)
+        {
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            if (self == NULL)
+                return STATUS_OK;
+
+            fft_meters_t *fm        = &self->sFftMeters;
+            if (fm->wMouseDot != NULL)
+                fm->wMouseDot->visibility()->set(false);
+            if (fm->wMouseText != NULL)
+                fm->wMouseText->visibility()->set(false);
+
+            return STATUS_OK;
+        }
+
         status_t referencer_ui::slot_spectrum_mouse_down(tk::Widget *sender, void *ptr, void *data)
         {
             referencer_ui *self = static_cast<referencer_ui *>(ptr);
@@ -892,7 +945,8 @@ namespace lsp
 
             fft_meters_t *fm        = &self->sFftMeters;
             fm->nBtnState          |= (size_t(1) << ev->nCode);
-            slot_spectrum_mouse_move(sender, ptr, data);
+
+            sync_spectrum_freq_selector(fm, ev);
 
             return STATUS_OK;
         }
@@ -922,26 +976,100 @@ namespace lsp
                 return STATUS_OK;
 
             fft_meters_t *fm        = &self->sFftMeters;
+
+            sync_spectrum_freq_selector(fm, ev);
+            sync_spectrum_mouse_dot(fm, ev);
+
+            return STATUS_OK;
+        }
+
+        void referencer_ui::sync_spectrum_freq_selector(fft_meters_t *fm, const ws::event_t *ev)
+        {
             if (fm->nBtnState != (size_t(1) << ws::MCB_LEFT))
-                return STATUS_OK;
-            if ((fm->wGraph == NULL) || (fm->wAxis == NULL) || (fm->pVerFreq == NULL))
-                return STATUS_OK;
+                return;
+            if ((fm->wGraph == NULL) || (fm->wXAxis == NULL) || (fm->pVerFreq == NULL))
+                return;
 
             // Translate coordinates
-            const ssize_t index = fm->wGraph->indexof_axis(fm->wAxis);
+            const ssize_t index = fm->wGraph->indexof_axis(fm->wXAxis);
             if (index < 0)
-                return STATUS_OK;
+                return;
 
             float freq = 0.0f;
             if (fm->wGraph->xy_to_axis(index, &freq, ev->nLeft, ev->nTop) != STATUS_OK)
-                return STATUS_OK;;
+                return;
 
             lsp_trace("Spectrum Graph apply: x=%d, y=%d, freq=%.2f", ev->nLeft, ev->nTop, freq);
 
             fm->pVerFreq->set_value(freq);
             fm->pVerFreq->notify_all(ui::PORT_USER_EDIT);
+        }
 
-            return STATUS_OK;
+        float referencer_ui::log_relation(float v, float min, float max)
+        {
+            v = (min < max) ? lsp_limit(v, min, max) : lsp_limit(v, max, min);
+            return logf(v/min) / logf(max/min);
+        }
+
+        void referencer_ui::sync_spectrum_mouse_dot(fft_meters_t *fm, const ws::event_t *ev)
+        {
+            if ((fm->wGraph == NULL) || (fm->wXAxis == NULL) || (fm->wYAxis == NULL))
+                return;
+
+            // Translate coordinates
+            const ssize_t xindex = fm->wGraph->indexof_axis(fm->wXAxis);
+            if (xindex < 0)
+                return;
+
+            const ssize_t yindex = fm->wGraph->indexof_axis(fm->wYAxis);
+            if (yindex < 0)
+                return;
+
+            float freq = 0.0f;
+            if (fm->wGraph->xy_to_axis(xindex, &freq, ev->nLeft, ev->nTop) != STATUS_OK)
+                return;
+
+            float level = 0.0f;
+            if (fm->wGraph->xy_to_axis(yindex, &level, ev->nLeft, ev->nTop) != STATUS_OK)
+                return;
+
+            lsp_trace("freq = %f, level = %f", freq, level);
+
+            // Set dot coordinates
+            if (fm->wMouseDot != NULL)
+            {
+                fm->wMouseDot->hvalue()->set_all(freq, SPEC_FREQ_MIN, SPEC_FREQ_MAX);
+                fm->wMouseDot->vvalue()->set_all(level, GAIN_AMP_M_INF_DB, GAIN_AMP_P_24_DB);
+            }
+
+            // Set text coordinates, value and alignment
+            if (fm->wMouseText != NULL)
+            {
+                fm->wMouseText->hvalue()->set(freq);
+                fm->wMouseText->vvalue()->set(level);
+                fm->wMouseText->layout()->set_halign(
+                        (freq > 10000.0f) ? 1.0f - 2.0f * log_relation(freq, 10000.0f, SPEC_FREQ_MAX) : 1.0f);
+                fm->wMouseText->layout()->set_valign(
+                        (level > GAIN_AMP_P_12_DB) ? 1.0f - 2.0f * log_relation(level, GAIN_AMP_P_12_DB, GAIN_AMP_P_24_DB) : 1.0f);
+                fm->wMouseText->text_layout()->set_halign(
+                        (freq > 10000.0f) ? 2.0f * log_relation(freq, 10000.0f, SPEC_FREQ_MAX) - 1.0f : -1.0f);
+
+                // Frequency
+                expr::Parameters params;
+                LSPString text;
+                text.fmt_ascii("%.2f", freq);
+                params.set_string("frequency", &text);
+
+                // Gain Level
+                params.set_float("level", level);
+                params.set_float("level_db", dspu::gain_to_db(level));
+
+                // Note
+                if (fmt_note_name(fm->wMouseText, &params, freq))
+                    fm->wMouseText->text()->set("lists.referencer.display.dot_full", &params);
+                else
+                    fm->wMouseText->text()->set("lists.referencer.display.dot_unknown", &params);
+            }
         }
 
     } /* namespace plugins */

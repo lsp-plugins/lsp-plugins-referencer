@@ -106,10 +106,13 @@ namespace lsp
 
                     size_t                      nBtnState;
 
-                    lltl::parray<tk::GraphText> vVerText;
-                    tk::GraphText              *wHorText;
                     tk::Graph                  *wGraph;
-                    tk::GraphAxis              *wAxis;
+                    tk::GraphText              *wHorText;
+                    tk::GraphAxis              *wXAxis;
+                    tk::GraphAxis              *wYAxis;
+                    tk::GraphDot               *wMouseDot;
+                    tk::GraphText              *wMouseText;
+                    lltl::parray<tk::GraphText> vVerText;
                 } fft_meters_t;
 
             protected:
@@ -121,6 +124,10 @@ namespace lsp
             protected:
                 static bool         waveform_transform_func(float *dst, const float *src, size_t count, tk::GraphMesh::coord_t coord, void *data);
                 static float        calc_zoom(waveform_t *wf, ssize_t x, ssize_t y, float accel);
+                static void         sync_spectrum_freq_selector(fft_meters_t *fm, const ws::event_t *ev);
+                static void         sync_spectrum_mouse_dot(fft_meters_t *fm, const ws::event_t *ev);
+                static bool         fmt_note_name(tk::Widget *w, expr::Parameters *params, float freq);
+                static float        log_relation(float v, float min, float max);
 
             protected:
                 static status_t     slot_matrix_change(tk::Widget *sender, void *ptr, void *data);
@@ -135,6 +142,8 @@ namespace lsp
                 static status_t     slot_waveform_key_up(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_waveform_key_change(tk::Widget *sender, void *ptr, void *data, bool down);
 
+                static status_t     slot_spectrum_mouse_in(tk::Widget *sender, void *ptr, void *data);
+                static status_t     slot_spectrum_mouse_out(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_spectrum_mouse_down(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_spectrum_mouse_up(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_spectrum_mouse_move(tk::Widget *sender, void *ptr, void *data);

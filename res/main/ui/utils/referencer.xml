@@ -127,7 +127,7 @@
 				<hbox spacing="4" expand="true">
 					<!-- Spectrum -->
 					<group ui:inject="GraphGroup" ipadding="0" text="lists.referencer.tab.spectrum" expand="true">
-						<graph ui:id="spectrum_graph" width.min="200" height.min="200" expand="true" fill="true">
+						<graph width.min="200" height.min="200" expand="true" fill="true">
 							<origin hpos="-1" vpos="-1" visibility="false"/>
 
 							<!-- Secondary grid -->
@@ -193,7 +193,7 @@
 							</ui:if>
 
 							<!-- Axis -->
-							<axis ui:id="spectrum_graph_ox" angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
+							<axis angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
 							<axis angle="0.5" min="-72 db" max="24 db" color="graph_prim" log="true" visibility="false"/>
 							<axis angle="0.5" min="-1" max="1" visibility="false"/>
 
@@ -1608,8 +1608,8 @@
 					<marker id="famhor" ox="1" oy="0" width="2" hwidth="2" editable="true" color="graph_marker_line" hcolor="graph_marker_line_hover" pointer="vsize" visibility=":famhorv"/>
 
 					<!-- Axis -->
-					<axis ui:id="spectrum_graph_ox" angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
-					<axis angle="0.5" min="-72 db" max="24 db" color="graph_prim" log="true" visibility="false"/>
+					<axis ui:id="freq_analysis_ox" angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
+					<axis ui:id="freq_analysis_oy" angle="0.5" min="-72 db" max="24 db" color="graph_prim" log="true" visibility="false"/>
 					<axis angle="0.5" min="-1" max="1" visibility="false"/>
 
 					<!-- Text -->
@@ -1658,6 +1658,11 @@
 					<!-- Horizontal line -->
 					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
 
+					<!-- Measure dot -->
+					<dot ui:id="freq_analysis_mouse_dot" color="graph_prim" bcolor="graph_prim" visibility="false" />
+					<text ui:id="freq_analysis_mouse_text" padding="6"
+						bg="true" bg.color="#000000" bg.color.a="0.5" color="graph_prim"
+						text="MMM" text.halign="-1" valign="1" visibility="false" />
 				</graph>
 
 				<!-- Bottom menu -->

@@ -1,6 +1,8 @@
 {
 	"referencer": {
 		"display" : {
+			"dot_full": "{@frequency} Hz\n{@note}{@octave}{@cents}\n{@level_db%+.2f} dB",
+			"dot_unknown": "{@fft_frequency} Hz\n{@level_db%+.2f} dB",
 			"full" : "{@channel}\n{@frequency} Hz\n{@note}{@octave}{@cents}\n{@level_db%+.2f} dB",
 			"unknown" : "{@channel}\n{@fft_frequency} Hz\n{@level_db%+.2f} dB"
 		},
