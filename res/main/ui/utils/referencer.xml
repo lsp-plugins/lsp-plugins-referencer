@@ -28,18 +28,20 @@
 							<hsep pad.v="2" bg.color="bg" vreduce="true"/>
 						</cell>
 						<!-- Gain matching settings -->
-						<vbox vfill="false" pad.l="6" pad.r="4" width.min="88" pad.v="4">
-							<label text="labels.gain_matching" pad.b="4"/>
-							<combo id="gmmode"/>
-						</vbox>
-
-						<hbox hfill="false" pad.l="4" pad.r="6" pad.v="4">
-							<knob id="gmreact" size="20" pad.r="4"/>
-							<vbox vfill="false" width.min="50">
-								<label text="labels.metering.reactivity" halign="0"/>
-								<value id="gmreact" sline="true" halign="0"/>
+						<ui:with bright="(:gmmode) ? 1.0 : 0.75" bg.bright="(:gmmode) ? 1.0 : :const_bg_darken">
+							<vbox vfill="false" pad.l="6" pad.r="4" width.min="88" pad.v="4">
+								<label text="labels.gain_matching" pad.b="4"/>
+								<combo id="gmmode"/>
 							</vbox>
-						</hbox>
+
+							<hbox hfill="false" pad.l="4" pad.r="6" pad.v="4">
+								<knob id="gmreact" size="20" pad.r="4" scolor="(:gmmode) ? ((:gmmode ieq 2) ? 'kscale' : 'reference_mix_1' ) : 'cycle_inactive'"/>
+								<vbox vfill="false" width.min="50">
+									<label text="labels.metering.reactivity" halign="0"/>
+									<value id="gmreact" sline="true" halign="0"/>
+								</vbox>
+							</hbox>
+						</ui:with>
 					</grid>
 				</group>
 
@@ -659,16 +661,18 @@
 								<cell rows="2">
 									<vsep vfill="true" hreduce="true" pad.h="2"/>
 								</cell>
-								<cell rows="2">
-									<button id="ls_${si}" text="lists.referencer.loop.${li}" value="${:li - 1}" pad.h="6" pad.v="4" fill="true"/>
-								</cell>
+								<ui:with bright="(:ls_${:si} ieq ${:li - 1}) ? 1.0 : 0.75" bg.bright="(:ls_${:si} ieq ${:li - 1}) ? 1.0 : :const_bg_darken">
+									<cell rows="2">
+										<button id="ls_${si}" text="lists.referencer.loop.${li}" value="${:li - 1}" pad.h="6" pad.v="4" fill="true"/>
+									</cell>
 
-								<label text="labels.sedit.loop_start"/>
-								<label text="labels.sedit.loop_end"/>
-								<fader id="lb_${si}_${li}" angle="0" max=":fl_${si}" hfill="true" hexpand="true" pad.h="6"/>
-								<fader id="le_${si}_${li}" angle="0" max=":fl_${si}" hfill="true" hexpand="true" pad.h="6"/>
-								<value id="lb_${si}_${li}" sline="true" pad.r="6"/>
-								<value id="le_${si}_${li}" sline="true" pad.r="6"/>
+									<label text="labels.sedit.loop_start"/>
+									<label text="labels.sedit.loop_end"/>
+									<fader id="lb_${si}_${li}" angle="0" max=":fl_${si}" hfill="true" hexpand="true" pad.h="6" scolor="(:ls_${:si} ieq ${:li - 1}) ? 'fader' : 'fader_inactive'"/>
+									<fader id="le_${si}_${li}" angle="0" max=":fl_${si}" hfill="true" hexpand="true" pad.h="6" scolor="(:ls_${:si} ieq ${:li - 1}) ? 'fader' : 'fader_inactive'"/>
+									<value id="lb_${si}_${li}" sline="true" pad.r="6"/>
+									<value id="le_${si}_${li}" sline="true" pad.r="6"/>
+								</ui:with>
 							</ui:for>
 						</grid>
 					</vbox>
@@ -678,105 +682,734 @@
 			<!-- Loudness -->
 			<grid rows="4" cols="7" expand="true">
 				<cell rows="2">
-					<graph width.min="640" height.min="256" expand="true" fill="true" border.size="1" border.color="bg_light">
-						<origin hpos="1" vpos="-1" visible="false"/>
-						<!-- Additional grid -->
-						<ui:for id="t" first="0" last="2" step="1">
-							<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
-							<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
-							<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
-							<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
-						</ui:for>
-
-						<ui:for id="t" first="0" last="6" step="1">
-							<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
-							<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
-						</ui:for>
-
-						<ui:for id="t" first="0" last="9" step="1">
-							<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
-						</ui:for>
-
-						<ui:with ox="1" oy="0" color="graph_alt_1">
-							<marker v="6 db"/>
-							<marker v="-6 db"/>
-							<marker v="-18 db"/>
-							<marker v="-30 db"/>
-						</ui:with>
-
-						<!-- Main grid -->
-						<ui:for id="t" first="1" last="19" step="1">
-							<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
-						</ui:for>
-
-						<ui:with ox="1" oy="0" color="graph_sec">
-							<marker v="0 db"/>
-							<marker v="-12 db"/>
-							<marker v="-24 db"/>
-						</ui:with>
-
-						<!-- Meshes -->
-						<ui:if test="ex :in_r">
-							<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis and :lmpk"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis and :lmtp"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis and :lmrms"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="14" color="reference_ref_1" visibility=":refvis and :lmmlufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="15" color="reference_ref_1" visibility=":refvis and :lmslufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="16" color="reference_ref_1" visibility=":refvis and :lmilufs"/>
-						</ui:if>
-						<ui:if test="!ex :in_r">
-							<mesh id="dmmesh" width="2" xi="0" yi="8" color="reference_ref_1" visibility=":refvis and :lmpk"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="9" color="reference_ref_1" visibility=":refvis and :lmtp"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="10" color="reference_ref_1" visibility=":refvis and :lmrms"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis and :lmmlufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis and :lmslufs"/>
-							<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis and :lmilufs"/>
-						</ui:if>
-
-						<mesh id="dmmesh" width="2" xi="0" yi="1" color="reference_mix_1" visibility=":mixvis and :lmpk"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="2" color="reference_mix_1" visibility=":mixvis and :lmtp"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="3" color="reference_mix_1" visibility=":mixvis and :lmrms"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="4" color="reference_mix_1" visibility=":mixvis and :lmmlufs"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="5" color="reference_mix_1" visibility=":mixvis and :lmslufs"/>
-						<mesh id="dmmesh" width="2" xi="0" yi="6" color="reference_mix_1" visibility=":mixvis and :lmilufs"/>
-
-						<!-- Axis -->
-						<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
-						<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
-						<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
-
-						<!-- Text -->
-						<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+					<!-- Backup group -->
+					<ui:if test="false">
+						<graph width.min="640" height.min="78" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmilufs">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
 							<ui:for id="t" first="0" last="2" step="1">
-								<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
-								<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
 							</ui:for>
-							<ui:for id="t" first="0" last="4" step="1">
-								<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
-							</ui:for>
-							<ui:for id="t" first="1" last="9" step="2">
-								<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
-							</ui:for>
-							<ui:for id="t" first="0" last="18" step="2">
-								<text x="${t}" text="${t}" color="graph_prim"/>
-							</ui:for>
-						</ui:with>
 
-						<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
-							<text y="6 db" text="6"/>
-							<text y="0 db" text="0"/>
-							<text y="-6 db" text="-6"/>
-							<text y="-12 db" text="-12"/>
-							<text y="-18 db" text="-18"/>
-							<text y="-24 db" text="-24"/>
-							<text y="-30 db" text="-30"/>
-						</ui:with>
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
 
-						<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
-							<text y="-36 db" text="graph.units.s" valign="1"/>
-							<text y="12 db" text="graph.units.db" valign="-1"/>
-						</ui:with>
-					</graph>
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis and :lmpk"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis and :lmtp"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis and :lmrms"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="14" color="reference_ref_1" visibility=":refvis and :lmmlufs"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="15" color="reference_ref_1" visibility=":refvis and :lmslufs"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="16" color="reference_ref_1" visibility=":refvis and :lmilufs"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="8" color="reference_ref_1" visibility=":refvis and :lmpk"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="9" color="reference_ref_1" visibility=":refvis and :lmtp"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="10" color="reference_ref_1" visibility=":refvis and :lmrms"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis and :lmmlufs"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis and :lmslufs"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis and :lmilufs"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="1" color="reference_mix_1" visibility=":mixvis and :lmpk"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="2" color="reference_mix_1" visibility=":mixvis and :lmtp"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="3" color="reference_mix_1" visibility=":mixvis and :lmrms"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="4" color="reference_mix_1" visibility=":mixvis and :lmmlufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="5" color="reference_mix_1" visibility=":mixvis and :lmslufs"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="6" color="reference_mix_1" visibility=":mixvis and :lmilufs"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+						</graph>
+					</ui:if>
+					<!-- end of backup group -->
+					<vbox>
+						<!-- Peak graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmpk">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="8" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="1" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.peak" color="cyan" valign="-1" halign="-1" pgroup="0" priority="0"/>
+						</graph>
+
+						<!-- True pick graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmtp">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="9" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="2" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.true_peak" color="cyan" valign="-1" halign="-1" pgroup="0" priority="0"/>
+						</graph>
+
+						<!-- Rms graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmrms">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="10" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="3" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.rms" color="cyan" valign="-1" halign="-1" pgroup="0" priority="0"/>
+						</graph>
+
+						<!-- Momentary lufs graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmmlufs">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="14" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="4" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.mlufs" color="cyan" valign="-1" halign="-1" pgroup="0" priority="0"/>
+						</graph>
+
+						<!-- Short-term lufs graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmslufs">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="15" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="5" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.slufs" color="cyan" valign="-1" halign="-1" pgroup="0" priority="0"/>
+						</graph>
+
+						<!-- Integrated lufs graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmilufs">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="16" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="6" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.ilufs" color="cyan" valign="-1" halign="-1" pgroup="0" priority="0"/>
+						</graph>
+
+						<!-- All meshes graph -->
+						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility="!(:lmpk or :lmtp or :lmrms or :lmmlufs or :lmslufs or :lmilufs)">
+							<origin hpos="1" vpos="-1" visible="false"/>
+							<!-- Additional grid -->
+							<ui:for id="t" first="0" last="2" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.125}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.375}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.625}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+								<marker ox="0" oy="1" v="${:t + 0.875}" color="graph_alt_2" visibility=":maxtime le 2.625"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="6" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.25}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+								<marker ox="0" oy="1" v="${:t + 0.75}" color="graph_alt_2" visibility=":maxtime le 5.25"/>
+							</ui:for>
+
+							<ui:for id="t" first="0" last="9" step="1">
+								<marker ox="0" oy="1" v="${:t + 0.5}" color="graph_alt_1" visibility=":maxtime le 10.5"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_alt_1">
+								<marker v="6 db"/>
+								<marker v="-6 db"/>
+								<marker v="-18 db"/>
+								<marker v="-30 db"/>
+							</ui:with>
+
+							<!-- Main grid -->
+							<ui:for id="t" first="1" last="19" step="1">
+								<marker v="${t}" ox="0" oy="1" color="graph_sec"/>
+							</ui:for>
+
+							<ui:with ox="1" oy="0" color="graph_sec">
+								<marker v="0 db"/>
+								<marker v="-12 db"/>
+								<marker v="-24 db"/>
+							</ui:with>
+
+							<!-- Meshes -->
+							<ui:if test="ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="14" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="15" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="16" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+							<ui:if test="!ex :in_r">
+								<mesh id="dmmesh" width="2" xi="0" yi="8" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="9" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="10" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="11" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="12" color="reference_ref_1" visibility=":refvis"/>
+								<mesh id="dmmesh" width="2" xi="0" yi="13" color="reference_ref_1" visibility=":refvis"/>
+							</ui:if>
+
+							<mesh id="dmmesh" width="2" xi="0" yi="1" color="reference_mix_1" visibility=":mixvis"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="2" color="reference_mix_1" visibility=":mixvis"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="3" color="reference_mix_1" visibility=":mixvis"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="4" color="reference_mix_1" visibility=":mixvis"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="5" color="reference_mix_1" visibility=":mixvis"/>
+							<mesh id="dmmesh" width="2" xi="0" yi="6" color="reference_mix_1" visibility=":mixvis"/>
+
+							<!-- Axis -->
+							<axis min="0" max=":maxtime" angle="1.0" log="false" color="graph_prim" visible="false"/>
+							<axis min="-36 db" max="12 db" angle="0.5" log="true" color="graph_prim" visible="false"/>
+							<axis min="0" max="1" angle="1.0" log="false" color="graph_prim" visible="false"/>
+
+							<!-- Text -->
+							<ui:with y="-36 db" halign="-1" valign="1" pgroup="0" priority="10">
+								<ui:for id="t" first="0" last="2" step="1">
+									<text x="${:t + 0.25}" text="${t}.25" color="graph_alt1" visibility=":maxtime le 2.625"/>
+									<text x="${:t + 0.75}" text="${t}.75" color="graph_alt1" visibility=":maxtime le 2.625"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="4" step="1">
+									<text x="${:t + 0.5}" text="${t}.5" color="graph_alt1" visibility=":maxtime le 5.25"/>
+								</ui:for>
+								<ui:for id="t" first="1" last="9" step="2">
+									<text x="${t}" text="${t}" color="graph_prim" visibility=":maxtime le 10.5"/>
+								</ui:for>
+								<ui:for id="t" first="0" last="18" step="2">
+									<text x="${t}" text="${t}" color="graph_prim"/>
+								</ui:for>
+							</ui:with>
+
+							<ui:with ox="2" x="1" halign="1" valign="1" color="graph_prim" pgroup="0" priority="10">
+								<text y="6 db" text="6"/>
+								<text y="0 db" text="0"/>
+								<text y="-6 db" text="-6"/>
+								<text y="-12 db" text="-12"/>
+								<text y="-18 db" text="-18"/>
+								<text y="-24 db" text="-24"/>
+								<text y="-30 db" text="-30"/>
+							</ui:with>
+
+							<ui:with pgroup="0" priority="0" ox="2" x="1" halign="1">
+								<text y="-36 db" text="graph.units.s" valign="1"/>
+								<text y="12 db" text="graph.units.db" valign="-1"/>
+							</ui:with>
+						</graph>
+					</vbox>
+
 				</cell>
 				<ui:with bg.color="bg_schema">
 					<label text="labels.referencer.peak" vreduce="true"/>
@@ -818,8 +1451,8 @@
 				<!-- Down panel -->
 				<cell cols="7">
 					<hbox pad.l="6" pad.r="4" pad.v="2" bg.color="bg_schema" vfill="false">
-						<button id="lmpk" text="lists.referencer.dynamics.peak"/>
 						<ui:with pad.r="4">
+							<button id="lmpk" text="lists.referencer.dynamics.peak"/>
 							<button id="lmtp" text="lists.referencer.dynamics.true_peak"/>
 							<button id="lmrms" text="lists.referencer.dynamics.rms"/>
 							<button id="lmmlufs" text="lists.referencer.dynamics.mlufs"/>
@@ -918,8 +1551,10 @@
 						<fader id="wfscmax" angle="1" hreduce="true" vexpand="true" bg.inherit="true" flat="true"/>
 						<value id="wfscmax" angle="1" hreduce="true" width="40"/>
 						<hsep pad.v="2" bg.color="bg" vreduce="true"/>
-						<fader id="wfscmin" angle="1" hreduce="true" vexpand="true" bg.inherit="true" flat="true" pad.t="4"/>
-						<value id="wfscmin" angle="1" hreduce="true" width="40"/>
+						<ui:with bright="(:wflog) ? 1.0 : 0.75" bg.bright="(:wflog) ? 1.0 : :const_bg_darken">
+							<fader id="wfscmin" angle="1" hreduce="true" vexpand="true" bg.inherit="true" flat="true" pad.t="4" scolor="(:wflog) ? 'kscale' : 'cycle_inactive'"/>
+							<value id="wfscmin" angle="1" hreduce="true" width="40"/>
+						</ui:with>
 					</vbox>
 
 					<!-- Down panel -->
@@ -944,20 +1579,26 @@
 							</vbox>
 							<vbox vreduce="true" pad.b="2" width="150" pad.r="20">
 								<hbox pad.h="2">
-									<hbox hfill="false"><label text="labels.metering.shift" pad.r="4"/><label text="labels.signal.mix"/></hbox>
+									<hbox hfill="false">
+										<label text="labels.metering.shift" pad.r="4" bright="(:mixvis) ? 1.0 : 0.75"/>
+										<label text="labels.signal.mix" bright="(:mixvis) ? 1.0 : 0.75"/>
+									</hbox>
 									<void hexpand="true"/>
-									<value id="mixwfof" sline="true"/>
+									<value id="mixwfof" sline="true" bright="(:mixvis) ? 1.0 : 0.75"/>
 								</hbox>
-								<fader id="mixwfof" scolor="reference_mix_1" angle="0" hfill="true"/>
+								<fader id="mixwfof" scolor="(:mixvis) ? 'reference_mix_1' : 'cycle_inactive'" angle="0" hfill="true"/>
 							</vbox>
 
 							<vbox vreduce="true" pad.b="2" width="150">
 								<hbox pad.h="2">
-									<hbox hfill="false"><label text="labels.metering.shift" pad.r="4"/><label text="labels.signal.reference"/></hbox>
+									<hbox hfill="false">
+										<label text="labels.metering.shift" pad.r="4" bright="(:refvis) ? 1.0 : 0.75"/>
+										<label text="labels.signal.reference" bright="(:refvis) ? 1.0 : 0.75"/>
+									</hbox>
 									<void hexpand="true"/>
-									<value id="refwfof" sline="true"/>
+									<value id="refwfof" sline="true" bright="(:refvis) ? 1.0 : 0.75"/>
 								</hbox>
-								<fader id="refwfof" angle="0" hfill="true"/>
+								<fader id="refwfof" angle="0" scolor="(:refvis) ? 'kscale' : 'cycle_inactive'" hfill="true"/>
 							</vbox>
 
 						</hbox>
@@ -1708,73 +2349,121 @@
 			</ui:if>
 		</tabs>
 
+		<ui:set id="fft_act" value="((:section ieq 0) or (:section ieq 4) or ((:section ieq 6) and (:corrdis ieq 0)) or ((:section ieq 7) and (:sterdis ieq 0)))"/>
+
+		<ui:set id="prd_act" value="((:section ieq 0) or (:section ieq 2) or (:section ieq 5) or ((:section ieq 6) and (:corrdis ieq 1)) or ((:section ieq 7) and (:sterdis ieq 1)))"/>
+
 		<!-- Bottom part analysis and filter -->
 		<hbox>
 			<group text="groups.analysis" ipadding="0">
-				<grid rows="4" cols="9" pad.l="6">
+				<grid rows="4" cols="9">
 					<!-- row 1 -->
-					<label text="labels.metering.display" pad.t="4" pad.r="6"/>
+					<label text="labels.metering.display" pad.t="4" pad.h="6" bright="(:section ine 1) ? 1.0 : 0.75" bg.bright="(:section ine 1) ? 1.0 : :const_bg_darken"/>
 					<cell rows="4">
 						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					</cell>
 					<cell cols="3">
-						<label text="labels.controls" pad.t="4"/>
+						<label text="labels.controls" pad.t="4" bright="(:section ine 1) ? 1.0 : 0.75" bg.bright="(:section ine 1) ? 1.0 : :const_bg_darken"/>
 					</cell>
 					<cell rows="4">
 						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					</cell>
-					<label text="labels.fft.window" pad.t="4" pad.l="4"/>
-					<combo id="fftwnd" pad.t="4" pad.l="6"/>
+					<ui:with bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken">
+						<label text="labels.fft.window" pad.t="4" pad.l="4"/>
+						<combo id="fftwnd" pad.t="4" pad.l="6"/>
+					</ui:with>
 
 					<cell rows="4">
-						<grid rows="4" cols="3" pad.l="6">
-							<ui:with pad.t="4" width="57">
-								<label text="labels.metering.reactivity"/>
-								<button id="fftdamp" text="labels.metering.damping" pad.h="4"/>
-								<label text="labels.metering.period"/>
+						<grid rows="4" cols="4">
+							<ui:with width="57" bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken">
+								<label text="labels.metering.reactivity" pad.l="6" pad.t="4"/>
+								<hbox>
+									<button id="fftdamp" text="labels.metering.damping" ui:inject="Button_cyan" pad.h="4" pad.r="6" pad.t="4" visibility="(${fft_act})"/>
+									<button id="fftdamp" text="labels.metering.damping" ui:inject="Button_inactive" pad.h="4" pad.r="6" pad.t="4" visibility="(!${fft_act})"/>
+								</hbox>
 							</ui:with>
-							<ui:with pad.t="4">
-								<knob id="fftrea"/>
+							<cell rows="4">
+								<vsep pad.h="2" bg.color="bg" hreduce="true"/>
+							</cell>
+							<label text="labels.metering.period" pad.t="4" width="57" bright="(${prd_act}) ? 1.0 : 0.75" bg.bright="(${prd_act}) ? 1.0 : :const_bg_darken"/>
+
+							<ui:with pad.t="4" bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken" scolor="(${fft_act}) ? 'kscale' : 'cycle_inactive'">
+								<knob id="fftrea" pad.l="6"/>
 								<knob id="fftbal"/>
-								<knob id="maxtime"/>
 							</ui:with>
-							<value id="fftrea" sline="true"/>
-							<value id="fftbal" sline="true"/>
-							<value id="maxtime" sline="true"/>
-							<void vfill="true" vexpand="true" bg.color="red"/>
-							<void vfill="true" vexpand="true" bg.color="orange"/>
-							<void vfill="true" vexpand="true" bg.color="green"/>
+							<knob id="maxtime" bright="(${prd_act}) ? 1.0 : 0.75" bg.bright="(${prd_act}) ? 1.0 : :const_bg_darken" scolor="(${prd_act}) ? 'kscale' : 'cycle_inactive'"/>
+
+							<ui:with bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken">
+								<value id="fftrea" sline="true" pad.l="6"/>
+								<value id="fftbal" sline="true"/>
+							</ui:with>
+							<value id="maxtime" sline="true" bright="(${prd_act}) ? 1.0 : 0.75" bg.bright="(${prd_act}) ? 1.0 : :const_bg_darken"/>
+
+							<ui:with bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken">
+								<void vfill="true" vexpand="true"/>
+								<void vfill="true" vexpand="true"/>
+							</ui:with>
+							<void vfill="true" vexpand="true" bright="(${prd_act}) ? 1.0 : 0.75" bg.bright="(${prd_act}) ? 1.0 : :const_bg_darken"/>
 						</grid>
 					</cell>
 
 					<!-- row 2 -->
-					<ui:with pad.t="4">
-						<button id="mixvis" hfill="true" text="labels.signal.mix" ui:inject="Button_mix" pad.r="6"/>
-						<button id="currvis" hfill="true" text="labels.signal.curr_ent" ui:inject="Button_green" pad.l="6" pad.t="4"/>
-						<button id="minvis" hfill="true" text="labels.signal.min" pad.h="4"/>
-						<button id="maxvis" hfill="true" text="labels.signal.max" pad.r="6"/>
+					<ui:with bright="(:section ine 1) ? 1.0 : 0.75" bg.bright="(:section ine 1) ? 1.0 : :const_bg_darken">
+						<hbox>
+							<button id="mixvis" hfill="true" text="lists.referencer.source.mix" ui:inject="Button_mix" pad.h="6" pad.t="4" visibility=":section ine 1"/>
+							<button id="mixvis" hfill="true" text="lists.referencer.source.mix" ui:inject="Button_inactive" pad.h="6" pad.t="4" visibility=":section ieq 1"/>
+						</hbox>
+						<hbox>
+							<button id="currvis" hfill="true" text="labels.signal.curr_ent" ui:inject="Button_green" pad.l="6" pad.t="4" visibility="(${fft_act})"/>
+							<button id="currvis" hfill="true" text="labels.signal.curr_ent" ui:inject="Button_inactive" pad.l="6" pad.t="4" visibility="(!${fft_act})"/>
+						</hbox>
+						<hbox>
+							<button id="minvis" hfill="true" text="labels.signal.min" ui:inject="Button_cyan" pad.h="4" pad.t="4" visibility="(${fft_act})"/>
+							<button id="minvis" hfill="true" text="labels.signal.min" ui:inject="Button_inactive" pad.h="4" pad.t="4" visibility="(!${fft_act})"/>
+						</hbox>
+						<hbox>
+							<button id="maxvis" hfill="true" text="labels.signal.max" ui:inject="Button_cyan" pad.r="6" pad.t="4" visibility="(${fft_act})"/>
+							<button id="maxvis" hfill="true" text="labels.signal.max" ui:inject="Button_inactive" pad.r="6" pad.t="4" visibility="(!${fft_act})"/>
+						</hbox>
+					</ui:with>
+					<ui:with bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken" pad.t="4">
 						<label text="labels.fft.tolerance" pad.l="4"/>
 						<combo id="ffttol" pad.l="6"/>
 					</ui:with>
 
 					<!-- row 3 -->
-					<ui:with pad.t="4">
-						<button id="refvis" hfill="true" text="lists.referencer.source.ref" ui:inject="Button_ref" pad.r="6"/>
-						<button id="freeze" text="labels.chan.freeze" hfill="true" pad.l="6"/>
+					<ui:with bright="(:section ine 1) ? 1.0 : 0.75" bg.bright="(:section ine 1) ? 1.0 : :const_bg_darken">
+						<hbox>
+							<button id="refvis" hfill="true" text="lists.referencer.source.ref" pad.t="4" ui:inject="Button_ref" pad.h="6" visibility=":section ine 1"/>
+							<button id="refvis" hfill="true" text="lists.referencer.source.ref" ui:inject="Button_inactive" pad.h="6" pad.t="4" visibility=":section ieq 1"/>
+						</hbox>
+						<hbox>
+							<button id="freeze" text="labels.chan.freeze" hfill="true" pad.t="4" pad.l="6" ui:inject="Button_cyan" visibility=":section ine 1"/>
+							<button id="freeze" text="labels.chan.freeze" hfill="true" pad.t="4" pad.l="6" ui:inject="Button_inactive" visibility=":section ieq 1"/>
+						</hbox>
 						<cell cols="2">
-							<button id="fftrst" text="labels.reset" hfill="true" pad.l="4" pad.r="6"/>
+							<hbox>
+								<button id="fftrst" text="labels.reset" hfill="true" pad.t="4" pad.l="4" pad.r="6" ui:inject="Button_cyan" visibility="(${fft_act})"/>
+								<button id="fftrst" text="labels.reset" hfill="true" pad.t="4" pad.l="4" pad.r="6" ui:inject="Button_inactive" visibility="(!${fft_act})"/>
+							</hbox>
 						</cell>
+					</ui:with>
+					<ui:with pad.t="4" bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken">
 						<label text="labels.fft.envelope" pad.l="4"/>
 						<combo id="fftenv" pad.l="6"/>
 					</ui:with>
 
 					<!-- row 4 Needed for proper centering of the top elements -->
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
+					<ui:with bright="(:section ine 1) ? 1.0 : 0.75" bg.bright="(:section ine 1) ? 1.0 : :const_bg_darken">
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+					</ui:with>
+					<ui:with bright="(${fft_act}) ? 1.0 : 0.75" bg.bright="(${fft_act}) ? 1.0 : :const_bg_darken">
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+					</ui:with>
 				</grid>
 			</group>
 
@@ -1782,29 +2471,33 @@
 
 			<!-- Filter -->
 			<group text="groups.filter" ipadding="0">
-				<grid rows="4" cols="7" pad.h="6" hspacing="4">
+				<grid rows="4" cols="7" pad.h="6" hspacing="4" bright="(:fsel ine 0) ? 1.0 : 0.75" bg.bright="(:fsel ine 0) ? 1.0 : :const_bg_darken">
 					<!-- Row 1 -->
 					<ui:with hfill="true" id="fsel" width.min="57" pad.t="4">
 						<button text="lists.referencer.filter.off" value="0"/>
-						<button text="lists.referencer.filter.sub_bass" value="1"/>
-						<button text="lists.referencer.filter.bass" value="2"/>
-						<button text="lists.referencer.filter.low_mid" value="3"/>
-						<button text="lists.referencer.filter.mid" value="4"/>
-						<button text="lists.referencer.filter.high_mid" value="5"/>
-						<button text="lists.referencer.filter.high" value="6"/>
+						<ui:with bright="(:fsel ine 0) ? 1.0 : 0.75" bg.bright="(:fsel ine 0) ? 1.0 : :const_bg_darken">
+							<button text="lists.referencer.filter.sub_bass" value="1"/>
+							<button text="lists.referencer.filter.bass" value="2"/>
+							<button text="lists.referencer.filter.low_mid" value="3"/>
+							<button text="lists.referencer.filter.mid" value="4"/>
+							<button text="lists.referencer.filter.high_mid" value="5"/>
+							<button text="lists.referencer.filter.high" value="6"/>
+						</ui:with>
 					</ui:with>
 
 					<!-- Row 2 -->
 					<cell cols="2" rows="2">
-						<vbox hfill="true" vfill="false" pad.t="2">
-							<combo id="fpos" hfill="true"/>
-							<hbox pad.t="4">
-								<combo id="fslope" pad.r="4" hfill="true"/>
-								<combo id="fmode"/>
-							</hbox>
-						</vbox>
+						<ui:with bright="(:fsel ine 0) ? 1.0 : 0.75" bg.bright="(:fsel ine 0) ? 1.0 : :const_bg_darken">
+							<vbox hfill="true" vfill="false" pad.t="2">
+								<combo id="fpos" hfill="true"/>
+								<hbox pad.t="4">
+									<combo id="fslope" pad.r="4" hfill="true"/>
+									<combo id="fmode"/>
+								</hbox>
+							</vbox>
+						</ui:with>
 					</cell>
-					<ui:with pad.t="4">
+					<ui:with pad.t="4" bright="(:fsel ine 0) ? 1.0 : 0.75" bg.bright="(:fsel ine 0) ? 1.0 : :const_bg_darken" scolor="(:fsel ine 0) ? 'kscale' : 'cycle_inactive'">
 						<knob id="fsub"/>
 						<knob id="fbass"/>
 						<knob id="flomid"/>
@@ -1813,20 +2506,22 @@
 					</ui:with>
 
 					<!-- Row 3 -->
-					<value id="fsub" sline="true"/>
-					<value id="fbass" sline="true"/>
-					<value id="flomid" sline="true"/>
-					<value id="fmid" sline="true"/>
-					<value id="fhimid" sline="true"/>
+					<ui:with bright="(:fsel ine 0) ? 1.0 : 0.75" bg.bright="(:fsel ine 0) ? 1.0 : :const_bg_darken">
+						<value id="fsub" sline="true"/>
+						<value id="fbass" sline="true"/>
+						<value id="flomid" sline="true"/>
+						<value id="fmid" sline="true"/>
+						<value id="fhimid" sline="true"/>
 
-					<!-- Row 4 Needed for proper centering of the top elements -->
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
-					<void vfill="true" vexpand="true"/>
+						<!-- Row 4 Needed for proper centering of the top elements -->
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+						<void vfill="true" vexpand="true"/>
+					</ui:with>
 				</grid>
 			</group>
 		</hbox>
