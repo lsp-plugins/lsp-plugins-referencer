@@ -366,8 +366,8 @@
 								</ui:if>
 								<ui:if test="!ex :in_r">
 									<ui:with id="wfmesh" width="1" xi="0" fill="true" fill.color.a="0.9">
-										<mesh yi="2" color="reference_mix_1" fill.color="reference_mix_1" visibility=":refvis"/>
-										<mesh yi="1" color="reference_ref_1" fill.color="reference_ref_1" visibility=":mixvis"/>
+										<mesh yi="1" color="reference_mix_1" fill.color="reference_mix_1" visibility=":refvis"/>
+										<mesh yi="2" color="reference_ref_1" fill.color="reference_ref_1" visibility=":mixvis"/>
 									</ui:with>
 								</ui:if>
 
@@ -1502,8 +1502,8 @@
 						</ui:if>
 						<ui:if test="!ex :in_r">
 							<ui:with id="wfmesh" width="2" xi="0" fill="true" fill.color.a="0.9">
-								<mesh ui:id="waveform_ref" yi="2" color="reference_mix_1" fill.color="reference_mix_1" visibility=":refvis"/>
-								<mesh ui:id="waveform_mix" yi="1" color="reference_ref_1" fill.color="reference_ref_1" visibility=":mixvis"/>
+								<mesh ui:id="waveform_ref" yi="1" color="reference_mix_1" fill.color="reference_mix_1" visibility=":refvis"/>
+								<mesh ui:id="waveform_mix" yi="2" color="reference_ref_1" fill.color="reference_ref_1" visibility=":mixvis"/>
 							</ui:with>
 						</ui:if>
 
