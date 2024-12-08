@@ -81,7 +81,8 @@
 						tail.visibility="false"
 						channel1.style="AudioChannel_reference_ch1"
 						channel2.style="AudioChannel_reference_ch2"
-						line.color ="reference_ch_1"
+						line.color="reference_ch_1"
+						amplitude.max="1 db"
 						length=":loop_l"
 						status=":fs_${si}"
 						loop.enabled="false"
@@ -383,7 +384,7 @@
 								</ui:with>
 
 								<ui:with y="-1.2" ox="2" oy="1" visibility=":wflen ge 1.0" halign="1" valign="1" pgroup="0" priority="10">
-									<text x="0" y="-1" text="graph.units.s" halign="-1" priority="0"/>
+									<text x="0" y="-1.2" text="graph.units.s" halign="-1" priority="0"/>
 									<ui:for id="i" first="1" last="10">
 										<text x="${:i * 0.1}" text="graph.values.x::2f" text.eval="true" text:value="${i} * :wflen * 0.1" priority="10"/>
 									</ui:for>
@@ -395,7 +396,7 @@
 									</ui:for>
 								</ui:with>
 							</graph>
-							<hbox pad.h="6" pad.v="4" vreduce="true" hfill="true">
+							<hbox pad.h="6" pad.v="7" vreduce="true" hfill="true">
 								<label text="labels.metering.frame"/>
 								<fader id="wflen" angle="0" hfill="true" hexpand="true" pad.h="4"/>
 								<value id="wflen" sline="true"/>
@@ -406,11 +407,6 @@
 					<!-- Dynamics -->
 					<group ui:inject="GraphGroup" ipadding="0" text="lists.referencer.tab.dynamics" expand="true">
 						<vbox expand="true">
-							<hbox pad.h="6" pad.v="4" bg.color="bg_schema" vfill="false">
-								<void hexpand="true"/>
-								<label text="labels.mode" pad.r="4"/>
-								<combo id="psrmode"/>
-							</hbox>
 							<hbox expand="true" width.min="200" height.min="200">
 								<graph width.min="150" height.min="200" expand="true" fill="true">
 									<origin hpos="1" vpos="-1" visible="false"/>
@@ -524,6 +520,11 @@
 									<text x=":psrthr" y="25" font.size="14" text="graph.values.x:db:f" color="threshold" text:value="20*logd(:psrthr)" text.eval="true" halign="0" valign="-1"/>
 								</graph>
 							</hbox>
+							<hbox pad.h="6" pad.v="4" bg.color="bg_schema" vfill="false">
+								<void hexpand="true"/>
+								<label text="labels.mode" pad.r="4"/>
+								<combo id="psrmode"/>
+							</hbox>
 						</vbox>
 					</group>
 					<ui:if test="ex :in_r">
@@ -547,13 +548,13 @@
 								<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
 								<marker v="-1" ox="0" oy="1" color="graph_sec"/>
 
-								<!-- Axes -->
-								<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false"/>
-								<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false"/>
-
 								<!-- Streams -->
 								<stream id="gon_r" si="0" xi="1" yi="2" width="2" color="reference_ref_1" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
 								<stream id="gon_m" si="0" xi="1" yi="2" width="2" color="reference_mix_1" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
+
+								<!-- Axes -->
+								<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false"/>
+								<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false"/>
 
 								<!-- Text -->
 								<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
@@ -603,7 +604,8 @@
 								tail.visibility="false"
 								channel1.style="AudioChannel_reference_ch1"
 								channel2.style="AudioChannel_reference_ch2"
-								line.color ="reference_ch_1"
+								line.color="reference_ch_1"
+								amplitude.max="1 db"
 								loop.enabled="true"
 								loop.color="loop_color"
 								loop.border.color="loop_border_color"
@@ -1631,13 +1633,13 @@
 								<marker v="-0.5" ox="0" oy="1" color="graph_sec"/>
 								<marker v="-1" ox="0" oy="1" color="graph_sec"/>
 
-								<!-- Axes -->
-								<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false"/>
-								<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false"/>
-
 								<!-- Streams -->
 								<stream id="gon_r" si="0" xi="1" yi="2" width="2" color="reference_ref_1" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":refvis"/>
 								<stream id="gon_m" si="0" xi="1" yi="2" width="2" color="reference_mix_1" smooth="true" strobe="true" strobes=":goniohs" dots.max=":goniond" visibility=":mixvis"/>
+
+								<!-- Axes -->
+								<axis min="-1.125" max="1.125" color="graph_prim" angle="1.0" log="false"/>
+								<axis min="-1.125" max="1.125" color="graph_prim" angle="0.5" log="false"/>
 
 								<!-- Text -->
 								<text x="1" y="1" text="labels.chan.left" halign="1" valign="-1" pgroup="0" priority="0"/>
@@ -1709,34 +1711,39 @@
 		<!-- Bottom part analysis and filter -->
 		<hbox>
 			<group text="groups.analysis" ipadding="0">
-				<grid rows="3" cols="9" pad.l="6">
+				<grid rows="4" cols="9" pad.l="6">
 					<!-- row 1 -->
 					<label text="labels.metering.display" pad.t="4" pad.r="6"/>
-					<cell rows="3">
+					<cell rows="4">
 						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					</cell>
 					<cell cols="3">
 						<label text="labels.controls" pad.t="4"/>
 					</cell>
-					<cell rows="3">
+					<cell rows="4">
 						<vsep pad.h="2" bg.color="bg" hreduce="true"/>
 					</cell>
 					<label text="labels.fft.window" pad.t="4" pad.l="4"/>
-					<combo id="fftwnd" pad.l="6" pad.t="4"/>
+					<combo id="fftwnd" pad.t="4" pad.l="6"/>
 
-					<cell rows="3">
-						<grid rows="3" cols="3" pad.l="6">
-							<ui:with width="57" pad.t="3">
+					<cell rows="4">
+						<grid rows="4" cols="3" pad.l="6">
+							<ui:with pad.t="4" width="57">
 								<label text="labels.metering.reactivity"/>
 								<button id="fftdamp" text="labels.metering.damping" pad.h="4"/>
 								<label text="labels.metering.period"/>
 							</ui:with>
-							<knob id="fftrea" pad.t="2"/>
-							<knob id="fftbal" pad.t="2"/>
-							<knob id="maxtime" pad.t="2"/>
+							<ui:with pad.t="4">
+								<knob id="fftrea"/>
+								<knob id="fftbal"/>
+								<knob id="maxtime"/>
+							</ui:with>
 							<value id="fftrea" sline="true"/>
 							<value id="fftbal" sline="true"/>
 							<value id="maxtime" sline="true"/>
+							<void vfill="true" vexpand="true" bg.color="red"/>
+							<void vfill="true" vexpand="true" bg.color="orange"/>
+							<void vfill="true" vexpand="true" bg.color="green"/>
 						</grid>
 					</cell>
 
@@ -1751,7 +1758,7 @@
 					</ui:with>
 
 					<!-- row 3 -->
-					<ui:with pad.t="4" pad.b="5">
+					<ui:with pad.t="4">
 						<button id="refvis" hfill="true" text="lists.referencer.source.ref" ui:inject="Button_ref" pad.r="6"/>
 						<button id="freeze" text="labels.chan.freeze" hfill="true" pad.l="6"/>
 						<cell cols="2">
@@ -1760,6 +1767,14 @@
 						<label text="labels.fft.envelope" pad.l="4"/>
 						<combo id="fftenv" pad.l="6"/>
 					</ui:with>
+
+					<!-- row 4 Needed for proper centering of the top elements -->
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
 				</grid>
 			</group>
 
@@ -1767,9 +1782,9 @@
 
 			<!-- Filter -->
 			<group text="groups.filter" ipadding="0">
-				<grid rows="3" cols="7" pad.h="6" hspacing="4">
+				<grid rows="4" cols="7" pad.h="6" hspacing="4">
 					<!-- Row 1 -->
-					<ui:with hfill="true" id="fsel" pad.t="4" width.min="57">
+					<ui:with hfill="true" id="fsel" width.min="57" pad.t="4">
 						<button text="lists.referencer.filter.off" value="0"/>
 						<button text="lists.referencer.filter.sub_bass" value="1"/>
 						<button text="lists.referencer.filter.bass" value="2"/>
@@ -1781,10 +1796,10 @@
 
 					<!-- Row 2 -->
 					<cell cols="2" rows="2">
-						<vbox fill="false" valign="-1" pad.t="2" pad.b="4">
-							<combo id="fpos"/>
+						<vbox hfill="true" vfill="false" pad.t="2">
+							<combo id="fpos" hfill="true"/>
 							<hbox pad.t="4">
-								<combo id="fslope" pad.r="4"/>
+								<combo id="fslope" pad.r="4" hfill="true"/>
 								<combo id="fmode"/>
 							</hbox>
 						</vbox>
@@ -1798,16 +1813,22 @@
 					</ui:with>
 
 					<!-- Row 3 -->
-					<ui:with pad.t="2">
-						<value id="fsub" sline="true"/>
-						<value id="fbass" sline="true"/>
-						<value id="flomid" sline="true"/>
-						<value id="fmid" sline="true"/>
-						<value id="fhimid" sline="true"/>
-					</ui:with>
+					<value id="fsub" sline="true"/>
+					<value id="fbass" sline="true"/>
+					<value id="flomid" sline="true"/>
+					<value id="fmid" sline="true"/>
+					<value id="fhimid" sline="true"/>
+
+					<!-- Row 4 Needed for proper centering of the top elements -->
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
+					<void vfill="true" vexpand="true"/>
 				</grid>
 			</group>
 		</hbox>
-
 	</grid>
 </plugin>
