@@ -516,8 +516,8 @@
 									</ui:with>
 
 									<!-- PSR percentage -->
-									<text x=":psrthr" y="25" font.size="14" text="graph.values.x:pc:f" color="reference_ref_1" text:value=":psrpc_r" text.eval="true" halign="0" valign="1"/>
-									<text x=":psrthr" y="75" font.size="14" text="graph.values.x:pc:f" color="reference_mix_1" text:value=":psrpc_m" text.eval="true" halign="0" valign="1"/>
+									<text x=":psrthr" y="25" font.size="14" text="graph.values.x:pc:f" color="reference_ref_1" text:value=":psrpc_r" text.eval="true" halign="0" valign="1" visibility=":refvis"/>
+									<text x=":psrthr" y="75" font.size="14" text="graph.values.x:pc:f" color="reference_mix_1" text:value=":psrpc_m" text.eval="true" halign="0" valign="1" visibility=":mixvis"/>
 									<text x=":psrthr" y="75" font.size="14" text="graph.values.x:s:2f" color="threshold" text:value=":psrtime" text.eval="true" halign="0" valign="-1"/>
 									<text x=":psrthr" y="25" font.size="14" text="graph.values.x:db:f" color="threshold" text:value="20*logd(:psrthr)" text.eval="true" halign="0" valign="-1"/>
 								</graph>
@@ -1907,8 +1907,8 @@
 						</ui:with>
 
 						<!-- PSR percentage -->
-						<text x=":psrthr" y="25" font.size="20" text="graph.values.x:pc:f" color="reference_ref_1" text:value=":psrpc_r" text.eval="true" halign="0" valign="1"/>
-						<text x=":psrthr" y="75" font.size="20" text="graph.values.x:pc:f" color="reference_mix_1" text:value=":psrpc_m" text.eval="true" halign="0" valign="1"/>
+						<text x=":psrthr" y="25" font.size="20" text="graph.values.x:pc:f" color="reference_ref_1" text:value=":psrpc_r" text.eval="true" halign="0" valign="1" visibility=":refvis"/>
+						<text x=":psrthr" y="75" font.size="20" text="graph.values.x:pc:f" color="reference_mix_1" text:value=":psrpc_m" text.eval="true" halign="0" valign="1" visibility=":mixvis"/>
 						<text x=":psrthr" y="75" font.size="20" text="graph.values.x:s:2f" color="threshold" text:value=":psrtime" text.eval="true" halign="0" valign="-1"/>
 						<text x=":psrthr" y="25" font.size="20" text="graph.values.x:db:f" color="threshold" text:value="20*logd(:psrthr)" text.eval="true" halign="0" valign="-1"/>
 					</graph>

@@ -70,7 +70,7 @@ namespace lsp
             static constexpr float  SAMPLE_LENGTH_MIN           = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX           = 1000.0f;              // Maximum sample length (s)
             static constexpr float  SAMPLE_LENGTH_DFL           = 0.0f;                 // Sample length (s)
-            static constexpr float  SAMPLE_LENGTH_STEP          = 0.01f;                // Sample step (s)
+            static constexpr float  SAMPLE_LENGTH_STEP          = 0.005f;               // Sample step (s)
 
             static constexpr float  LOOP_BEGIN_MIN              = SAMPLE_LENGTH_MIN;    // Minimum loop begin position (s)
             static constexpr float  LOOP_BEGIN_MAX              = SAMPLE_LENGTH_MAX;    // Maximum loop begin position (s)
@@ -94,38 +94,38 @@ namespace lsp
 
             static constexpr size_t LOOP_SELECTOR_MIN           = 1;                    // Minimum loop selector
             static constexpr size_t LOOP_SELECTOR_MAX           = AUDIO_LOOPS;          // Maximum loop selector
-            static constexpr size_t LOOP_SELECTOR_DFL           = LOOP_SELECTOR_MIN;// Default loop selector
+            static constexpr size_t LOOP_SELECTOR_DFL           = LOOP_SELECTOR_MIN;    // Default loop selector
             static constexpr size_t LOOP_SELECTOR_STEP          = 1;                    // Sample loop step
 
             static constexpr float  POST_SUB_BASS_MIN           = 20.0f;                // Sub-bass minimium frequency
             static constexpr float  POST_SUB_BASS_MAX           = 80.0f;                // Sub-bass maximium frequency
             static constexpr float  POST_SUB_BASS_DFL           = 60.0f;                // Sub-bass default frequency
-            static constexpr float  POST_SUB_BASS_STEP          = 0.00139f;             // post_step(POST_SUB_BASS_MIN, POST_SUB_BASS_MAX);
+            static constexpr float  POST_SUB_BASS_STEP          = 0.0007f;              // post_step(POST_SUB_BASS_MIN, POST_SUB_BASS_MAX);
 
             static constexpr float  POST_BASS_MIN               = POST_SUB_BASS_MAX;    // Bass minimium frequency
             static constexpr float  POST_BASS_MAX               = 350.0f;               // Bass maximium frequency
             static constexpr float  POST_BASS_DFL               = 250.0f;               // Bass default frequency
-            static constexpr float  POST_BASS_STEP              = 0.00148f;             // post_step(POST_BASS_MIN, POST_BASS_MAX);
+            static constexpr float  POST_BASS_STEP              = 0.0005f;              // post_step(POST_BASS_MIN, POST_BASS_MAX);
 
             static constexpr float  POST_LOW_MID_MIN            = POST_BASS_MAX;        // Low-mid minimium frequency
             static constexpr float  POST_LOW_MID_MAX            = 1000.0f;              // Low-mid maximium frequency
             static constexpr float  POST_LOW_MID_DFL            = 500.0f;               // Low-mid default frequency
-            static constexpr float  POST_LOW_MID_STEP           = 0.00105f;             // post_step(POST_LOW_MID_MIN, POST_LOW_MID_MAX);
+            static constexpr float  POST_LOW_MID_STEP           = 0.0005f;              // post_step(POST_LOW_MID_MIN, POST_LOW_MID_MAX);
 
             static constexpr float  POST_MID_MIN                = POST_LOW_MID_MAX;     // Mid minimium frequency
             static constexpr float  POST_MID_MAX                = 4000.0f;              // Mid maximium frequency
             static constexpr float  POST_MID_DFL                = 2000.0f;              // Mid default frequency
-            static constexpr float  POST_MID_STEP               = 0.00139f;             // post_step(POST_MID_MIN, POST_MID_MAX);
+            static constexpr float  POST_MID_STEP               = 0.0005f;              // post_step(POST_MID_MIN, POST_MID_MAX);
 
             static constexpr float  POST_HIGH_MID_MIN           = POST_MID_MAX;         // High-mid minimium frequency
             static constexpr float  POST_HIGH_MID_MAX           = 12000.0f;             // High-mid maximium frequency
             static constexpr float  POST_HIGH_MID_DFL           = 6000.0f;              // High-mid default frequency
-            static constexpr float  POST_HIGH_MID_STEP          = 0.00110f;             // post_step(POST_HIGH_MID_MIN, POST_HIGH_MID_MAX);
+            static constexpr float  POST_HIGH_MID_STEP          = 0.0005f;              // post_step(POST_HIGH_MID_MIN, POST_HIGH_MID_MAX);
 
             static constexpr float  DYNA_TIME_MIN               = 2.0f;                 // Minimum dynamics time
             static constexpr float  DYNA_TIME_MAX               = 20.0f;                // Maximum dynamics time
             static constexpr float  DYNA_TIME_DFL               = 5.0f;                 // Default dynamics time
-            static constexpr float  DYNA_TIME_STEP              = 0.01f;                // Dynamics time step
+            static constexpr float  DYNA_TIME_STEP              = 0.005f;               // Dynamics time step
 
             static constexpr size_t FFT_RANK_MIN                = 10;                   // Minimum FFT rank
             static constexpr size_t FFT_RANK_DFL                = 12;                   // Default FFT rank
@@ -134,12 +134,12 @@ namespace lsp
             static constexpr float  FFT_REACT_TIME_MIN          = 0.000f;               // Spectrum analysis reactivity min
             static constexpr float  FFT_REACT_TIME_MAX          = 10.000f;              // Spectrum analysis reactivity max
             static constexpr float  FFT_REACT_TIME_DFL          = 1.000f;               // Spectrum analysis reactivity default value
-            static constexpr float  FFT_REACT_TIME_STEP         = 0.001f;               // Spectrum analysis reactivity step
+            static constexpr float  FFT_REACT_TIME_STEP         = 0.004f;               // Spectrum analysis reactivity step
 
             static constexpr float  FFT_BALLISTICS_MIN          = 1.000f;               // Spectrum analysis reactivity min
             static constexpr float  FFT_BALLISTICS_MAX          = 50.000f;              // Spectrum analysis reactivity max
             static constexpr float  FFT_BALLISTICS_DFL          = 10.000f;              // Spectrum analysis reactivity default value
-            static constexpr float  FFT_BALLISTICS_STEP         = 0.01f;                // Spectrum analysis reactivity step
+            static constexpr float  FFT_BALLISTICS_STEP         = 0.001f;                // Spectrum analysis reactivity step
 
             static constexpr float  FFT_HMARK_MIN               = GAIN_AMP_M_72_DB;     // Minimum position of horizontal marker
             static constexpr float  FFT_HMARK_MAX               = GAIN_AMP_P_24_DB;     // Maximum position of horizontal marker
@@ -224,7 +224,7 @@ namespace lsp
             static constexpr float  WAVE_SIZE_MIN               = 0.005f;               // Minimum waveform frame size in seconds
             static constexpr float  WAVE_SIZE_MAX               = 2.0f;                 // Maximum waveform frame size in seconds
             static constexpr float  WAVE_SIZE_DFL               = 2.0f;                 // Default waveform frame size in seconds
-            static constexpr float  WAVE_SIZE_STEP              = 0.005f;               // Waveform frame size step in seconds
+            static constexpr float  WAVE_SIZE_STEP              = 0.002f;               // Waveform frame size step in seconds
 
             static constexpr float  WAVE_SMIN_SCALE_MIN         = -72.0f;               // Minimum waveform mesh range begin value
             static constexpr float  WAVE_SMIN_SCALE_MAX         = -12.0f;               // Maximum waveform mesh range begin value
