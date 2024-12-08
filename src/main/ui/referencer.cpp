@@ -120,6 +120,45 @@ namespace lsp
             return p;
         }
 
+        status_t referencer_ui::init_overview_group(const char *id, lltl::parray<tk::Widget> *items)
+        {
+            lltl::parray<tk::Widget> widgets;
+            status_t res = pWrapper->controller()->widgets()->query_group(id, &widgets);
+            if (res != STATUS_OK)
+                return res;
+
+            if (!items->add(&widgets))
+                return STATUS_NO_MEM;
+
+            for (size_t i=0, n=widgets.size(); i<n; ++i)
+            {
+                tk::Widget *w = widgets.uget(i);
+                if (w != NULL)
+                    w->slots()->bind(tk::SLOT_MOUSE_CLICK, slot_overview_mouse_click, this);
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t referencer_ui::init_overview()
+        {
+            overview_t *ov = &sOverview;
+
+            status_t res = init_overview_group("overview_spectrum", &ov->vSpectrum);
+            if (res == STATUS_OK)
+                res = init_overview_group("overview_loudness", &ov->vLoudness);
+            if (res == STATUS_OK)
+                res = init_overview_group("overview_correlation", &ov->vCorrelation);
+            if (res == STATUS_OK)
+                res = init_overview_group("overview_waveform", &ov->vWaveform);
+            if (res == STATUS_OK)
+                res = init_overview_group("overview_dynamics", &ov->vDynamics);
+            if (res == STATUS_OK)
+                res = init_overview_group("overview_goniometer", &ov->vGoniometer);
+
+            return res;
+        }
+
         status_t referencer_ui::init_waveform_graphs()
         {
             static const char * const graph_ids[] =
@@ -304,6 +343,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
+            LSP_STATUS_ASSERT(init_overview());
             LSP_STATUS_ASSERT(init_playback_matrix());
             LSP_STATUS_ASSERT(init_waveform_graphs());
             LSP_STATUS_ASSERT(init_fft_meters());
@@ -588,6 +628,40 @@ namespace lsp
             return true;
         }
 
+        status_t referencer_ui::on_overview_click(tk::Widget *sender, const ws::event_t *ev)
+        {
+            if (ev->nCode != ws::MCB_LEFT)
+                return STATUS_OK;
+
+            overview_t *ov = &sOverview;
+            play_matrix_t *pm = &sPlayMatrix;
+
+            if (pm->pTabSel == NULL)
+                return STATUS_OK;
+
+            ssize_t index = -1;
+            if (ov->vSpectrum.contains(sender))
+                index = meta::referencer::TAB_SPECTRUM;
+            else if (ov->vLoudness.contains(sender))
+                index = meta::referencer::TAB_LOUDNESS;
+            else if (ov->vCorrelation.contains(sender))
+                index = meta::referencer::TAB_CORRELATION;
+            else if (ov->vWaveform.contains(sender))
+                index = meta::referencer::TAB_WAVEFORM;
+            else if (ov->vDynamics.contains(sender))
+                index = meta::referencer::TAB_DYNAMICS;
+            else if (ov->vGoniometer.contains(sender))
+                index = meta::referencer::TAB_STEREO;
+
+            if (index >= 0)
+            {
+                pm->pTabSel->set_value(index);
+                pm->pTabSel->notify_all(ui::PORT_USER_EDIT);
+            }
+
+            return STATUS_OK;
+        }
+
         status_t referencer_ui::on_matrix_change(tk::Button *btn)
         {
             if (sPlayMatrix.pPlaySample == NULL)
@@ -649,6 +723,16 @@ namespace lsp
             }
 
             return STATUS_OK;
+        }
+
+        status_t referencer_ui::slot_overview_mouse_click(tk::Widget *sender, void *ptr, void *data)
+        {
+            const ws::event_t *ev = static_cast<ws::event_t *>(data);
+            if (data == NULL)
+                return STATUS_OK;
+
+            referencer_ui *self = static_cast<referencer_ui *>(ptr);
+            return (self != NULL) ? self->on_overview_click(sender, ev) : STATUS_OK;
         }
 
         status_t referencer_ui::slot_matrix_change(tk::Widget *sender, void *ptr, void *data)

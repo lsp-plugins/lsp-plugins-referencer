@@ -49,6 +49,16 @@ namespace lsp
                     ui::IPort                      *pEnd;
                 } sample_loop_t;
 
+                typedef struct overview_t
+                {
+                    lltl::parray<tk::Widget>        vSpectrum;
+                    lltl::parray<tk::Widget>        vLoudness;
+                    lltl::parray<tk::Widget>        vCorrelation;
+                    lltl::parray<tk::Widget>        vWaveform;
+                    lltl::parray<tk::Widget>        vDynamics;
+                    lltl::parray<tk::Widget>        vGoniometer;
+                } overview_t;
+
                 typedef struct sample_loader_t
                 {
                     ui::IPort                      *pStatus;                // Status of sample loading
@@ -116,6 +126,7 @@ namespace lsp
                 } fft_meters_t;
 
             protected:
+                overview_t                  sOverview;
                 play_matrix_t               sPlayMatrix;
                 waveform_t                  sWaveform;
                 fft_meters_t                sFftMeters;
@@ -130,6 +141,8 @@ namespace lsp
                 static float        log_relation(float v, float min, float max);
 
             protected:
+                static status_t     slot_overview_mouse_click(tk::Widget *sender, void *ptr, void *data);
+
                 static status_t     slot_matrix_change(tk::Widget *sender, void *ptr, void *data);
                 static status_t     slot_loop_submit(tk::Widget *sender, void *ptr, void *data);
 
@@ -149,6 +162,8 @@ namespace lsp
                 static status_t     slot_spectrum_mouse_move(tk::Widget *sender, void *ptr, void *data);
 
             protected:
+                status_t            on_overview_click(tk::Widget *sender, const ws::event_t *ev);
+
                 status_t            on_matrix_change(tk::Button *btn);
                 status_t            on_view_submit(tk::AudioSample *s);
 
@@ -166,6 +181,10 @@ namespace lsp
                 void                sync_matrix_state(ui::IPort *port, size_t flags);
                 void                sync_waveform_state(ui::IPort *port, size_t flags);
                 void                sync_meter_state(ui::IPort *port);
+
+                status_t            init_overview_group(const char *id, lltl::parray<tk::Widget> *items);
+
+                status_t            init_overview();
                 status_t            init_waveform_graphs();
                 status_t            init_playback_matrix();
                 status_t            init_fft_meters();
