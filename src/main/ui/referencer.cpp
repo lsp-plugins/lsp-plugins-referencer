@@ -91,7 +91,6 @@ namespace lsp
             fm->nBtnState       = 0;
 
             fm->wHorText        = NULL;
-            fm->wVerText        = NULL;
             fm->wGraph          = NULL;
             fm->wAxis           = NULL;
 
@@ -246,6 +245,26 @@ namespace lsp
 
         status_t referencer_ui::init_fft_meters()
         {
+            static const char * const ver_meters_mono[] =
+            {
+                "freq_analysis_ver_mix",
+                "freq_analysis_ver_ref",
+                NULL
+            };
+
+            static const char * const ver_meters_stereo[] =
+            {
+                "freq_analysis_ver_mix_left",
+                "freq_analysis_ver_mix_right",
+                "freq_analysis_ver_mix_mid",
+                "freq_analysis_ver_mix_side",
+                "freq_analysis_ver_ref_left",
+                "freq_analysis_ver_ref_right",
+                "freq_analysis_ver_ref_mid",
+                "freq_analysis_ver_ref_side",
+                NULL
+            };
+
             fft_meters_t *fm    = &sFftMeters;
 
             fm->pHorLevel       = bind_port("famhor");
@@ -253,10 +272,12 @@ namespace lsp
             fm->pVerFreq        = bind_port("famver");
             fm->pVerMeter       = bind_port("famverv");
 
-            fm->wHorText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_hor");
-            fm->wVerText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_ver");
             fm->wGraph          = pWrapper->controller()->widgets()->get<tk::Graph>("spectrum_graph");
+            fm->wHorText        = pWrapper->controller()->widgets()->get<tk::GraphText>("freq_analysis_hor");
             fm->wAxis           = pWrapper->controller()->widgets()->get<tk::GraphAxis>("spectrum_graph_ox");
+
+            for (const char * const * pm = (bStereo) ? ver_meters_stereo : ver_meters_mono; *pm != NULL; ++pm)
+                fm->vVerText.add(pWrapper->controller()->widgets()->get<tk::GraphText>(*pm));
 
             if (fm->wGraph != NULL)
             {
@@ -450,61 +471,66 @@ namespace lsp
             if (((fm->pVerFreq != NULL) && (fm->pVerMeter != NULL) && (fm->pVerSel != NULL)) &&
                 ((port == NULL) || (port == fm->pVerFreq) || (port == fm->pVerMeter) || (port == fm->pVerSel)))
             {
-                float freq = fm->pVerFreq->value();
-                float level = fm->pVerMeter->value();
-
-                // Update the note name displayed in the text
-                // Fill the parameters
-                expr::Parameters params;
-                tk::prop::String snote;
-                LSPString text;
-                snote.bind(fm->wVerText->style(), pDisplay->dictionary());
-                SET_LOCALE_SCOPED(LC_NUMERIC, "C");
-
-                // Channels
-                text.fmt_ascii("lists.referencer.fft.%s", get_channel_key(fm->pVerSel->value()));
-                snote.set(&text);
-                snote.format(&text);
-                params.set_string("channel", &text);
-
-                // Frequency
-                text.fmt_ascii("%.2f", freq);
-                params.set_string("frequency", &text);
-
-                // Gain Level
-                params.set_float("level", level);
-                params.set_float("level_db", dspu::gain_to_db(level));
-
-                // Note
-                float note_full = dspu::frequency_to_note(freq);
-                if (note_full != dspu::NOTE_OUT_OF_RANGE)
+                const size_t channel = fm->pVerSel->value();
+                tk::GraphText *ver_text = fm->vVerText.get(channel);
+                if (ver_text != NULL)
                 {
-                    note_full += 0.5f;
-                    ssize_t note_number = ssize_t(note_full);
+                    float freq = fm->pVerFreq->value();
+                    float level = fm->pVerMeter->value();
 
-                    // Note name
-                    ssize_t note        = note_number % 12;
-                    text.fmt_ascii("lists.notes.names.%s", note_names[note]);
+                    // Update the note name displayed in the text
+                    // Fill the parameters
+                    expr::Parameters params;
+                    tk::prop::String snote;
+                    LSPString text;
+                    snote.bind(ver_text->style(), pDisplay->dictionary());
+                    SET_LOCALE_SCOPED(LC_NUMERIC, "C");
+
+                    // Channels
+                    text.fmt_ascii("lists.referencer.fft.%s", get_channel_key(channel));
                     snote.set(&text);
                     snote.format(&text);
-                    params.set_string("note", &text);
+                    params.set_string("channel", &text);
 
-                    // Octave number
-                    ssize_t octave      = (note_number / 12) - 1;
-                    params.set_int("octave", octave);
+                    // Frequency
+                    text.fmt_ascii("%.2f", freq);
+                    params.set_string("frequency", &text);
 
-                    // Cents
-                    ssize_t note_cents  = (note_full - float(note_number)) * 100 - 50;
-                    if (note_cents < 0)
-                        text.fmt_ascii(" - %02d", -note_cents);
+                    // Gain Level
+                    params.set_float("level", level);
+                    params.set_float("level_db", dspu::gain_to_db(level));
+
+                    // Note
+                    float note_full = dspu::frequency_to_note(freq);
+                    if (note_full != dspu::NOTE_OUT_OF_RANGE)
+                    {
+                        note_full += 0.5f;
+                        ssize_t note_number = ssize_t(note_full);
+
+                        // Note name
+                        ssize_t note        = note_number % 12;
+                        text.fmt_ascii("lists.notes.names.%s", note_names[note]);
+                        snote.set(&text);
+                        snote.format(&text);
+                        params.set_string("note", &text);
+
+                        // Octave number
+                        ssize_t octave      = (note_number / 12) - 1;
+                        params.set_int("octave", octave);
+
+                        // Cents
+                        ssize_t note_cents  = (note_full - float(note_number)) * 100 - 50;
+                        if (note_cents < 0)
+                            text.fmt_ascii(" - %02d", -note_cents);
+                        else
+                            text.fmt_ascii(" + %02d", note_cents);
+                        params.set_string("cents", &text);
+
+                        ver_text->text()->set("lists.referencer.display.full", &params);
+                    }
                     else
-                        text.fmt_ascii(" + %02d", note_cents);
-                    params.set_string("cents", &text);
-
-                    fm->wVerText->text()->set("lists.referencer.display.full", &params);
+                        ver_text->text()->set("lists.referencer.display.unknown", &params);
                 }
-                else
-                    fm->wVerText->text()->set("lists.referencer.display.unknown", &params);
             }
         }
 

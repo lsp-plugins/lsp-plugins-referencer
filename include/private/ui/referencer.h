@@ -106,8 +106,8 @@ namespace lsp
 
                     size_t                      nBtnState;
 
+                    lltl::parray<tk::GraphText> vVerText;
                     tk::GraphText              *wHorText;
-                    tk::GraphText              *wVerText;
                     tk::Graph                  *wGraph;
                     tk::GraphAxis              *wAxis;
                 } fft_meters_t;

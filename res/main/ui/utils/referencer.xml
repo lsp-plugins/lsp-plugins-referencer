@@ -127,7 +127,7 @@
 				<hbox spacing="4" expand="true">
 					<!-- Spectrum -->
 					<group ui:inject="GraphGroup" ipadding="0" text="lists.referencer.tab.spectrum" expand="true">
-						<graph width.min="200" height.min="200" expand="true" fill="true">
+						<graph ui:id="spectrum_graph" width.min="200" height.min="200" expand="true" fill="true">
 							<origin hpos="-1" vpos="-1" visibility="false"/>
 
 							<!-- Secondary grid -->
@@ -1635,15 +1635,25 @@
 					<text x="10" y="1" ox="0" oy="2" text="graph.units.db" halign="1" valign="-1"/>
 
 					<!-- Vertical line -->
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_1" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 2"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_2" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 3"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_3" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 1"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_mix_4" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 0"/>
-
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_1" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 6"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_2" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 7"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_3" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 5"/>
-					<text ui:id="freq_analysis_ver" x=":famver" y="1" ox="0" oy="2" text="YYY" color="reference_ref_4" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1" visibility=":famvers ieq 4"/>
+					<ui:if test="ex :in_r">
+						<ui:with x=":famver" y="1" ox="0" oy="2" text="" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1">
+							<text ui:id="freq_analysis_ver_mix_mid" color="reference_mix_1" visibility=":famvers ieq 2"/>
+							<text ui:id="freq_analysis_ver_mix_side" color="reference_mix_2" visibility=":famvers ieq 3"/>
+							<text ui:id="freq_analysis_ver_mix_right" color="reference_mix_3" visibility=":famvers ieq 1"/>
+							<text ui:id="freq_analysis_ver_mix_left" color="reference_mix_4" visibility=":famvers ieq 0"/>
+		
+							<text ui:id="freq_analysis_ver_ref_mid" color="reference_ref_1" visibility=":famvers ieq 6"/>
+							<text ui:id="freq_analysis_ver_ref_side" color="reference_ref_2" visibility=":famvers ieq 7"/>
+							<text ui:id="freq_analysis_ver_ref_right" color="reference_ref_3" visibility=":famvers ieq 5"/>
+							<text ui:id="freq_analysis_ver_ref_left" color="reference_ref_4" visibility=":famvers ieq 4"/>
+						</ui:with>
+					</ui:if>
+					<ui:if test="!ex :in_r">
+						<ui:with x=":famver" y="1" ox="0" oy="2" text="" valign="-1" halign="(:famver lt 500) ? 1 : -1" text.halign="(:famver lt 500) ? -1 : 1">
+							<text ui:id="freq_analysis_ver_mix" color="reference_mix_1" visibility=":famvers ieq 0"/>
+							<text ui:id="freq_analysis_ver_ref" color="reference_ref_1" visibility=":famvers ieq 1"/>
+						</ui:with>
+					</ui:if>
 
 					<!-- Horizontal line -->
 					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="XXX" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
