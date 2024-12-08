@@ -1656,7 +1656,7 @@
 					</ui:if>
 
 					<!-- Horizontal line -->
-					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="XXX" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
+					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
 
 				</graph>
 
