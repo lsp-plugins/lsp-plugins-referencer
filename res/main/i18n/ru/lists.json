@@ -5,6 +5,7 @@
 			"unknown" : "{@channel}\n{@fft_frequency} Гц\n{@level_db%+.2f} дБ"
 		},
 		"dynamics": {
+			"all": "Все значения",
 			"ilufs": "Интегрированный LUFS",
 			"mlufs": "Моментальный LUFS",
 			"peak": "Пик",

@@ -5,6 +5,7 @@
 			"unknown" : "{@channel}\n{@fft_frequency} Hz\n{@level_db%+.2f} dB"
 		},
 		"dynamics": {
+			"all": "All values",
 			"ilufs": "Integrated LUFS",
 			"mlufs": "Momentary LUFS",
 			"peak": "Peak",
