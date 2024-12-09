@@ -127,7 +127,7 @@
 				<hbox spacing="4" expand="true">
 					<!-- Spectrum -->
 					<group ui:group="overview_spectrum" ui:inject="GraphGroup" ipadding="0" text="lists.referencer.tab.spectrum" expand="true">
-						<graph ui:group="overview_spectrum" width.min="200" height.min="200" expand="true" fill="true">
+						<graph ui:group="overview_spectrum" ui:id="overview_spectrum_graph" width.min="200" height.min="200" expand="true" fill="true">
 							<origin hpos="-1" vpos="-1" visibility="false"/>
 
 							<!-- Secondary grid -->
@@ -193,8 +193,8 @@
 							</ui:if>
 
 							<!-- Axis -->
-							<axis angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
-							<axis angle="0.5" min="-72 db" max="24 db" color="graph_prim" log="true" visibility="false"/>
+							<axis ui:id="overview_spectrum_graph_ox" angle="0.0" min="10" max="24000" color="graph_prim" log="true" visibility="false"/>
+							<axis ui:id="overview_spectrum_graph_oy" angle="0.5" min="-72 db" max="24 db" color="graph_prim" log="true" visibility="false"/>
 							<axis angle="0.5" min="-1" max="1" visibility="false"/>
 
 							<!-- Text -->
@@ -218,6 +218,10 @@
 							<ui:for id="t" first="-60" last="0" step="12">
 								<text x="10" y="${t} db" text="${t}" halign="1" valign="1" priority="0"/>
 							</ui:for>
+							
+							<text ui:id="overview_spectrum_mouse_text" ui:inject="Graph_Mouse_Text"
+								x="24000" y="1" ox="0" oy="2"
+								text="" text.halign="1" halign="-1" valign="-1" visibility="false"/>
 						</graph>
 					</group>
 
@@ -1661,7 +1665,7 @@
 					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
 
 					<!-- Measure mouse text -->
-					<text ui:id="freq_analysis_mouse_text" ui:inject="Graph_Mouse_Text" text="MMM" text.halign="-1" valign="1" visibility="false"/>
+					<text ui:id="freq_analysis_mouse_text" ui:inject="Graph_Mouse_Text" text="" text.halign="-1" valign="1" visibility="false"/>
 				</graph>
 
 				<!-- Bottom menu -->

@@ -117,11 +117,14 @@ namespace lsp
                     size_t                      nBtnState;
 
                     tk::Graph                  *wGraph;
+                    tk::Graph                  *wOverviewGraph;
                     tk::GraphText              *wHorText;
                     tk::GraphAxis              *wXAxis;
                     tk::GraphAxis              *wYAxis;
-                    tk::GraphDot               *wMouseDot;
                     tk::GraphText              *wMouseText;
+                    tk::GraphAxis              *wOverviewXAxis;
+                    tk::GraphAxis              *wOverviewYAxis;
+                    tk::GraphText              *wOverviewText;
                     lltl::parray<tk::GraphText> vVerText;
                 } fft_meters_t;
 
@@ -137,6 +140,7 @@ namespace lsp
                 static float        calc_zoom(waveform_t *wf, ssize_t x, ssize_t y, float accel);
                 static void         sync_spectrum_freq_selector(fft_meters_t *fm, const ws::event_t *ev);
                 static void         sync_spectrum_mouse_dot(fft_meters_t *fm, const ws::event_t *ev);
+                static void         sync_overview_spectrum_mouse_text(fft_meters_t *fm, const ws::event_t *ev);
                 static bool         fmt_note_name(tk::Widget *w, expr::Parameters *params, float freq);
                 static float        log_relation(float v, float min, float max);
 
