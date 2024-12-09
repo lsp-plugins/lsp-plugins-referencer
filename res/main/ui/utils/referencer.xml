@@ -769,7 +769,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.peak" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.peak" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 
 						<!-- True pick graph -->
@@ -856,7 +856,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.true_peak" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.true_peak" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 
 						<!-- Rms graph -->
@@ -943,7 +943,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.rms" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.rms" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 
 						<!-- Momentary lufs graph -->
@@ -1030,7 +1030,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.mlufs" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.mlufs" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 
 						<!-- Short-term lufs graph -->
@@ -1117,7 +1117,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.slufs" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.slufs" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 
 						<!-- Integrated lufs graph -->
@@ -1204,7 +1204,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.ilufs" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.ilufs" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 
 						<!-- All meshes graph -->
@@ -1306,7 +1306,7 @@
 								<text y="-36 db" text="graph.units.s" valign="1"/>
 								<text y="12 db" text="graph.units.db" valign="-1"/>
 							</ui:with>
-							<text x="0" y="12 db" text="lists.referencer.dynamics.all" valign="-1" halign="-1" pgroup="0" priority="0"/>
+							<text x="0" y="12 db" text="lists.referencer.dynamics.all" valign="-1" halign="-1" pgroup="0" priority="0" ui:inject="Graph_Name_Text"/>
 						</graph>
 					</vbox>
 
@@ -1643,7 +1643,7 @@
 							<text ui:id="freq_analysis_ver_mix_side" color="reference_mix_2" visibility=":famvers ieq 3"/>
 							<text ui:id="freq_analysis_ver_mix_right" color="reference_mix_3" visibility=":famvers ieq 1"/>
 							<text ui:id="freq_analysis_ver_mix_left" color="reference_mix_4" visibility=":famvers ieq 0"/>
-		
+
 							<text ui:id="freq_analysis_ver_ref_mid" color="reference_ref_1" visibility=":famvers ieq 6"/>
 							<text ui:id="freq_analysis_ver_ref_side" color="reference_ref_2" visibility=":famvers ieq 7"/>
 							<text ui:id="freq_analysis_ver_ref_right" color="reference_ref_3" visibility=":famvers ieq 5"/>
@@ -1660,11 +1660,8 @@
 					<!-- Horizontal line -->
 					<text ui:id="freq_analysis_hor" x="24000" y=":famhor" ox="0" oy="1" text="" color="graph_marker_line" halign="-1" valign="(:famhor lt -24 db) ? 1 : -1" visibility=":famhorv"/>
 
-					<!-- Measure dot -->
-					<dot ui:id="freq_analysis_mouse_dot" color="graph_prim" bcolor="graph_prim" visibility="false" />
-					<text ui:id="freq_analysis_mouse_text" padding="6"
-						bg="true" bg.color="#000000" bg.color.a="0.5" color="graph_prim"
-						text="MMM" text.halign="-1" valign="1" visibility="false" />
+					<!-- Measure mouse text -->
+					<text ui:id="freq_analysis_mouse_text" ui:inject="Graph_Mouse_Text" text="MMM" text.halign="-1" valign="1" visibility="false"/>
 				</graph>
 
 				<!-- Bottom menu -->
