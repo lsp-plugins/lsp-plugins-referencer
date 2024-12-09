@@ -23,6 +23,7 @@
 #include <lsp-plug.in/dsp-units/units.h>
 #include <lsp-plug.in/plug-fw/ui.h>
 #include <lsp-plug.in/stdlib/locale.h>
+#include <lsp-plug.in/tk/helpers/keyboard.h>
 
 #include <private/meta/referencer.h>
 #include <private/ui/referencer.h>
@@ -820,8 +821,25 @@ namespace lsp
             wf->wGraph->get_rectangle(&rect);
 
             const float delta       = wf->nMouseY - y;
-            const float range       = accel * (meta::referencer::WAVE_SMAX_SCALE_MAX - meta::referencer::WAVE_SMAX_SCALE_MIN) * 2.0f;
+            const float range       = accel * (meta::referencer::WAVE_SMAX_SCALE_MAX - meta::referencer::WAVE_SMAX_SCALE_MIN);
             return wf->fOldZoom - range * delta / rect.nHeight;
+        }
+
+        void referencer_ui::apply_waveform_shift(ui::IPort *p_shift, float *shift, ssize_t delta)
+        {
+            ws::rectangle_t rect;
+            waveform_t *wf      = &sWaveform;
+            wf->wGraph->get_rectangle(&rect);
+
+            // Apply horizontal shift
+            if ((wf->pTimePeriod != NULL) && (p_shift != NULL))
+            {
+                const float len     = wf->pTimePeriod->value();
+                float dx            = (delta * len) / rect.nWidth;
+
+                p_shift->set_value(*shift + dx);
+                p_shift->notify_all(ui::PORT_USER_EDIT);
+            }
         }
 
         status_t referencer_ui::slot_waveform_mouse_move(tk::Widget *sender, void *ptr, void *data)
@@ -838,40 +856,33 @@ namespace lsp
             if (wf->pTimePeriod == NULL)
                 return false;
 
-            // Compute acceleration
-            float accel         = 1.0f;
-            if (ev->nState & ws::MCF_CONTROL)
-                accel               = (wf->nBtnState == ws::MCF_RIGHT) ? 1.0f : 10.0f;
-            else if (ev->nState & ws::MCF_SHIFT)
-                accel               = (wf->nBtnState == ws::MCF_LEFT) ? 0.1f : 1.0f;
-            else
-                accel               = (wf->nBtnState == ws::MCF_RIGHT) ? 0.1f : 1.0f;
-
-            if ((wf->nBtnState == ws::MCF_LEFT) || (wf->nBtnState == ws::MCF_RIGHT))
+            // Perform drag
+            if (wf->nBtnState == ws::MCF_LEFT)
             {
-                ws::rectangle_t rect;
-                wf->wGraph->get_rectangle(&rect);
-
-                // Apply horizontal shift
-                const bool use_ref  = wf->nKeyState & KS_ALT;
-                lsp_trace("use_ref = %s, key_state=0x%x", (use_ref) ? "true" : "false", int(wf->nKeyState));
-
-                ui::IPort *p_shift  = (use_ref) ? wf->pRefShift : wf->pMixShift;
-                if ((wf->pTimePeriod != NULL) && (p_shift != NULL))
+                const ssize_t h_shift     = ev->nLeft - wf->nMouseX;
+                if (wf->nKeyState & tk::KM_CTRL)
+                    self->apply_waveform_shift(wf->pRefShift, &wf->fOldRefShift, h_shift);
+                else if (wf->nKeyState & tk::KM_SHIFT)
+                    self->apply_waveform_shift(wf->pMixShift, &wf->fOldMixShift, h_shift);
+                else
                 {
-                    ssize_t h_shift     = ev->nLeft - wf->nMouseX;
-                    float *shift        = (use_ref) ? &wf->fOldRefShift: &wf->fOldMixShift;
-                    const float len     = wf->pTimePeriod->value();
-                    float dx            = (h_shift * accel * len) / rect.nWidth;
-
-                    p_shift->set_value(*shift + dx);
-                    p_shift->notify_all(ui::PORT_USER_EDIT);
+                    self->apply_waveform_shift(wf->pRefShift, &wf->fOldRefShift, h_shift);
+                    self->apply_waveform_shift(wf->pMixShift, &wf->fOldMixShift, h_shift);
                 }
+            }
+            else if (wf->nBtnState == ws::MCF_RIGHT)
+            {
+                // Compute acceleration
+                float accel         = 1.0f;
+                if (ev->nState & ws::MCF_CONTROL)
+                    accel               = 10.0f;
+                else if (ev->nState & ws::MCF_SHIFT)
+                    accel               = 0.1f;
 
                 // Apply vertical shift
                 if (wf->pZoomMax != NULL)
                 {
-                    const float zoom    = calc_zoom(wf, ev->nLeft, ev->nTop, lsp_min(accel, 1.0f));
+                    const float zoom    = calc_zoom(wf, ev->nLeft, ev->nTop, accel);
 
                     wf->pZoomMax->set_value(zoom);
                     wf->pZoomMax->notify_all(ui::PORT_USER_EDIT);
@@ -891,6 +902,15 @@ namespace lsp
             return slot_waveform_key_change(sender, ptr, data, false);
         }
 
+        bool referencer_ui::key_state_changed(size_t ostate, size_t nstate)
+        {
+            if (bool(ostate & tk::KM_CTRL) != bool(nstate & tk::KM_CTRL))
+                return true;
+            if (bool(ostate & tk::KM_SHIFT) != bool(nstate & tk::KM_SHIFT))
+                return true;
+            return false;
+        }
+
         status_t referencer_ui::slot_waveform_key_change(tk::Widget *sender, void *ptr, void *data, bool down)
         {
             referencer_ui *self = static_cast<referencer_ui *>(ptr);
@@ -905,24 +925,24 @@ namespace lsp
             if (wf->pTimePeriod == NULL)
                 return false;
 
-            size_t state        = wf->nKeyState;
-
-            if (ev->nCode == ws::WSK_ALT_L)
-                state               = lsp_setflag(state, KS_ALT_LEFT, down);
-            if (ev->nCode == ws::WSK_ALT_R)
-                state               = lsp_setflag(state, KS_ALT_RIGHT, down);
-
-            if ((state ^ wf->nKeyState) & KS_ALT)
+            size_t state            = wf->nKeyState;
+            tk::key_modifier_t km   = tk::key_code_to_modifier(ev->nCode);
+            if (km != tk::KM_NONE)
             {
-                wf->nMouseX         = ev->nLeft;
-                wf->nMouseY         = ev->nTop;
+                state               = lsp_setflag(state, km, down);
 
-                wf->fOldMixShift    = (wf->pMixShift != NULL) ? wf->pMixShift->value() : 0.0f;
-                wf->fOldRefShift    = (wf->pRefShift != NULL) ? wf->pRefShift->value() : 0.0f;
+                if (key_state_changed(wf->nKeyState, state))
+                {
+                    wf->nMouseX         = ev->nLeft;
+                    wf->nMouseY         = ev->nTop;
+
+                    wf->fOldMixShift    = (wf->pMixShift != NULL) ? wf->pMixShift->value() : 0.0f;
+                    wf->fOldRefShift    = (wf->pRefShift != NULL) ? wf->pRefShift->value() : 0.0f;
+                }
+                wf->nKeyState       = state;
+
+                lsp_trace(" key_state=0x%x", int(wf->nKeyState));
             }
-            wf->nKeyState       = state;
-
-            lsp_trace(" key_state=0x%x", int(wf->nKeyState));
 
             return STATUS_OK;
         }

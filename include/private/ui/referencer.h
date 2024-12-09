@@ -35,14 +35,6 @@ namespace lsp
         class referencer_ui: public ui::Module, public ui::IPortListener
         {
             protected:
-                enum key_state_t
-                {
-                    KS_ALT_LEFT     = 1 << 0,
-                    KS_ALT_RIGHT    = 1 << 1,
-
-                    KS_ALT          = KS_ALT_LEFT | KS_ALT_RIGHT
-                };
-
                 typedef struct sample_loop_t
                 {
                     ui::IPort                      *pStart;
@@ -143,6 +135,7 @@ namespace lsp
                 static void         sync_overview_spectrum_mouse_text(fft_meters_t *fm, const ws::event_t *ev);
                 static bool         fmt_note_name(tk::Widget *w, expr::Parameters *params, float freq);
                 static float        log_relation(float v, float min, float max);
+                static bool         key_state_changed(size_t ostate, size_t nstate);
 
             protected:
                 static status_t     slot_overview_mouse_click(tk::Widget *sender, void *ptr, void *data);
@@ -185,6 +178,7 @@ namespace lsp
                 void                sync_matrix_state(ui::IPort *port, size_t flags);
                 void                sync_waveform_state(ui::IPort *port, size_t flags);
                 void                sync_meter_state(ui::IPort *port);
+                void                apply_waveform_shift(ui::IPort *p_shift, float *shift, ssize_t delta);
 
                 status_t            init_overview_group(const char *id, lltl::parray<tk::Widget> *items);
 
