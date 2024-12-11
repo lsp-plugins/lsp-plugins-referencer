@@ -129,7 +129,7 @@ namespace lsp
             lltl::parray<tk::Widget> widgets;
             status_t res = pWrapper->controller()->widgets()->query_group(id, &widgets);
             if (res != STATUS_OK)
-                return res;
+                return (res == STATUS_NOT_FOUND) ? STATUS_OK : res;
 
             if (!items->add(&widgets))
                 return STATUS_NO_MEM;
