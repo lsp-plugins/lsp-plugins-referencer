@@ -126,3 +126,139 @@ a file, and each button in a row is associated with the loop.</p>
 	</ul>
 </ul>
 
+<p>All analysis tools are split into several tabs:</p>
+<ul>
+	<li><b>Overview</b> - the short overview of most useful analysis operations</li>
+	<li><b>Samples</b> - the tab for loading audio references and configuring loops</li>
+	<li><b>Loudness</b> - the loudness analysis</li>
+	<li><b>Waveform</b> - the waveform analysis</li>
+	<li><b>Spectrum</b> - the spectrum analysis</li>
+	<li><b>Dynamics</b> - the analysis of dynamics of the signal</li>
+<?php if ($m == 's') { ?>
+	<li><b>Correlation</b> - the analysis of correlation</li>
+	<li><b>Stereo</b> - different stereo analysis tools</li>
+<?php } ?>
+</ul>
+
+<p>The <b>Overview</b> tab contains sections with elements from other tabs which are the following:</p>
+<ul>
+	<li><b>Spectrum</b> - the spectrum graph of mix and reference signals.</li>
+	<li><b>Loudness</b> - the peak, RMS and LUFS meters. For more information see the description of '<b>Loudness</b>' tab.</li>
+<?php if ($m == 's') { ?>
+	<li><b>Correlation</b> - the common correlation and spectral correlation. For more information see the description of '<b>Correlation</b>' tab.</li>
+<?php } ?>
+	<li><b>Waveform</b> - the waveform of the mix and reference signals. For more information see the '<b>Waveform</b>' tab.</li>
+	<li><b>Dynamics</b> - the dynamics analysis. For more information see the '<b>Dynamics</b>' tab.</li>
+<?php if ($m == 's') { ?>
+	<li><b>Goniometer</b> - the goniometer graph. For more information see the '<b>Stereo</b>' tab.</li>
+<?php } ?>
+</ul>
+<p>The <b>Overivew</b> tab is useful for understanding the whole image about mix without significant details. Clicking on the corresponding
+section allows to quickly switch to the desired tab.</p>
+
+<p>The <b>Samples</b> tab contains graphs from other tabs which are the following:</p>
+<ul>
+	<li><b>Sample</b> - the sample combo group with the sample widget. Allows to select current sample and load it's contents from the file.</li>
+	<li><b>Gain</b> - allows to adjust the loudness of the loaded audio sample.</li>
+	<li><b>Loop 1</b> - <b>Loop 4</b> - buttons that allow to display the range of the selected loop.</li>
+	<li><b>Loop 1 Start</b> - <b>Loop 4 Start</b> - the start position of the corresponding loop.</li>
+	<li><b>Loop 1 End</b> - <b>Loop 4 End</b> - the end position of the corresponding loop.</li>
+</ul>
+
+<p>The <b>Loudness</b> tab allows to show time graph and meters for following values:</p>
+<ul>
+	<li><b>Peak (PK)</b> - the actual Peak value of the signal.</li>
+	<li><b>True Peak (TP)</b> - the True Peak value of the signal as defined by BS.1770-5 specification.</li>
+	<li><b>RMS (RMS)</b> - the RMS value of the signal.</li>
+	<li><b>Momentary LUFS (M)</b> - the momentary LUFS value as defined by BS.1770-5 specification.</li>
+	<li><b>Short-Term LUFS (S)</b> - the short-term LUFS value as defined by BS.1770-5 specification.</li>
+	<li><b>Integrated LUFS (I)</b> - the integrated LUFS value (with gating) as defined by BS.1770-5 specification.</li>
+</ul>
+<p>The <b>Loudness</b> tabs contains following controls:</p>
+<ul>
+	<li><b>Peak</b> - the button that enables time graph with peak measurements.</li>
+	<li><b>True Peak</b> - the button that enables time graph with true peak measurements.</li>
+	<li><b>RMS</b> - the button that enables time graph with RMS measurements.</li>
+	<li><b>Momentary LUFS</b> - the button that enables time graph with momentary LUFS measurements..</li>
+	<li><b>Short-Term LUFS</b> - the button that enables time graph with short-term LUFS measurements.</li>
+	<li><b>Integrated LUFS</b> - the button that enables time graph with integrated LUFS measurements.</li>
+	<li><b>Integration</b> - the fader that allows to control the integration period for the integrated LUFS.</li>
+</ul>
+
+<p>The <b>Waveform</b> tab contains graphs with waveform analysis of the signal:</p>
+<ul>
+	<li><b>Zoom</b> - faders that allow to set up the upper threshold and lower threshold (if logarithmic scale is enabled).</li>
+<?php if ($m == 's') { ?>
+	<li><b>Left</b> - enables display of waveform for the left channel.</li>
+	<li><b>Right</b> - enables display of waveform for the right channel.</li>
+	<li><b>Mid</b> - enables display of waveform for the middle component of the signal.</li>
+	<li><b>Side</b> - enables display of waveform for the side component of the signal.</li>
+<?php } ?>
+	<li><b>Log scale</b> - enables logarithmic scale for the signal.</li>
+	<li><b>Frame</b> - sets the size of the time frame to display the waveform.</li>
+	<li><b>Shift Mix</b> - additional time shift for the mix signal.</li>
+	<li><b>Shift Reference</b> - additional time shift for the reference signal.</li>
+</ul>
+<p>The <b>zoom</b> also can be adjusted by clicking the grap with the right mouse button and moving mouse pointer up and down.</p>
+<p>Alternative way to adjust mix and reference shifts can be achieved by clicking the graph with the left mouse button and
+moving mouse pointer left and right. By default both Mix and Reference are moved. Holding the 'Shift' key allows to adjust the
+shift of the mix only. Holding the 'Ctrl' key allows to adjust the shift of the reference only.</p>
+<p>The size of the frame can be adjusted by applying mouse scroll on the graph. Holding the `Ctrl` key will accelerate the setup while
+holding the 'Shift' key will decelerate the setup.</p>
+
+<p>The <b>Spectrum</b> tab show the spectrum analysis of the selected signal:</p>
+<ul>
+<?php if ($m == 's') { ?>
+	<li><b>Left</b> - enables display of waveform for the left channel.</li>
+	<li><b>Right</b> - enables display of waveform for the right channel.</li>
+	<li><b>Mid</b> - enables display of waveform for the middle component of the signal.</li>
+	<li><b>Side</b> - enables display of waveform for the side component of the signal.</li>
+<?php } ?>
+	<li><b>Measure button</b> - enables additional horizontal line for measurements.</li>
+	<li><b>Measure combo</b> - selects the source for which the vertical line on the graph will display frequency, note and current level.</li>
+</ul>
+<p>Moving the mouse over the graph shows the frequency, the note and the level on the graph the mouse pointer is pointing at current moment.</p>
+<p>Clicking the graph will set the vertical measurement line to the corresponding position of the click.</p> 
+
+<p>The <b>Dynamics</b> tab allows to analyze the micro-dynamics of the signal.</p>
+<p>The advantage of the PSR value is that it does not depend on the loudness of the analyzed signal and allows to analyze the overall
+compression applied to the Mix and Reference signals. The lower PRS value is, the less microdynamics has the track.</p>
+<p>The following controls are available:</p>
+<ul>
+	<li><b>Time graph</b> - displays the change of the PSR value in the time.</li>
+	<li><b>Meters</b> - display current PRS value for Mix and Reference signals.</li>
+	<li><b>Distribution graph</b> - displays the density, frequency distribution or normalized frequency distribution of the PSR value across the time.</li>
+	<li><b>Mode</b> - allows to select the graph to be displayed on the distribution graph:</li>
+	<ul>
+		<li><b>Density</b> - the graph displays the amount of time (in percents) the PSR value is higher than corresponding level.</li>
+		<li><b>Frequency</b> - the graph displays the amount of time (in percents) the PSR value is equal to the corresponding level.</li>
+		<li><b>Normalized</b> - same to the <b>Frequency</b> but values are normalized to consider the highest peak having the value 100% on the graph.</li>
+	</ul>
+	<li><b>Threshold</b> - the threshold that allows to control the specific point on the distribution graph to estimate the amount of time the PRS value is larger than specified threshold.</li>
+	<li><b>Period</b> - the period of time used to compute chart for the distribution graph.</li>
+</ul>
+
+<?php if ($m == 's') { ?>
+<p>The <b>Correlation</b> tab allows to analyze the overall correlation and frequency-domain correlation between left and right channels of the stereo track:</p>
+<ul>
+	<li><b>Mode</b> - allows to select the graph to be displayed:</li>
+	<ul>
+		<li><b>Spectrum</b> - displays the spectrum correlation graph.</li>
+		<li><b>History</b> - displays the overall correlation changes in the time.</li>
+	</ul>
+</ul>
+
+<p>The <b>Stereo</b> tab allows to perform some stereo analysis of the signal</p>:
+<ul>
+	<li><b>Mode</b> - the mode of the graph displayed on the left side of the tab:</li>
+	<ul>
+		<li><b>L/R Panorama</b> - displays the panorama position between the left and right channel.</li>
+		<li><b>M/S Balance</b> - displays the balance between Mid and Side components of the signal.</li>
+		<li><b>Spectrum</b> - displays the values across the whole frequency range.</li>
+		<li><b>History</b> - displays how the value is changed in the time for the whole stereo signal.</li>
+	</ul>
+	<li><b>Goniometer</b> - the goniometer that allows to look at the stereo image of the track.</li>
+	<li><b>Max History</b> - the maximum history (number of block) for drawing.</li>
+	<li><b>Max Dots</b> - the maximum number of dots for drawing.</li>
+</ul>
+<?php } ?>
