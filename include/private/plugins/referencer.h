@@ -255,7 +255,7 @@ namespace lsp
                 {
                     dspu::Sidechain     sRMSMeter;                                  // RMS meter
                     dspu::TruePeakMeter sTPMeter[2];                                // True Peak meters
-                    dspu::Delay         sTPDelay;                                   // True Peak delay
+                    dspu::Delay         sPSRDelay;                                  // PSR measurement Peak delay
                     dspu::LoudnessMeter sAutogainMeter;                             // Short-term LUFS meter for Autogain matching
                     dspu::LoudnessMeter sMLUFSMeter;                                // Momentary LUFS meter
                     dspu::LoudnessMeter sSLUFSMeter;                                // Short-term LUFS meter
@@ -269,7 +269,7 @@ namespace lsp
 
                     float              *vLoudness;                                  // Measured short-term loudness
                     float               fGain;                                      // Current gain
-                    double              fTPLevel;                                   // True-peak level
+                    double              fPSRLevel;                                  // Current peak value for PSR measurement
                     uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
 
                     plug::IPort        *pMeters[DM_TOTAL];                          // Output meters
@@ -302,7 +302,7 @@ namespace lsp
                 uint32_t            nGonioPeriod;                               // Goniometer period
                 uint32_t            nPsrMode;                                   // PSR display mode
                 uint32_t            nPsrThresh;                                 // PSR threshold (index)
-                double              fTPDecay;                                   // True-peak decay for PSR
+                double              fPSRDecay;                                  // Peak decay for PSR measurement
                 bool                bPlay;                                      // Play
                 bool                bSyncLoopMesh;                              // Sync loop mesh
                 bool                bUpdFft;                                    // Update FFT-related data

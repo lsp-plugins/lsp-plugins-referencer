@@ -129,7 +129,7 @@ namespace lsp
             nGonioPeriod        = 0;
             nPsrMode            = PSR_DENSITY;
             nPsrThresh          = 0;
-            fTPDecay            = 0.0f;
+            fPSRDecay            = 0.0f;
             bPlay               = false;
             bSyncLoopMesh       = true;
             bUpdFft             = true;
@@ -213,7 +213,7 @@ namespace lsp
 
                 dm->vLoudness       = NULL;
                 dm->fGain           = GAIN_AMP_0_DB;
-                dm->fTPLevel        = 0.0;
+                dm->fPSRLevel        = 0.0;
                 dm->nGonioStrobe    = 0;
                 dm->pGoniometer     = NULL;
 
@@ -673,7 +673,7 @@ namespace lsp
                 dm->sRMSMeter.destroy();
                 dm->sTPMeter[0].destroy();
                 dm->sTPMeter[1].destroy();
-                dm->sTPDelay.destroy();
+                dm->sPSRDelay.destroy();
                 dm->sAutogainMeter.destroy();
                 dm->sMLUFSMeter.destroy();
                 dm->sSLUFSMeter.destroy();
@@ -717,7 +717,7 @@ namespace lsp
             nCrossfadeTime      = dspu::millis_to_samples(fSampleRate, meta::referencer::CROSSFADE_TIME);
             bUpdFft             = true;
             const double tpd    = double(meta::referencer::PSR_TRUE_PEAK_DECAY * 0.1 * M_LN10) / double(sr);
-            fTPDecay            = exp(tpd);
+            fPSRDecay            = exp(tpd);
 
             sMix.fGain          = sMix.fNewGain;
             sMix.fOldGain       = sMix.fNewGain;
@@ -795,8 +795,8 @@ namespace lsp
                 dm->sILUFSMeter.set_sample_rate(sr);
 
                 const size_t delay      = dspu::millis_to_samples(fSampleRate, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.5f);
-                dm->sTPDelay.init(delay + BUFFER_SIZE);
-                dm->sTPDelay.set_delay(0); //delay - dm->sTPMeter[0].latency());
+                dm->sPSRDelay.init(delay + BUFFER_SIZE);
+                dm->sPSRDelay.set_delay(0); //delay - dm->sTPMeter[0].latency());
 
                 dm->sCorrMeter.init(corr_period);
                 dm->sCorrMeter.set_period(corr_period);
@@ -828,7 +828,7 @@ namespace lsp
 
                 dm->vGraphs[DM_CORR].set_method(dspu::MM_SIGN_MAXIMUM);
 
-                dm->fTPLevel            = 0.0f;
+                dm->fPSRLevel            = 0.0f;
                 dm->nGonioStrobe        = nGonioPeriod;
             }
         }
@@ -1979,7 +1979,7 @@ namespace lsp
                 dsp::pmax2(b1, b2, samples);
                 dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
 
-                dm->sTPDelay.process(b1, b1, samples);
+                dm->sPSRDelay.process(b1, b1, samples);
 
                 // Compute RMS values
                 dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
@@ -2012,14 +2012,14 @@ namespace lsp
                 // Capture waveform
                 dm->vWaveform[WF_LEFT].push(l, samples);
 
-                // Compute Peak values
-                dsp::abs2(b1, l, samples);
-                dm->vGraphs[DM_PEAK].process(b1, samples);
-
                 // Compute True Peak values
                 dm->sTPMeter[0].process(b1, l, samples);
                 dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
-                dm->sTPDelay.process(b1, b1, samples);
+
+                // Compute Peak values
+                dsp::abs2(b1, l, samples);
+                dm->vGraphs[DM_PEAK].process(b1, samples);
+                dm->sPSRDelay.process(b1, b1, samples);
 
                 // Compute RMS values
                 dm->sRMSMeter.process(b2, const_cast<const float **>(in), samples);
@@ -2041,19 +2041,40 @@ namespace lsp
                 dm->vGraphs[DM_S_LUFS].process(b2, samples);
             }
 
-            // Now b1 contains True Peak value and b2 contains short-term LUFS value
-            // Compute the PSR value as True Peak / LUFS
+            // Now b1 contains Sample Peak value and b2 contains short-term LUFS value
+            // Compute the PSR value as 'Peak / Short-Term LUFS' as defined in AES 143 EB 373:
+            // "We propose that the PSR of an audio track be
+            //  defined as the real­time difference between the
+            //  Sample Peak level of the audio (measured in dBFS
+            //  with an instant rise and 0.5 dB/s decay) and the
+            //  Short­-term loudness as defined in EBU Tech Doc
+            //  3341[7], with negative values clamped to 0".
+            //
+            // "By selecting Sample Peak for PSR instead of True
+            //  Peak, the meter offers an intuitive indication of the
+            //  micro­dynamics of the audio. The intention of PSR
+            //  is to provide a minimum, “worst case” metric for
+            //  micro­dynamics, and Sample Peak works best for
+            //  this purpose. In contrast, the use of True Peak values
+            //  when calculating PSR would result in larger values
+            //  in some circumstances that reflect intersample
+            //  peaks[6] caused by increased distortion rather than
+            //  genuine musical micro­dynamics. Even when the
+            //  PLR value seems healthy, low PSR values indicate
+            //  that the audio is more “crushed” (i.e. that the
+            //  short-­term loudness has been pushed closer to the
+            //  Sample Peak value, often by limiting or clipping)".
             for (size_t i=0; i<samples; ++i)
             {
-                const double peak   = lsp_max(double(b1[i]), dm->fTPLevel * fTPDecay);
+                const float peak    = lsp_max(double(b1[i]), dm->fPSRLevel * fPSRDecay);
                 const float lufs    = b2[i];
 
-                const float psr     = (lufs >= GAIN_AMP_M_72_DB) ? float(peak) / lufs : GAIN_AMP_M_3_DB;
+                const float psr     = (lufs >= GAIN_AMP_M_72_DB) ? peak / lufs : GAIN_AMP_M_3_DB;
                 const float psr_db  = dspu::gain_to_db(lsp_max(psr, 0.0f));
 
                 b1[i]               = psr;
                 b2[i]               = psr_db;
-                dm->fTPLevel        = peak;
+                dm->fPSRLevel       = peak;
             }
 
             dm->vGraphs[DM_PSR].process(b1, samples);
