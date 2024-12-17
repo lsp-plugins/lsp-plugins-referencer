@@ -372,6 +372,12 @@ namespace lsp
                 static void         set_loop_range(loop_t *al, ssize_t begin, ssize_t end, ssize_t limit);
 
             protected:
+                void                dump_channels(dspu::IStateDumper *v) const;
+                void                dump_asource(dspu::IStateDumper *v, const char *name, const asource_t *as) const;
+                void                dump_dyna_meters(dspu::IStateDumper *v) const;
+                void                dump_fft_meters(dspu::IStateDumper *v) const;
+
+            protected:
                 status_t            load_file(afile_t *file);
                 stereo_mode_t       decode_stereo_mode(size_t mode);
                 void                unload_afile(afile_t *file);

@@ -381,7 +381,7 @@ namespace lsp
             "referencer",
             "Referencer",
             B_UTILITIES,
-            "", // TODO: provide ID of the video on YouTube
+            "jWO6FrCrbdw",
             "Referencer plugin allows you to load your preferred reference files and compare them with your mix"
         };
 

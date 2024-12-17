@@ -2572,13 +2572,8 @@ namespace lsp
             }
         }
 
-        void referencer::dump(dspu::IStateDumper *v) const
+        void referencer::dump_channels(dspu::IStateDumper *v) const
         {
-            plug::Module::dump(v);
-
-            // TODO: write proper dump
-
-            v->write("nChannels", nChannels);
             v->begin_array("vChannels", vChannels, nChannels);
             for (size_t i=0; i<nChannels; ++i)
             {
@@ -2587,6 +2582,13 @@ namespace lsp
                 v->begin_object(c, sizeof(channel_t));
                 {
                     v->write_object("sBypass", &c->sBypass);
+                    v->write_object_array("vPreFilters", c->vPreFilters, 2);
+                    v->write_object("sPostFilter", &c->sPostFilter);
+
+                    v->write("vIn", c->vIn);
+                    v->write("vOut", c->vOut);
+                    v->write("vBuffer", c->vBuffer);
+                    v->write("vInBuffer", c->vInBuffer);
 
                     v->write("pIn", c->pIn);
                     v->write("pOut", c->pOut);
@@ -2594,8 +2596,169 @@ namespace lsp
                 v->end_object();
             }
             v->end_array();
+        }
+
+        void referencer::dump_asource(dspu::IStateDumper *v, const char *name, const asource_t *as) const
+        {
+            v->begin_object(name, as, sizeof(asource_t));
+
+            v->write("fGain", as->fGain);
+            v->write("fOldGain", as->fOldGain);
+            v->write("fNewGain", as->fNewGain);
+            v->write("nTransition", as->nTransition);
+            v->write("fWaveformOff", as->fWaveformOff);
+            v->write("pFrameOffset", as->pFrameOffset);
+
+            v->end_object();
+        }
+
+        void referencer::dump_dyna_meters(dspu::IStateDumper *v) const
+        {
+            v->begin_array("vDynaMeters", vDynaMeters, 2);
+            for (size_t i=0; i<2; ++i)
+            {
+                const dyna_meters_t *dm     = &vDynaMeters[i];
+
+                v->begin_object(dm, sizeof(dyna_meters_t));
+                {
+                    v->write_object("sRMSMeter", &dm->sRMSMeter);
+                    v->write_object_array("sTPMeter", dm->sTPMeter, 2);
+                    v->write_object("sPSRDelay", &dm->sPSRDelay);
+                    v->write_object("sAutogainMeter", &dm->sAutogainMeter);
+                    v->write_object("sMLUFSMeter", &dm->sMLUFSMeter);
+                    v->write_object("sSLUFSMeter", &dm->sSLUFSMeter);
+                    v->write_object("sILUFSMeter", &dm->sILUFSMeter);
+                    v->write_object("sCorrMeter", &dm->sCorrMeter);
+                    v->write_object("sPanometer", &dm->sPanometer);
+                    v->write_object("sMsBalance", &dm->sMsBalance);
+                    v->write_object("sPSRStats", &dm->sPSRStats);
+                    v->write_object_array("vWaveform", dm->vWaveform, WF_TOTAL);
+                    v->write_object_array("vGraphs", dm->vGraphs, DM_TOTAL);
+
+                    v->write("vLoudness", dm->vLoudness);
+                    v->write("fGain", dm->fGain);
+                    v->write("fPSRLevel", dm->fPSRLevel);
+                    v->write("nGonioStrobe", dm->nGonioStrobe);
+
+                    v->writev("pMeters", dm->pMeters, DM_TOTAL);
+                    v->write("pGoniometer", dm->pGoniometer);
+                    v->write("pPsrPcValue", dm->pPsrPcValue);
+                }
+                v->end_object();
+            }
+            v->end_array();
+        }
+
+        void referencer::dump_fft_meters(dspu::IStateDumper *v) const
+        {
+            v->begin_array("vFftMeters", vFftMeters, 2);
+            for (size_t i=0; i<2; ++i)
+            {
+                const fft_meters_t *fm  = &vFftMeters[i];
+
+                v->begin_object(fm, sizeof(fft_meters_t));
+                {
+                    v->writev("vHistory", fm->vHistory, 2);
+                    v->write("nFftPeriod", fm->nFftPeriod);
+                    v->write("nFftFrame", fm->nFftFrame);
+                    v->write("nFftHistory", fm->nFftHistory);
+
+                    v->begin_array("vGraphs", fm->vGraphs, FG_TOTAL);
+                    for (size_t j=0; j<2; ++j)
+                    {
+                        const fft_graph_t *fg   = &fm->vGraphs[j];
+
+                        v->begin_object(fg, sizeof(fft_graph_t));
+                        {
+                            v->writev("vData", fg->vData, FT_TOTAL);
+                        }
+                        v->end_object();
+                    }
+                    v->end_array();
+                }
+                v->end_object();
+            }
+            v->end_array();
+        }
+
+        void referencer::dump(dspu::IStateDumper *v) const
+        {
+            plug::Module::dump(v);
+
+            v->write("nChannels", nChannels);
+            v->write("nPlaySample", nPlaySample);
+            v->write("nPlayLoop", nPlayLoop);
+            v->write("nGainMatching", nGainMatching);
+            v->write("fGainMatchGrow", fGainMatchGrow);
+            v->write("fGainMatchFall", fGainMatchFall);
+            v->write("nCrossfadeTime", nCrossfadeTime);
+            v->write("fMaxTime", fMaxTime);
+            v->write("enMode", enMode);
+            v->write("fWaveformLen", fWaveformLen);
+            v->write("nFftRank", nFftRank);
+            v->write("nFftWindow", nFftWindow);
+            v->write("nFftEnvelope", nFftEnvelope);
+            v->write("fFftTau", fFftTau);
+            v->write("fFftBal", fFftBal);
+            v->write("nFftSrc", nFftSrc);
+            v->write("nGonioPeriod", nGonioPeriod);
+            v->write("nPsrMode", nPsrMode);
+            v->write("nPsrThresh", nPsrThresh);
+            v->write("fPSRDecay", fPSRDecay);
+            v->write("bPlay", bPlay);
+            v->write("bSyncLoopMesh", bSyncLoopMesh);
+            v->write("bUpdFft", bUpdFft);
+            v->write("bFftDamping", bFftDamping);
+            v->write("bFreeze", bFreeze);
+
+            v->write("vBuffer", vBuffer);
+            v->write("vFftFreqs", vFftFreqs);
+            v->write("vFftInds", vFftInds);
+            v->write("vFftWindow", vFftWindow);
+            v->write("vFftEnvelope", vFftEnvelope);
+            v->write("vPsrLevels", vPsrLevels);
+
+            dump_channels(v);
+            dump_asource(v, "sMix", &sMix);
+            v->write("pExecutor", pExecutor);
+            dump_dyna_meters(v);
+            dump_fft_meters(v);
 
             v->write("pBypass", pBypass);
+            v->write("pFreeze", pFreeze);
+            v->write("pPlay", pPlay);
+            v->write("pPlayLoop", pPlayLoop);
+            v->write("pSource", pSource);
+            v->write("pLoopMesh", pLoopMesh);
+            v->write("pLoopLen", pLoopLen);
+            v->write("pLoopPos", pLoopPos);
+            v->write("pGainMatching", pGainMatching);
+            v->write("pGainMatchReact", pGainMatchReact);
+            v->write("pMode", pMode);
+            v->write("pFltPos", pFltPos);
+            v->write("pFltMode", pFltMode);
+            v->write("pFltSel", pFltSel);
+            v->writev("pFltSplit", pFltSplit, meta::referencer::FLT_SPLITS);
+            v->write("pMaxTime", pMaxTime);
+            v->write("pILUFSTime", pILUFSTime);
+            v->write("pDynaMesh", pDynaMesh);
+            v->write("pWaveformMesh", pWaveformMesh);
+            v->write("pFrameLength", pFrameLength);
+            v->write("pFftRank", pFftRank);
+            v->write("pFftWindow", pFftWindow);
+            v->write("pFftEnvelope", pFftEnvelope);
+            v->write("pFftReactivity", pFftReactivity);
+            v->write("pFftDamping", pFftDamping);
+            v->write("pFftReset", pFftReset);
+            v->write("pFftBallistics", pFftBallistics);
+            v->writev("pFftMesh", pFftMesh, 3);
+            v->write("pFftVMarkSrc", pFftVMarkSrc);
+            v->write("pFftVMarkFreq", pFftVMarkFreq);
+            v->write("pFftVMarkVal", pFftVMarkVal);
+            v->write("pPsrPeriod", pPsrPeriod);
+            v->write("pPsrThreshold", pPsrThreshold);
+            v->write("pPsrMesh", pPsrMesh);
+            v->write("pPsrDisplay", pPsrDisplay);
 
             v->write("pData", pData);
         }
