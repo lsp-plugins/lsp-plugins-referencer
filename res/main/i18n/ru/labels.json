@@ -1,0 +1,14 @@
+{
+	"referencer": {
+		"goniometer": "Гониометр",
+		"ilufs": "I",
+		"mlufs": "M",
+		"monitoring_mode": "Режим прослушивания",
+		"peak": "PK",
+		"psr" : "PSR",
+		"rms": "СКЗ",
+		"sample_loop_matrix": "Матрица сэмплов и лупов",
+		"slufs": "S",
+		"true_peak": "TP"
+	}
+}

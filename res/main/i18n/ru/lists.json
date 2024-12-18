@@ -1,0 +1,100 @@
+{
+	"referencer": {
+		"display" : {
+			"dot_full": "{@frequency} Hz\n{@note}{@octave}{@cents}\n{@level_db%+.2f} дБ",
+			"dot_unknown": "{@fft_frequency} Hz\n{@level_db%+.2f} дБ",
+			"full" : "{@channel}\n{@frequency} Гц\n{@note}{@octave}{@cents}\n{@level_db%+.2f} дБ",
+			"unknown" : "{@channel}\n{@fft_frequency} Гц\n{@level_db%+.2f} дБ"
+		},
+		"dynamics": {
+			"all": "Все значения",
+			"ilufs": "Интегрированный LUFS",
+			"mlufs": "Моментальный LUFS",
+			"peak": "Пик",
+			"psr" : "PSR",
+			"rms": "СКЗ",
+			"slufs": "Короткий LUFS",
+			"true_peak": "Истинный пик"
+		},
+		"filter": {
+			"bass": "Бас",
+			"high": "Верх",
+			"high_mid": "Верх сер",
+			"low_mid": "Ниж сер",
+			"mid": "Сер",
+			"off": "Выкл",
+			"sub_bass": "Суббас"
+		},
+		"fft": {
+			"mix": "Микс",
+			"mix_left": "Микс левый",
+			"mix_mid": "Микс середина",
+			"mix_right": "Микс правый",
+			"mix_side": "Микс сторона",
+			"ref": "Референс",
+			"ref_left": "Референс левый",
+			"ref_mid": "Референс середина",
+			"ref_right": "Референс правый",
+			"ref_side": "Сторона"
+		},
+		"graph": {
+			"history" : "История",
+			"spectrum" : "Спектр"
+		},
+		"loop": {
+			"1": "Петля 1",
+			"2": "Петля 2",
+			"3": "Петля 3",
+			"4": "Петля 4"
+		},
+		"matching": {
+			"mix": "Микс",
+			"none": "Нет",
+			"reference": "Референс"
+		},
+		"mode": {
+			"left": "Левый",
+			"left_only": "Только левый",
+			"mid_side": "Мид/Сайд",
+			"mono": "Моно",			
+			"reverse_stereo": "Реверс стерео",
+			"right": "Правый",
+			"right_only": "Только правый",
+			"side": "Сайд",
+			"side_mid": "Сайд/Мид",
+			"sides": "Стороны",
+			"stereo": "Стерео"
+		},
+		"psr": {
+			"density": "Плотность",
+			"frequency": "Частота",
+			"normalized": "Нормализованное"
+		},
+		"sample": {
+			"1": "Семпл 1",
+			"2": "Семпл 2",
+			"3": "Семпл 3",
+			"4": "Семпл 4"
+		},
+		"source": {
+			"mix": "Микс",
+			"ref": "Реф",
+			"reference": "Референс",
+			"both": "Вместе"
+		},
+		"stereo": {
+			"lr_panorama": "Панормам Л/П",
+			"ms_balance": "Баланс Ц/С"
+		},
+		"tab": {
+			"correlation": "Корреляция",
+			"dynamics": "Динамика",
+			"loudness": "Громкость",
+			"overview": "Обзор",
+			"samples": "Семплы",
+			"spectrum": "Спектр",
+			"stereo": "Стерео",
+			"waveform": "Форма волны"
+		}
+	}
+}

@@ -1,0 +1,100 @@
+{
+	"referencer": {
+		"display" : {
+			"dot_full": "{@frequency} Hz\n{@note}{@octave}{@cents}\n{@level_db%+.2f} dB",
+			"dot_unknown": "{@fft_frequency} Hz\n{@level_db%+.2f} dB",
+			"full" : "{@channel}\n{@frequency} Hz\n{@note}{@octave}{@cents}\n{@level_db%+.2f} dB",
+			"unknown" : "{@channel}\n{@fft_frequency} Hz\n{@level_db%+.2f} dB"
+		},
+		"dynamics": {
+			"all": "All values",
+			"ilufs": "Integrated LUFS",
+			"mlufs": "Momentary LUFS",
+			"peak": "Peak",
+			"psr" : "PSR",
+			"rms": "RMS",
+			"slufs": "Short-term LUFS",
+			"true_peak": "True Peak"
+		},
+		"fft": {
+			"mix": "Mix",
+			"mix_left": "Mix Left",
+			"mix_mid": "Mix Mid",
+			"mix_right": "Mix Right",
+			"mix_side": "Mix Side",
+			"ref": "Reference",
+			"ref_left": "Reference Left",
+			"ref_mid": "Reference Mid",
+			"ref_right": "Reference Right",
+			"ref_side": "Reference Side"
+		},
+		"filter": {
+			"bass": "Bass",
+			"high": "High",
+			"high_mid": "High Mid",
+			"low_mid": "Low Mid",
+			"mid": "Mid",
+			"off": "Off",
+			"sub_bass": "Sub Bass"
+		},
+		"graph": {
+			"history" : "History",
+			"spectrum" : "Spectrum"
+		},
+		"loop": {
+			"1": "Loop 1",
+			"2": "Loop 2",
+			"3": "Loop 3",
+			"4": "Loop 4"
+		},
+		"matching": {
+			"mix": "Mix",
+			"none": "None",
+			"reference": "Reference"
+		},
+		"mode": {
+			"left": "Left",
+			"left_only": "Left Only",
+			"mid_side": "Mid/Side",
+			"mono": "Mono",			
+			"reverse_stereo": "Reverse Stereo",
+			"right": "Right",
+			"right_only": "Right Only",
+			"side": "Side",
+			"side_mid": "Side/Mid",
+			"sides": "Sides",
+			"stereo": "Stereo"
+		},
+		"psr": {
+			"density": "Density",
+			"frequency": "Frequency",
+			"normalized": "Normalized"
+		},
+		"sample": {
+			"1": "Sample 1",
+			"2": "Sample 2",
+			"3": "Sample 3",
+			"4": "Sample 4"
+		},
+		"source": {
+			"mix": "Mix",
+			"ref": "Ref",
+			"reference": "Reference",
+			"both": "Both"
+		},
+		"stereo": {
+			"lr_panorama": "L/R Panorama",
+			"ms_balance": "M/S Balance"
+		},
+		"tab": {
+			"correlation": "Correlation",
+			"dynamics": "Dynamics",
+			"loudness": "Loudness",
+			"overview": "Overview",
+			"samples": "Samples",
+			"spectrum": "Spectrum",
+			"stereo": "Stereo",
+			"waveform": "Waveform"
+		}
+	}
+}
