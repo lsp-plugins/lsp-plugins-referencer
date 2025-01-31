@@ -688,7 +688,7 @@
 			<!-- Loudness -->
 			<grid rows="4" cols="7" expand="true">
 				<cell rows="2">
-					<vbox>
+					<vbox expand="true">
 						<!-- Peak graph -->
 						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmpk">
 							<origin hpos="1" vpos="-1" visible="false"/>
