@@ -167,7 +167,7 @@
 
 								<ui:with id="fftmaxg" xi="0" width="1" fill="true" fill.color.a="0.9" color.a="0.5">
 									<mesh yi="10" color="reference_ref_1" fill.color="reference_ref_1" visibility=":refvis and :maxvis"/>
-									<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" ui:tag="42" visibility=":mixvis and :maxvis"/>
+									<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :maxvis"/>
 								</ui:with>
 
 								<ui:with id="fftgr" xi="0" fill="false" width="2">
@@ -1565,7 +1565,7 @@
 
 							<mesh yi="1" color="reference_mix_4" fill.color="reference_mix_4" visibility=":mixvis and :maxvis and :left_v"/>
 							<mesh yi="2" color="reference_mix_3" fill.color="reference_mix_3" visibility=":mixvis and :maxvis and :right_v"/>
-							<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" ui:tag="42" visibility=":mixvis and :maxvis and :mid_v"/>
+							<mesh yi="3" color="reference_mix_1" fill.color="reference_mix_1" visibility=":mixvis and :maxvis and :mid_v"/>
 							<mesh yi="4" color="reference_mix_2" fill.color="reference_mix_2" visibility=":mixvis and :maxvis and :side_v"/>
 						</ui:with>
 
