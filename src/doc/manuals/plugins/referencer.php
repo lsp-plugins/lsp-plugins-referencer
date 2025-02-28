@@ -248,7 +248,7 @@ compression applied to the Mix and Reference signals. The lower PRS value is, th
 	</ul>
 </ul>
 
-<p>The <b>Stereo</b> tab allows to perform some stereo analysis of the signal</p>:
+<p>The <b>Stereo</b> tab allows to perform some stereo analysis of the signal:</p>
 <ul>
 	<li><b>Mode</b> - the mode of the graph displayed on the left side of the tab:</li>
 	<ul>
