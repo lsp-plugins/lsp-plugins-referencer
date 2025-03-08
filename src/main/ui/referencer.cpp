@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -805,7 +805,7 @@ namespace lsp
 
             // Reset button state if needed
             waveform_t *wf      = &self->sWaveform;
-            wf->nBtnState      &= ~(1 << ev->nCode);
+            wf->nBtnState      &= ~(size_t(1) << ev->nCode);
 
             return STATUS_OK;
         }
