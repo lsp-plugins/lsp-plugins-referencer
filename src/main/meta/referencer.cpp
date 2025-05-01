@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -252,17 +252,17 @@ namespace lsp
             METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK), \
             /* gain matching */ \
             COMBO("gmmode", "Gain matching mode", 0, gain_matching), \
-            LOG_CONTROL("gmreact", "Gain matching reactivity", U_SEC, referencer::GAIN_MATCH_REACT), \
+            LOG_CONTROL("gmreact", "Gain matching reactivity", "Match react", U_SEC, referencer::GAIN_MATCH_REACT), \
             /* post-filter */ \
             COMBO("fpos", "Filter position in the chain", 0, filter_positions), \
             COMBO("fmode", "Filter mode", 0, filter_modes), \
             COMBO("fslope", "Filter slope", 3, filter_slopes), \
             COMBO("fsel", "Filter selector", 0, filter_selector), \
-            LOG_CONTROL("fsub", "Post-filter sub-bass high frequency", U_HZ, referencer::POST_SUB_BASS), \
-            LOG_CONTROL("fbass", "Post-filter bass high frequency", U_HZ, referencer::POST_BASS), \
-            LOG_CONTROL("flomid", "Post-filter low-mid frequency", U_HZ, referencer::POST_LOW_MID), \
-            LOG_CONTROL("fmid", "Post-filter mid frequency", U_HZ, referencer::POST_MID), \
-            LOG_CONTROL("fhimid", "Post-filter high-mid frequency", U_HZ, referencer::POST_HIGH_MID), \
+            LOG_CONTROL("fsub", "Post-filter sub-bass frequency", "Sub freq", U_HZ, referencer::POST_SUB_BASS), \
+            LOG_CONTROL("fbass", "Post-filter bass frequency", "Bass freq", U_HZ, referencer::POST_BASS), \
+            LOG_CONTROL("flomid", "Post-filter low-mid frequency", "Low-mid freq", U_HZ, referencer::POST_LOW_MID), \
+            LOG_CONTROL("fmid", "Post-filter mid frequency", "Mid freq", U_HZ, referencer::POST_MID), \
+            LOG_CONTROL("fhimid", "Post-filter high-mid frequency", "High-mid freq", U_HZ, referencer::POST_HIGH_MID), \
             /* graph display maximum time */ \
             CONTROL("maxtime", "Graph display maximum time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
@@ -275,7 +275,7 @@ namespace lsp
             SWITCH("lmilufs", "Integrated LUFS graph visible", 0), \
             /* PSR (dynamics) metering */ \
             CONTROL("psrtime", "PSR measurement time period", U_SEC, referencer::PSR_PERIOD), \
-            LOG_CONTROL("psrthr", "PSR measurement threshold", U_GAIN_AMP, referencer::PSR_THRESH), \
+            LOG_CONTROL("psrthr", "PSR measurement threshold", "PSR thresh", U_GAIN_AMP, referencer::PSR_THRESH), \
             COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
             MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
             /* Waveform metering */ \
@@ -286,18 +286,18 @@ namespace lsp
             CONTROL("wfscmin", "Minimum graph scale", U_DB, referencer::WAVE_SMIN_SCALE), \
             CONTROL("wfscmax", "Maximum graph scale", U_DB, referencer::WAVE_SMAX_SCALE), \
             /* FFT analysis */ \
-            LOG_CONTROL("famhor", "FFT horizontal marker", U_GAIN_AMP, referencer::FFT_HMARK), \
+            LOG_CONTROL("famhor", "FFT horizontal marker", "FFT HLine lvl", U_GAIN_AMP, referencer::FFT_HMARK), \
             SWITCH("famhorv", "FFT horizontal marker visibility", 0), \
             COMBO("famvers", "FFT vertical marker source", dfl_chan_selector, chan_selectors), \
-            LOG_CONTROL("famver", "FFT vertical marker", U_HZ, referencer::FFT_VMARK), \
+            LOG_CONTROL("famver", "FFT vertical marker", "FFT VLine freq", U_HZ, referencer::FFT_VMARK), \
             METER("famverv", "Vertical marker frequency level", U_GAIN_AMP, referencer::MTR_VMARK), \
             COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
             COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
             COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
-            LOG_CONTROL("fftrea", "FFT Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
+            LOG_CONTROL("fftrea", "FFT Reactivity", "Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
             SWITCH("fftdamp", "FFT Damping", 1), \
             TRIGGER("fftrst", "FFT Reset"), \
-            LOG_CONTROL("fftbal", "FFT Ballistics", U_SEC, referencer::FFT_BALLISTICS)
+            LOG_CONTROL("fftbal", "FFT Ballistics", "Ballistics", U_SEC, referencer::FFT_BALLISTICS)
 
         #define REF_COMMON_METERS(id, name) \
             METER("pk_" id, name " Peak meter", U_GAIN_AMP, referencer::LOUD_METER), \
@@ -344,7 +344,7 @@ namespace lsp
             MESH("fftming", "FFT minimum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftmaxg", "FFT maximum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
-            LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", U_NONE, referencer::GONIO_DOTS), \
+            LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", "Max dots", U_NONE, referencer::GONIO_DOTS), \
             REF_COMMON_METERS_STEREO("m", "Mix"), \
             REF_COMMON_METERS_STEREO("r", "Reference")
 
