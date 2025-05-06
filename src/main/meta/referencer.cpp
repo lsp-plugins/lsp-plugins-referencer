@@ -215,49 +215,49 @@ namespace lsp
             CONTROL("le" id, name " end", U_SEC, referencer::LOOP_END),  \
             METER("pp" id, name " play position", U_SEC, referencer::SAMPLE_PLAYBACK)
 
-        #define REF_SAMPLE(id, name) \
+        #define REF_SAMPLE(id, name, alias) \
             PATH("sf" id, name " file"), \
             STATUS("fs" id, name " load status"), \
             METER("fl" id, name " length", U_SEC, referencer::SAMPLE_LENGTH), \
             MESH("fm" id, name " mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             AMP_GAIN("sg" id, name " gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
-            COMBO("ls" id, name " loop selector", 0, loop_selectors), \
+            COMBO("ls" id, name " loop selector", "Loop" alias, 0, loop_selectors), \
             REF_LOOP(id "_1", name " loop 1"), \
             REF_LOOP(id "_2", name " loop 2"), \
             REF_LOOP(id "_3", name " loop 3"), \
             REF_LOOP(id "_4", name " loop 4")
 
         #define REF_SAMPLES \
-            COMBO("ssel", "Sample Selector", 0, sample_selectors), \
-            REF_SAMPLE("_1", "Sample 1"), \
-            REF_SAMPLE("_2", "Sample 2"), \
-            REF_SAMPLE("_3", "Sample 3"), \
-            REF_SAMPLE("_4", "Sample 4")
+            COMBO("ssel", "Sample Selector", "Sample selector", 0, sample_selectors), \
+            REF_SAMPLE("_1", "Sample 1", " 1"), \
+            REF_SAMPLE("_2", "Sample 2", " 2"), \
+            REF_SAMPLE("_3", "Sample 3", " 3"), \
+            REF_SAMPLE("_4", "Sample 4", " 4")
 
         #define REF_COMMON(tab_selectors, dfl_chan_selector, chan_selectors) \
-            SWITCH("play", "Playback", 0), \
+            SWITCH("play", "Playback", "Playback", 0), \
             INT_CONTROL("pssel", "Playback sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
             INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
-            COMBO("source", "Audio source", 0, source_selectors), \
-            COMBO("section", "Tab section selector", 0, tab_selectors), \
-            SWITCH("mixvis", "Mix graphs visibility", 1), \
-            SWITCH("refvis", "Reference graphs visibility", 1), \
-            SWITCH("currvis", "Current value graphs visibility", 1), \
-            SWITCH("minvis", "Minimum graphs visibility", 0), \
-            SWITCH("maxvis", "Maximum graphs visibility", 0), \
-            SWITCH("freeze", "Freeze graphs", 0), \
+            COMBO("source", "Audio source", "Source", 0, source_selectors), \
+            COMBO("section", "Tab section selector", "Current tab", 0, tab_selectors), \
+            SWITCH("mixvis", "Mix graphs visibility", "Show Mix", 1), \
+            SWITCH("refvis", "Reference graphs visibility", "Show Ref" , 1), \
+            SWITCH("currvis", "Current value graphs visibility", "Show value", 1), \
+            SWITCH("minvis", "Minimum graphs visibility", "Show min", 0), \
+            SWITCH("maxvis", "Maximum graphs visibility", "Show max", 0), \
+            SWITCH("freeze", "Freeze graphs", "Freeze", 0), \
             /* playback loop display */ \
             MESH("loop_m", "Active loop contents mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             METER("loop_l", "Active loop length", U_SEC, referencer::SAMPLE_LENGTH), \
             METER("loop_p", "Active loop play position", U_SEC, referencer::SAMPLE_PLAYBACK), \
             /* gain matching */ \
-            COMBO("gmmode", "Gain matching mode", 0, gain_matching), \
+            COMBO("gmmode", "Gain matching mode", "Gain match", 0, gain_matching), \
             LOG_CONTROL("gmreact", "Gain matching reactivity", "Match react", U_SEC, referencer::GAIN_MATCH_REACT), \
             /* post-filter */ \
-            COMBO("fpos", "Filter position in the chain", 0, filter_positions), \
-            COMBO("fmode", "Filter mode", 0, filter_modes), \
-            COMBO("fslope", "Filter slope", 3, filter_slopes), \
-            COMBO("fsel", "Filter selector", 0, filter_selector), \
+            COMBO("fpos", "Filter position in the chain", "Flt position", 0, filter_positions), \
+            COMBO("fmode", "Filter mode", "Flt mode", 0, filter_modes), \
+            COMBO("fslope", "Filter slope", "Flt slope", 3, filter_slopes), \
+            COMBO("fsel", "Filter selector", "Flt selector", 0, filter_selector), \
             LOG_CONTROL("fsub", "Post-filter sub-bass frequency", "Sub freq", U_HZ, referencer::POST_SUB_BASS), \
             LOG_CONTROL("fbass", "Post-filter bass frequency", "Bass freq", U_HZ, referencer::POST_BASS), \
             LOG_CONTROL("flomid", "Post-filter low-mid frequency", "Low-mid freq", U_HZ, referencer::POST_LOW_MID), \
@@ -267,36 +267,36 @@ namespace lsp
             CONTROL("maxtime", "Graph display maximum time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
             CONTROL("ilufsit", "Integrated LUFS integration period", U_SEC, referencer::ILUFS_TIME), \
-            SWITCH("lmpk", "Peak graph visible", 0), \
-            SWITCH("lmtp", "True peak graph visible", 1), \
-            SWITCH("lmrms", "RMS graph visible", 0), \
-            SWITCH("lmmlufs", "Momentary LUFS graph visible", 0), \
-            SWITCH("lmslufs", "Short-term LUFS graph visible", 1), \
-            SWITCH("lmilufs", "Integrated LUFS graph visible", 0), \
+            SWITCH("lmpk", "Peak graph visible", "Show peak", 0), \
+            SWITCH("lmtp", "True peak graph visible", "Show TP", 1), \
+            SWITCH("lmrms", "RMS graph visible", "Show RMS", 0), \
+            SWITCH("lmmlufs", "Momentary LUFS graph visible", "Show M-LUFS", 0), \
+            SWITCH("lmslufs", "Short-term LUFS graph visible", "Show S-LUFS", 1), \
+            SWITCH("lmilufs", "Integrated LUFS graph visible", "Show I-LUFS", 0), \
             /* PSR (dynamics) metering */ \
             CONTROL("psrtime", "PSR measurement time period", U_SEC, referencer::PSR_PERIOD), \
             LOG_CONTROL("psrthr", "PSR measurement threshold", "PSR thresh", U_GAIN_AMP, referencer::PSR_THRESH), \
-            COMBO("psrmode", "PSR hystogram mode", 0, psr_hyst_mode), \
+            COMBO("psrmode", "PSR hystogram mode", "PSR mode", 0, psr_hyst_mode), \
             MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
             /* Waveform metering */ \
             CONTROL("mixwfof", "Mix waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
             CONTROL("refwfof", "Reference waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
             CONTROL("wflen", "Waveform frame length", U_SEC, referencer::WAVE_SIZE), \
-            SWITCH("wflog", "Logarithmic scale", 0), \
+            SWITCH("wflog", "Logarithmic scale", "Log scale", 0), \
             CONTROL("wfscmin", "Minimum graph scale", U_DB, referencer::WAVE_SMIN_SCALE), \
             CONTROL("wfscmax", "Maximum graph scale", U_DB, referencer::WAVE_SMAX_SCALE), \
             /* FFT analysis */ \
             LOG_CONTROL("famhor", "FFT horizontal marker", "FFT HLine lvl", U_GAIN_AMP, referencer::FFT_HMARK), \
-            SWITCH("famhorv", "FFT horizontal marker visibility", 0), \
-            COMBO("famvers", "FFT vertical marker source", dfl_chan_selector, chan_selectors), \
+            SWITCH("famhorv", "FFT horizontal marker visibility", "Show HMarker", 0), \
+            COMBO("famvers", "FFT vertical marker source", "VMarker source", dfl_chan_selector, chan_selectors), \
             LOG_CONTROL("famver", "FFT vertical marker", "FFT VLine freq", U_HZ, referencer::FFT_VMARK), \
             METER("famverv", "Vertical marker frequency level", U_GAIN_AMP, referencer::MTR_VMARK), \
-            COMBO("ffttol", "FFT Tolerance", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
-            COMBO("fftwnd", "FFT Window", referencer::FFT_WND_DFL, fft_windows), \
-            COMBO("fftenv", "FFT Envelope", referencer::FFT_ENV_DFL, fft_envelopes), \
+            COMBO("ffttol", "FFT Tolerance", "FFT tol", referencer::FFT_RANK_DFL - referencer::FFT_RANK_MIN, fft_tolerance), \
+            COMBO("fftwnd", "FFT Window", "FFT wnd", referencer::FFT_WND_DFL, fft_windows), \
+            COMBO("fftenv", "FFT Envelope", "FFT env", referencer::FFT_ENV_DFL, fft_envelopes), \
             LOG_CONTROL("fftrea", "FFT Reactivity", "Reactivity", U_SEC, referencer::FFT_REACT_TIME), \
-            SWITCH("fftdamp", "FFT Damping", 1), \
-            TRIGGER("fftrst", "FFT Reset"), \
+            SWITCH("fftdamp", "FFT Damping", "FFT damp", 1), \
+            TRIGGER("fftrst", "FFT Reset", "FFT reset"), \
             LOG_CONTROL("fftbal", "FFT Ballistics", "Ballistics", U_SEC, referencer::FFT_BALLISTICS)
 
         #define REF_COMMON_METERS(id, name) \
@@ -330,14 +330,14 @@ namespace lsp
             REF_COMMON_METERS_MONO("r", "Reference")
 
         #define REF_COMMON_STEREO \
-            COMBO("mode", "Output mode", 0, mode_selectors), \
-            COMBO("corrdis", "Correlation view mode", 0, graph_selectors), \
-            COMBO("stertyp", "Stereo analysis type", 0, stereo_selectors), \
-            COMBO("sterdis", "Stereo view mode", 0, graph_selectors), \
-            SWITCH("left_v", "Visibilty of FFT/waveform analysis for left channel", 0), \
-            SWITCH("right_v", "Visibilty of FFT/waveform analysis for right channel", 0), \
-            SWITCH("mid_v", "Visibilty of FFT/waveform analysis for middle channel", 1), \
-            SWITCH("side_v", "Visibilty of FFT/waveform analysis for side channel", 0), \
+            COMBO("mode", "Output mode", "Mode", 0, mode_selectors), \
+            COMBO("corrdis", "Correlation view mode", "Show corr", 0, graph_selectors), \
+            COMBO("stertyp", "Stereo analysis type", "Show stereo", 0, stereo_selectors), \
+            COMBO("sterdis", "Stereo view mode", "Stereo mode", 0, graph_selectors), \
+            SWITCH("left_v", "Visibilty of FFT/waveform analysis for left channel", "Show FFT L", 0), \
+            SWITCH("right_v", "Visibilty of FFT/waveform analysis for right channel", "Show FFT R", 0), \
+            SWITCH("mid_v", "Visibilty of FFT/waveform analysis for middle channel", "Show FFT M", 1), \
+            SWITCH("side_v", "Visibilty of FFT/waveform analysis for side channel", "Show FFT S", 0), \
             MESH("dmmesh", "Dynamics display mesh", 21, referencer::DYNA_MESH_SIZE + 4), \
             MESH("wfmesh", "Waveform mesh", 9, referencer::WAVE_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
