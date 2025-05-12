@@ -236,8 +236,8 @@ namespace lsp
 
         #define REF_COMMON(tab_selectors, dfl_chan_selector, chan_selectors) \
             SWITCH("play", "Playback", "Playback", 0), \
-            INT_CONTROL("pssel", "Playback sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
-            INT_CONTROL("plsel", "Playback loop selector", U_NONE, referencer::LOOP_SELECTOR), \
+            INT_CONTROL("pssel", "Playback sample selector", "Sample selector", U_NONE, referencer::SAMPLE_SELECTOR), \
+            INT_CONTROL("plsel", "Playback loop selector", "Loop selector", U_NONE, referencer::LOOP_SELECTOR), \
             COMBO("source", "Audio source", "Source", 0, source_selectors), \
             COMBO("section", "Tab section selector", "Current tab", 0, tab_selectors), \
             SWITCH("mixvis", "Mix graphs visibility", "Show Mix", 1), \
