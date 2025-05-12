@@ -210,9 +210,9 @@ namespace lsp
 
 
 
-        #define REF_LOOP(id, name) \
-            CONTROL("lb" id, name " start", U_SEC, referencer::LOOP_BEGIN), \
-            CONTROL("le" id, name " end", U_SEC, referencer::LOOP_END),  \
+        #define REF_LOOP(id, name, alias) \
+            CONTROL("lb" id, name " start", "Loop start" alias, U_SEC, referencer::LOOP_BEGIN), \
+            CONTROL("le" id, name " end", "Loop end" alias, U_SEC, referencer::LOOP_END),  \
             METER("pp" id, name " play position", U_SEC, referencer::SAMPLE_PLAYBACK)
 
         #define REF_SAMPLE(id, name, alias) \
@@ -222,10 +222,10 @@ namespace lsp
             MESH("fm" id, name " mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
             AMP_GAIN("sg" id, name " gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
             COMBO("ls" id, name " loop selector", "Loop" alias, 0, loop_selectors), \
-            REF_LOOP(id "_1", name " loop 1"), \
-            REF_LOOP(id "_2", name " loop 2"), \
-            REF_LOOP(id "_3", name " loop 3"), \
-            REF_LOOP(id "_4", name " loop 4")
+            REF_LOOP(id "_1", name " loop 1", alias " 1"), \
+            REF_LOOP(id "_2", name " loop 2", alias " 2"), \
+            REF_LOOP(id "_3", name " loop 3", alias " 3"), \
+            REF_LOOP(id "_4", name " loop 4", alias " 4")
 
         #define REF_SAMPLES \
             COMBO("ssel", "Sample Selector", "Sample selector", 0, sample_selectors), \
@@ -264,9 +264,9 @@ namespace lsp
             LOG_CONTROL("fmid", "Post-filter mid frequency", "Mid freq", U_HZ, referencer::POST_MID), \
             LOG_CONTROL("fhimid", "Post-filter high-mid frequency", "High-mid freq", U_HZ, referencer::POST_HIGH_MID), \
             /* graph display maximum time */ \
-            CONTROL("maxtime", "Graph display maximum time", U_SEC, referencer::DYNA_TIME), \
+            CONTROL("maxtime", "Graph display maximum time", "Max time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
-            CONTROL("ilufsit", "Integrated LUFS integration period", U_SEC, referencer::ILUFS_TIME), \
+            CONTROL("ilufsit", "Integrated LUFS integration period", "ILUFS period", U_SEC, referencer::ILUFS_TIME), \
             SWITCH("lmpk", "Peak graph visible", "Show peak", 0), \
             SWITCH("lmtp", "True peak graph visible", "Show TP", 1), \
             SWITCH("lmrms", "RMS graph visible", "Show RMS", 0), \
@@ -274,17 +274,17 @@ namespace lsp
             SWITCH("lmslufs", "Short-term LUFS graph visible", "Show S-LUFS", 1), \
             SWITCH("lmilufs", "Integrated LUFS graph visible", "Show I-LUFS", 0), \
             /* PSR (dynamics) metering */ \
-            CONTROL("psrtime", "PSR measurement time period", U_SEC, referencer::PSR_PERIOD), \
+            CONTROL("psrtime", "PSR measurement time period", "PSR period", U_SEC, referencer::PSR_PERIOD), \
             LOG_CONTROL("psrthr", "PSR measurement threshold", "PSR thresh", U_GAIN_AMP, referencer::PSR_THRESH), \
             COMBO("psrmode", "PSR hystogram mode", "PSR mode", 0, psr_hyst_mode), \
             MESH("psrmesh", "PSR output hystogram", 3, referencer::PSR_MESH_SIZE + 4), \
             /* Waveform metering */ \
-            CONTROL("mixwfof", "Mix waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
-            CONTROL("refwfof", "Reference waveform frame offset", U_SEC, referencer::WAVE_OFFSET), \
-            CONTROL("wflen", "Waveform frame length", U_SEC, referencer::WAVE_SIZE), \
+            CONTROL("mixwfof", "Mix waveform frame offset", "Mix wave off", U_SEC, referencer::WAVE_OFFSET), \
+            CONTROL("refwfof", "Reference waveform frame offset", "Ref wave off", U_SEC, referencer::WAVE_OFFSET), \
+            CONTROL("wflen", "Waveform frame length", "Wave length", U_SEC, referencer::WAVE_SIZE), \
             SWITCH("wflog", "Logarithmic scale", "Log scale", 0), \
-            CONTROL("wfscmin", "Minimum graph scale", U_DB, referencer::WAVE_SMIN_SCALE), \
-            CONTROL("wfscmax", "Maximum graph scale", U_DB, referencer::WAVE_SMAX_SCALE), \
+            CONTROL("wfscmin", "Minimum graph scale", "Min scale", U_DB, referencer::WAVE_SMIN_SCALE), \
+            CONTROL("wfscmax", "Maximum graph scale", "Max scale", U_DB, referencer::WAVE_SMAX_SCALE), \
             /* FFT analysis */ \
             LOG_CONTROL("famhor", "FFT horizontal marker", "FFT HLine lvl", U_GAIN_AMP, referencer::FFT_HMARK), \
             SWITCH("famhorv", "FFT horizontal marker visibility", "Show HMarker", 0), \
@@ -343,7 +343,7 @@ namespace lsp
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftming", "FFT minimum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftmaxg", "FFT maximum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \
-            CONTROL("goniohs", "Goniometer strobe history size", U_NONE, referencer::GONIO_HISTORY), \
+            CONTROL("goniohs", "Goniometer strobe history size", "Gonio history", U_NONE, referencer::GONIO_HISTORY), \
             LOG_CONTROL("goniond", "Maximum dots for plotting goniometer", "Max dots", U_NONE, referencer::GONIO_DOTS), \
             REF_COMMON_METERS_STEREO("m", "Mix"), \
             REF_COMMON_METERS_STEREO("r", "Reference")
