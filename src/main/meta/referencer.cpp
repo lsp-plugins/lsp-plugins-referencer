@@ -220,7 +220,7 @@ namespace lsp
             STATUS("fs" id, name " load status"), \
             METER("fl" id, name " length", U_SEC, referencer::SAMPLE_LENGTH), \
             MESH("fm" id, name " mesh data", referencer::CHANNELS_MAX, referencer::FILE_MESH_SIZE), \
-            AMP_GAIN("sg" id, name " gain", GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
+            AMP_GAIN("sg" id, name " gain", "Gain" alias, GAIN_AMP_0_DB, GAIN_AMP_P_24_DB), \
             COMBO("ls" id, name " loop selector", "Loop" alias, 0, loop_selectors), \
             REF_LOOP(id "_1", name " loop 1", alias " 1"), \
             REF_LOOP(id "_2", name " loop 2", alias " 2"), \
