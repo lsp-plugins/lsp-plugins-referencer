@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -1508,7 +1508,7 @@ namespace lsp
                 if ((!al->bFirst) && (al->nPos < ssize_t(nCrossfadeTime)))
                 {
                     // We need to render cross-fade first
-                    to_process          = lsp_min(nCrossfadeTime - al->nPos, to_process);
+                    to_process          = lsp_min(ssize_t(nCrossfadeTime) - al->nPos, to_process);
                     crossfade           = true;
                 }
                 else
