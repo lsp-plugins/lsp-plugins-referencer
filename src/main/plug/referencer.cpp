@@ -1241,45 +1241,10 @@ namespace lsp
             // Compute the initial offset to start from
             offset              = (rb->position() + limit - length - offset) % limit;
 
-            if (length > dst_len)
+            for (size_t i=0; i<dst_len; ++i)
             {
-                for (size_t i=0; i<dst_len; ++i)
-                {
-                    size_t first    = (i * length) / dst_len;
-                    size_t last     = ((i + 1) * length) / dst_len;
-                    if (first < last)
-                    {
-                        first           = (first + offset) % limit;
-                        last            = (last + offset) % limit;
-
-                        if (first > last)
-                        {
-    //                        lsp_trace("sign_max2(%d, %d), limit=%d", int(first), int(limit - first), int(limit));
-    //                        lsp_trace("sign_max2(%d, %d), limit=%d", int(0), int(last), int(limit));
-
-                            const float a   = dsp::sign_max(&src[first], limit - first);
-                            const float b   = dsp::sign_max(&src[0], last);
-                            dst[i]          = (fabsf(a) >= fabsf(b)) ? a : b;
-                        }
-                        else
-                        {
-    //                        lsp_trace("sign_max1(%d, %d), limit=%d", int(first), int(last - first), int(limit));
-                            dst[i]          = dsp::sign_max(&src[first], last - first);
-                        }
-                    }
-                    else if (first < length)
-                        dst[i]          = src[(first + offset) % limit];
-                    else
-                        dst[i]          = 0.0f;
-                }
-            }
-            else
-            {
-                for (size_t i=0; i<dst_len; ++i)
-                {
-                    size_t first    = (i * length) / dst_len;
-                    dst[i]          = src[(first + offset) % limit];
-                }
+                size_t first    = (i * length) / dst_len;
+                dst[i]          = src[(first + offset) % limit];
             }
         }
 
