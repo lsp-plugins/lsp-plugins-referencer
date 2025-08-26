@@ -38,7 +38,7 @@ switch between files and loops using the <b>sample-loop matrix</b>.</li>
 	<li><b>Both</b> - the button that allows to mix both the input mix and the reference loop. When used, the mix and reference loop are attenuated by -3 dB.</li>
 	<li><b>Play</b> - the play button that resumes the playback of currently selected loop.</li>
 	<li><b>Stop</b> - the stop button that stops the playback of currently selected loop.</li>
-	<li><b>Gain Matching</b> - the combo box that allows to set-up gain matcing:</li>
+	<li><b>Gain Matching</b> - the combo box that allows to set-up gain matching:</li>
 	<ul>
 		<li><b>None</b> - the gain matching is not applied.</li>
 		<li><b>Reference</b> - the gain of the reference signal is adjusted to match the loudness of the mix signal.</li>
@@ -80,13 +80,13 @@ a file, and each button in a row is associated with the loop.</p>
 		<li><b>Mix</b> - the button that allows drawing of charts for the mix signal.</li>
 		<li><b>Ref</b> - the button that allows drawing of charts for the reference signal.</li>
 	</ul>
-	<li><b>Controls</b> - additional contol over the graphs and charts:</li>
+	<li><b>Controls</b> - additional control over the graphs and charts:</li>
 	<ul>
 		<li><b>Curr</b> - the button that turns on drawing of current values on spectrum-related graphs.</li>
 		<li><b>Min</b> - the button that turns on drawing of minimums on spectrum-related graphs.</li>
 		<li><b>Min</b> - the button that turns on drawing of maximums on spectrum-related graphs.</li>
 		<li><b>Freeze</b> - the button that stops any update of graphs.</li>
-		<li><b>Reset</b> - the button that resets minum and maximum values on spectrum-related graphs.</li>
+		<li><b>Reset</b> - the button that resets minimum and maximum values on spectrum-related graphs.</li>
 	</ul>
 	<li><b>Window</b> - the weighting window applied to the audio data before performing spectral analysis.</li>
 	<li><b>Tolerance</b> - the number of points for the spectral analysis using FFT (Fast Fourier Transform).</li>
@@ -199,7 +199,7 @@ section allows to quickly switch to the desired tab.</p>
 	<li><b>Shift Mix</b> - additional time shift for the mix signal.</li>
 	<li><b>Shift Reference</b> - additional time shift for the reference signal.</li>
 </ul>
-<p>The <b>zoom</b> also can be adjusted by clicking the grap with the right mouse button and moving mouse pointer up and down.</p>
+<p>The <b>zoom</b> also can be adjusted by clicking the graph with the right mouse button and moving mouse pointer up and down.</p>
 <p>Alternative way to adjust mix and reference shifts can be achieved by clicking the graph with the left mouse button and
 moving mouse pointer left and right. By default both Mix and Reference are moved. Holding the 'Shift' key allows to adjust the
 shift of the mix only. Holding the 'Ctrl' key allows to adjust the shift of the reference only.</p>
@@ -218,7 +218,7 @@ holding the 'Shift' key will decelerate the setup.</p>
 	<li><b>Measure combo</b> - selects the source for which the vertical line on the graph will display frequency, note and current level.</li>
 </ul>
 <p>Moving the mouse over the graph shows the frequency, the note and the level on the graph the mouse pointer is pointing at current moment.</p>
-<p>Clicking the graph will set the vertical measurement line to the corresponding position of the click.</p> 
+<p>Clicking the graph will set the vertical measurement line to the corresponding position of the click.</p>
 
 <p>The <b>Dynamics</b> tab allows to analyze the micro-dynamics of the signal.</p>
 <p>The advantage of the PSR value is that it does not depend on the loudness of the analyzed signal and allows to analyze the overall
