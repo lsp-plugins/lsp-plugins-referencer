@@ -67,6 +67,9 @@ namespace lsp
             static constexpr float  AUTOGAIN_MEASURE_PERIOD     = 3000.0f;              // Measurement period for Autogain
             static constexpr float  WAVE_SRANGE_DIFF_MIN        = 12.0f;                // 12 dB minimum difference on logarithmic scale
 
+            static constexpr float  PEAK_HOLD_TIME              = 5000.0f;              // 5 seconds hold time for peaks
+            static constexpr float  PEAK_RELEASE_TIME           = 200.0f;               // 200 milliseconds release time for peaks
+
             static constexpr float  SAMPLE_LENGTH_MIN           = 0.0f;                 // Minimum length (s)
             static constexpr float  SAMPLE_LENGTH_MAX           = 1000.0f;              // Maximum sample length (s)
             static constexpr float  SAMPLE_LENGTH_DFL           = 0.0f;                 // Sample length (s)

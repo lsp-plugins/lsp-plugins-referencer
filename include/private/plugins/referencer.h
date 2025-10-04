@@ -29,6 +29,7 @@
 #include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
 #include <lsp-plug.in/dsp-units/meters/Panometer.h>
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
+#include <lsp-plug.in/dsp-units/meters/PeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/dsp-units/stat/QuantizedCounter.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
@@ -106,6 +107,14 @@ namespace lsp
                     DM_TOTAL,
                     DM_STEREO = DM_TOTAL,
                     DM_MONO = DM_CORR
+                };
+
+                enum peak_t
+                {
+                    PK_PEAK,                                                        // Peak meter
+                    PK_TRUE_PEAK,                                                   // True peak meter
+
+                    PK_TOTAL
                 };
 
                 enum fgraph_t
@@ -268,6 +277,7 @@ namespace lsp
                     dspu::QuantizedCounter  sPSRStats;                              // PSR statistics
                     dspu::RawRingBuffer vWaveform[WF_TOTAL];                        // Waveform history (capture)
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
+                    dspu::PeakMeter     vPeaks[PK_TOTAL];                           // Peak meters
 
                     float              *vLoudness;                                  // Measured short-term loudness
                     float               fGain;                                      // Current gain
@@ -275,6 +285,7 @@ namespace lsp
                     uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
 
                     plug::IPort        *pMeters[DM_TOTAL];                          // Output meters
+                    plug::IPort        *pPeaks[PK_TOTAL];                           // Output peak meters
                     plug::IPort        *pGoniometer;                                // Goniometer stream
                     plug::IPort        *pPsrPcValue;                                // PSR value in percents (over threshold)
                 } dyna_meters_t;

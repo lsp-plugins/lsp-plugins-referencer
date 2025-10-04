@@ -2,14 +2,21 @@
 	"referencer": {
 		"goniometer": "Goniometer",
 		"ilufs": "I",
+		"ilufs_full": "I-LUFS",
 		"llufs": "L",
+		"llufs_full": "L-LUFS",
 		"mlufs": "M",
+		"mlufs_full": "M-LUFS",
 		"monitoring_mode": "Monitoring Mode",
 		"peak": "PK",
+		"peak_full": "Peak",
 		"psr" : "PSR",
 		"rms": "RMS",
+		"rms_full": "RMS",
 		"sample_loop_matrix": "Sample-loop Matrix",
 		"slufs": "S",
-		"true_peak": "TP"
+		"slufs_full": "S-LUFS",
+		"true_peak": "TP",
+		"true_peak_full": "True peak"
 	}
 }

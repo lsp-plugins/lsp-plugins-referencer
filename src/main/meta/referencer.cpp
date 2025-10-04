@@ -310,9 +310,14 @@ namespace lsp
             METER("ilufs_" id, name " Integrated LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
             METER("psr_" id, name " PSR meter", U_GAIN_AMP, referencer::PSR_METER)
 
+        #define REF_COMMON_PEAK_METERS(id, name) \
+            METER("tpk_" id, name " Triggered Peak meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("ttp_" id, name " Triggered True Peak meter", U_GAIN_AMP, referencer::LOUD_METER)
+
         #define REF_COMMON_METERS_MONO(id, name) \
             REF_COMMON_METERS(id, name), \
-            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
+            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST), \
+            REF_COMMON_PEAK_METERS(id, name)
 
         #define REF_COMMON_METERS_STEREO(id, name) \
             STREAM("gon_" id, name " goniometer stream buffer", 3, 128, 0x8000), \
@@ -320,7 +325,8 @@ namespace lsp
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
             METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE), \
-            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
+            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST), \
+            REF_COMMON_PEAK_METERS(id, name)
 
         #define REF_COMMON_MONO \
             MESH("dmmesh", "Dynamics display mesh", 17, referencer::DYNA_MESH_SIZE + 4), \

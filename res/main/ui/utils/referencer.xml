@@ -228,16 +228,62 @@
 					<!-- Loudness -->
 					<group ui:group="overview_loudness" ui:inject="GraphGroup" ipadding="0" text="lists.referencer.tab.loudness" vexpand="true" hexpand="false">
 						<ui:with ui:group="overview_loudness">
-							<grid rows="2" cols="7" expand="true">
-								<ui:with bg.color="bg_schema" pad.t="2">
-									<label text="labels.referencer.peak" vreduce="true"/>
-									<label text="labels.referencer.true_peak" vreduce="true"/>
-									<label text="labels.referencer.rms" vreduce="true"/>
-									<label text="labels.referencer.mlufs" vreduce="true"/>
-									<label text="labels.referencer.slufs" vreduce="true"/>
-									<label text="labels.referencer.llufs" vreduce="true"/>
-									<label text="labels.referencer.ilufs" vreduce="true"/>
+							<grid rows="2" cols="8" expand="true">
+								<!-- Row 1 -->
+								<ui:with bg.color="bg_schema" pad.t="2" vreduce="true">
+									<label text="labels.referencer.peak" />
+									<label text="labels.referencer.true_peak" />
+									<label text="labels.referencer.rms" />
+									<label text="labels.referencer.mlufs" />
+									<label text="labels.referencer.slufs" />
+									<label text="labels.referencer.llufs" />
+									<label text="labels.referencer.ilufs" />
 								</ui:with>
+								<cell rows="2">
+									<vbox>
+										<grid rows="3" cols="3" fill="true" spacing="4" padding="4" vreduce="true" bg.color="bg_schema">
+											<ui:with font.size="16">
+												<label text="labels.referencer.peak" />
+												<label text="labels.referencer.true_peak" />
+												<label text="labels.referencer.rms" />
+											</ui:with>
+											
+											<ui:with color="reference_mix_1" detailed="false" font.size="16" precision="1">
+												<value id="tpk_m" />
+												<value id="ttp_m" />
+												<value id="rms_m" />
+											</ui:with>
+											<ui:with color="reference_ref_1" detailed="false" font.size="16" precision="1">
+												<value id="tpk_r" />
+												<value id="ttp_r" />
+												<value id="rms_r" />
+											</ui:with>
+										</grid>
+										<grid rows="3" cols="4" fill="true" spacing="4" padding="4" vreduce="true" bg.color="bg_schema">
+											<ui:with font.size="16">
+												<label text="labels.referencer.mlufs" />
+												<label text="labels.referencer.slufs" />
+												<label text="labels.referencer.llufs" />
+												<label text="labels.referencer.ilufs" />
+											</ui:with>
+											
+											<ui:with color="reference_mix_1" detailed="false" font.size="16" precision="1">
+												<value id="mlufs_m" />
+												<value id="slufs_m" />
+												<value id="llufs_m" />
+												<value id="ilufs_m" />
+											</ui:with>
+											<ui:with color="reference_ref_1" detailed="false" font.size="16" precision="1">
+												<value id="mlufs_r" />
+												<value id="slufs_r" />
+												<value id="llufs_r" />
+												<value id="ilufs_r" />
+											</ui:with>
+										</grid>
+									</vbox>
+								</cell>
+								
+								<!-- Row 2 -->
 								<ledmeter angle="1" balance.visibility="false" text.visibility="true" header.visibility="false" type="peak" vexpand="true">
 									<ledchannel id="pk_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1" activity=":mixvis"/>
 									<ledchannel id="pk_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1" activity=":refvis"/>
@@ -691,8 +737,8 @@
 			</cgroup>
 
 			<!-- Loudness -->
-			<grid rows="4" cols="8" expand="true">
-				<cell rows="2">
+			<grid rows="6" cols="8" expand="true">
+				<cell rows="4">
 					<vbox expand="true">
 						<!-- Peak graph -->
 						<graph width.min="640" height.min="50" expand="true" fill="true" border.size="1" border.color="bg_light" visibility=":lmpk">
@@ -1396,6 +1442,49 @@
 					<ledchannel id="ilufs_m" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_mix_1" activity=":mixvis"/>
 					<ledchannel id="ilufs_r" min="-36 db" max="12 db" log="true" bg.color="bg_schema" value.color="reference_ref_1" activity=":refvis"/>
 				</ledmeter>
+				<cell cols="7">
+					<grid rows="3" cols="3" fill="true" spacing="4" padding="4" vreduce="true" bg.color="bg_schema">
+						<ui:with font.size="16">
+							<label text="labels.referencer.peak" />
+							<label text="labels.referencer.true_peak" />
+							<label text="labels.referencer.rms" />
+						</ui:with>
+						
+						<ui:with color="reference_mix_1" detailed="false" font.size="16" precision="1">
+							<value id="tpk_m" />
+							<value id="ttp_m" />
+							<value id="rms_m" />
+						</ui:with>
+						<ui:with color="reference_ref_1" detailed="false" font.size="16" precision="1">
+							<value id="tpk_r" />
+							<value id="ttp_r" />
+							<value id="rms_r" />
+						</ui:with>
+					</grid>
+				</cell>
+				<cell cols="7">
+					<grid rows="3" cols="4" fill="true" spacing="4" padding="4" vreduce="true" bg.color="bg_schema">
+						<ui:with font.size="16">
+							<label text="labels.referencer.mlufs" />
+							<label text="labels.referencer.slufs" />
+							<label text="labels.referencer.llufs" />
+							<label text="labels.referencer.ilufs" />
+						</ui:with>
+						
+						<ui:with color="reference_mix_1" detailed="false" font.size="16" precision="1">
+							<value id="mlufs_m" />
+							<value id="slufs_m" />
+							<value id="llufs_m" />
+							<value id="ilufs_m" />
+						</ui:with>
+						<ui:with color="reference_ref_1" detailed="false" font.size="16" precision="1">
+							<value id="mlufs_r" />
+							<value id="slufs_r" />
+							<value id="llufs_r" />
+							<value id="ilufs_r" />
+						</ui:with>
+					</grid>
+				</cell>
 
 				<cell cols="8">
 					<void pad.v="2" bg.color="bg" vreduce="true"/>

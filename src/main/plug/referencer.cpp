@@ -220,6 +220,8 @@ namespace lsp
 
                 for (size_t i=0; i<DM_TOTAL; ++i)
                     dm->pMeters[i]      = NULL;
+                for (size_t i=0; i<PK_TOTAL; ++i)
+                    dm->pPeaks[i]       = NULL;
                 dm->pPsrPcValue     = NULL;
             }
 
@@ -423,6 +425,9 @@ namespace lsp
                 if (dm->sILUFSMeter.init(nChannels, 0, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
                     return;
 
+                for (size_t j=0; j<PK_TOTAL; ++j)
+                    dm->vPeaks[j].set_time(meta::referencer::PEAK_HOLD_TIME, meta::referencer::PEAK_RELEASE_TIME);
+
                 dm->sCorrMeter.construct();
                 dm->sPanometer.construct();
                 dm->sMsBalance.construct();
@@ -610,6 +615,8 @@ namespace lsp
                     for (size_t j=0; j<DM_STEREO; ++j)
                         BIND_PORT(dm->pMeters[j]);
                     BIND_PORT(dm->pPsrPcValue);
+                    for (size_t j=0; j<PK_TOTAL; ++j)
+                        BIND_PORT(dm->pPeaks[j]);
                 }
             }
             else
@@ -620,6 +627,8 @@ namespace lsp
                     for (size_t j=0; j<DM_MONO; ++j)
                         BIND_PORT(dm->pMeters[j]);
                     BIND_PORT(dm->pPsrPcValue);
+                    for (size_t j=0; j<PK_TOTAL; ++j)
+                        BIND_PORT(dm->pPeaks[j]);
                 }
             }
 
@@ -701,6 +710,9 @@ namespace lsp
 
                 for (size_t j=0; j<DM_TOTAL; ++j)
                     dm->vGraphs[j].destroy();
+
+                for (size_t j=0; j<PK_TOTAL; ++j)
+                    dm->vPeaks[j].destroy();
             }
 
             // Destroy channels
@@ -840,6 +852,9 @@ namespace lsp
 
                 for (size_t j=0; j<DM_TOTAL; ++j)
                     dm->vGraphs[j].init(meta::referencer::DYNA_MESH_SIZE, meta::referencer::DYNA_SUBSAMPLING, dmesh_period);
+
+                for (size_t j=0; j<PK_TOTAL; ++j)
+                    dm->vPeaks[j].set_sample_rate(sr);
 
                 dm->vGraphs[DM_CORR].set_method(dspu::MM_SIGN_MAXIMUM);
 
@@ -1981,12 +1996,14 @@ namespace lsp
                 // Compute Peak values
                 dsp::pamax3(b1, l, r, samples);
                 dm->vGraphs[DM_PEAK].process(b1, samples);
+                dm->vPeaks[PK_PEAK].process(b1, samples);
 
                 // Compute True Peak values
                 dm->sTPMeter[0].process(b1, l, samples);
                 dm->sTPMeter[1].process(b2, r, samples);
                 dsp::pmax2(b1, b2, samples);
                 dm->vGraphs[DM_TRUE_PEAK].process(b1, samples);
+                dm->vPeaks[PK_TRUE_PEAK].process(b1, samples);
 
                 dm->sPSRDelay.process(b1, b1, samples);
 
@@ -2324,12 +2341,22 @@ namespace lsp
                 dyna_meters_t *dm       = &vDynaMeters[i];
 
                 // Report meter values
-                for (size_t i=0; i<DM_STEREO; ++i)
+                for (size_t i=0; i<DM_TOTAL; ++i)
                 {
                     if (dm->pMeters[i] != NULL)
                     {
                         const float value       = dm->vGraphs[i].level();
                         dm->pMeters[i]->set_value(value);
+                    }
+                }
+
+                // Report peak meter values
+                for (size_t i=0; i<PK_TOTAL; ++i)
+                {
+                    if (dm->pPeaks[i] != NULL)
+                    {
+                        const float value       = dm->vPeaks[i].value();
+                        dm->pPeaks[i]->set_value(value);
                     }
                 }
 
@@ -2655,6 +2682,7 @@ namespace lsp
                     v->write_object("sPSRStats", &dm->sPSRStats);
                     v->write_object_array("vWaveform", dm->vWaveform, WF_TOTAL);
                     v->write_object_array("vGraphs", dm->vGraphs, DM_TOTAL);
+                    v->write_object_array("vPeaks", dm->vPeaks, PK_TOTAL);
 
                     v->write("vLoudness", dm->vLoudness);
                     v->write("fGain", dm->fGain);
@@ -2662,6 +2690,7 @@ namespace lsp
                     v->write("nGonioStrobe", dm->nGonioStrobe);
 
                     v->writev("pMeters", dm->pMeters, DM_TOTAL);
+                    v->writev("pPeaks", dm->pPeaks, PK_TOTAL);
                     v->write("pGoniometer", dm->pGoniometer);
                     v->write("pPsrPcValue", dm->pPsrPcValue);
                 }
