@@ -83,6 +83,7 @@ namespace lsp
             GAIN_AMP_M_INF_DB,  // DM_RMS
             GAIN_AMP_M_INF_DB,  // DM_M_LUFS
             GAIN_AMP_M_INF_DB,  // DM_S_LUFS
+            GAIN_AMP_M_INF_DB,  // DM_L_LUFS
             GAIN_AMP_M_INF_DB,  // DM_I_LUFS
             GAIN_AMP_0_DB,      // DM_PSR
             0,                  // DM_CORR
@@ -183,7 +184,7 @@ namespace lsp
                 pFltSplit[i]       = NULL;
 
             pMaxTime            = NULL;
-            pILUFSTime          = NULL;
+            pLLUFSTime          = NULL;
             pDynaMesh           = NULL;
 
             pWaveformMesh       = NULL;
@@ -417,7 +418,9 @@ namespace lsp
                     return;
                 if (dm->sSLUFSMeter.init(nChannels, dspu::bs::LUFS_SHORT_TERM_PERIOD) != STATUS_OK)
                     return;
-                if (dm->sILUFSMeter.init(nChannels, meta::referencer::ILUFS_TIME_MAX, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
+                if (dm->sLLUFSMeter.init(nChannels, meta::referencer::ILUFS_TIME_MAX, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
+                    return;
+                if (dm->sILUFSMeter.init(nChannels, 0, dspu::bs::LUFS_MOMENTARY_PERIOD) != STATUS_OK)
                     return;
 
                 dm->sCorrMeter.construct();
@@ -432,6 +435,7 @@ namespace lsp
                 dm->sMLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
                 dm->sSLUFSMeter.set_period(dspu::bs::LUFS_SHORT_TERM_PERIOD);
                 dm->sSLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
+                dm->sLLUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
                 dm->sILUFSMeter.set_weighting(dspu::bs::WEIGHT_K);
 
                 if (nChannels > 1)
@@ -451,6 +455,11 @@ namespace lsp
                     dm->sSLUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
                     dm->sSLUFSMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
 
+                    dm->sLLUFSMeter.set_active(0, true);
+                    dm->sLLUFSMeter.set_active(1, true);
+                    dm->sLLUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
+                    dm->sLLUFSMeter.set_designation(1, dspu::bs::CHANNEL_RIGHT);
+
                     dm->sILUFSMeter.set_active(0, true);
                     dm->sILUFSMeter.set_active(1, true);
                     dm->sILUFSMeter.set_designation(0, dspu::bs::CHANNEL_LEFT);
@@ -466,6 +475,9 @@ namespace lsp
 
                     dm->sSLUFSMeter.set_active(0, true);
                     dm->sSLUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
+
+                    dm->sLLUFSMeter.set_active(0, true);
+                    dm->sLLUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
 
                     dm->sILUFSMeter.set_active(0, true);
                     dm->sILUFSMeter.set_designation(0, dspu::bs::CHANNEL_CENTER);
@@ -528,12 +540,13 @@ namespace lsp
             BIND_PORT(pMaxTime);
 
             // Loudness graph parameters
-            BIND_PORT(pILUFSTime);
+            BIND_PORT(pLLUFSTime);
             SKIP_PORT("Peak graph visible");
             SKIP_PORT("True Peak graph visible");
             SKIP_PORT("RMS graph visible");
             SKIP_PORT("Momentary LUFS graph visible");
             SKIP_PORT("Short-term LUFS graph visible");
+            SKIP_PORT("Long-term LUFS graph visible");
             SKIP_PORT("Integrated LUFS graph visible");
 
             // PSR metering
@@ -677,6 +690,7 @@ namespace lsp
                 dm->sAutogainMeter.destroy();
                 dm->sMLUFSMeter.destroy();
                 dm->sSLUFSMeter.destroy();
+                dm->sLLUFSMeter.destroy();
                 dm->sILUFSMeter.destroy();
                 dm->sCorrMeter.destroy();
                 dm->sPanometer.destroy();
@@ -792,6 +806,7 @@ namespace lsp
                 dm->sAutogainMeter.set_sample_rate(sr);
                 dm->sMLUFSMeter.set_sample_rate(sr);
                 dm->sSLUFSMeter.set_sample_rate(sr);
+                dm->sLLUFSMeter.set_sample_rate(sr);
                 dm->sILUFSMeter.set_sample_rate(sr);
 
                 const size_t delay      = dspu::millis_to_samples(fSampleRate, dspu::bs::LUFS_MEASURE_PERIOD_MS * 0.5f);
@@ -1063,7 +1078,7 @@ namespace lsp
 
             // Update dynamics analysis
             fMaxTime                = pMaxTime->value();
-            const float ilufs_time  = pILUFSTime->value();
+            const float llufs_time  = pLLUFSTime->value();
             const size_t period     = dspu::seconds_to_samples(fSampleRate, fMaxTime / float(meta::referencer::DYNA_MESH_SIZE));
             const size_t psr_period = dspu::seconds_to_samples(fSampleRate, pPsrPeriod->value());
             nPsrMode                = pPsrDisplay->value();
@@ -1078,7 +1093,7 @@ namespace lsp
                 for (size_t j=0; j<DM_TOTAL; ++j)
                 {
                     dm->vGraphs[j].set_period(period);
-                    dm->sILUFSMeter.set_integration_period(ilufs_time);
+                    dm->sLLUFSMeter.set_integration_period(llufs_time);
                     dm->sPSRStats.set_period(psr_period);
                 }
             }
@@ -1960,6 +1975,12 @@ namespace lsp
                 dm->sMLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
                 dm->vGraphs[DM_M_LUFS].process(b2, samples);
 
+                // Compute Long-term LUFS value
+                dm->sLLUFSMeter.bind(0, l);
+                dm->sLLUFSMeter.bind(1, r);
+                dm->sLLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+                dm->vGraphs[DM_L_LUFS].process(b2, samples);
+
                 // Compute Integrated LUFS value
                 dm->sILUFSMeter.bind(0, l);
                 dm->sILUFSMeter.bind(1, r);
@@ -1994,6 +2015,11 @@ namespace lsp
                 dm->sMLUFSMeter.bind(0, NULL, l, 0);
                 dm->sMLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
                 dm->vGraphs[DM_M_LUFS].process(b2, samples);
+
+                // Compute Long-term LUFS value
+                dm->sLLUFSMeter.bind(0, l);
+                dm->sLLUFSMeter.process(b2, samples, dspu::bs::DBFS_TO_LUFS_SHIFT_GAIN);
+                dm->vGraphs[DM_L_LUFS].process(b2, samples);
 
                 // Compute Integrated LUFS value
                 dm->sILUFSMeter.bind(0, l);
@@ -2592,6 +2618,7 @@ namespace lsp
                     v->write_object("sAutogainMeter", &dm->sAutogainMeter);
                     v->write_object("sMLUFSMeter", &dm->sMLUFSMeter);
                     v->write_object("sSLUFSMeter", &dm->sSLUFSMeter);
+                    v->write_object("sLLUFSMeter", &dm->sLLUFSMeter);
                     v->write_object("sILUFSMeter", &dm->sILUFSMeter);
                     v->write_object("sCorrMeter", &dm->sCorrMeter);
                     v->write_object("sPanometer", &dm->sPanometer);
@@ -2705,7 +2732,7 @@ namespace lsp
             v->write("pFltSel", pFltSel);
             v->writev("pFltSplit", pFltSplit, meta::referencer::FLT_SPLITS);
             v->write("pMaxTime", pMaxTime);
-            v->write("pILUFSTime", pILUFSTime);
+            v->write("pLLUFSTime", pLLUFSTime);
             v->write("pDynaMesh", pDynaMesh);
             v->write("pWaveformMesh", pWaveformMesh);
             v->write("pFrameLength", pFrameLength);

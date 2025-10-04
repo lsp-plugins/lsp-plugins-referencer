@@ -96,6 +96,7 @@ namespace lsp
                     DM_RMS,                                                         // RMS value
                     DM_M_LUFS,                                                      // Momentary LUFS value
                     DM_S_LUFS,                                                      // Short-term LUFS value
+                    DM_L_LUFS,                                                      // Long-term LUFS value
                     DM_I_LUFS,                                                      // Integrated LUFS value
                     DM_PSR,                                                         // PSR (True Peak / LUFS) value
                     DM_CORR,                                                        // Correlation (stereo only)
@@ -259,7 +260,8 @@ namespace lsp
                     dspu::LoudnessMeter sAutogainMeter;                             // Short-term LUFS meter for Autogain matching
                     dspu::LoudnessMeter sMLUFSMeter;                                // Momentary LUFS meter
                     dspu::LoudnessMeter sSLUFSMeter;                                // Short-term LUFS meter
-                    dspu::ILUFSMeter    sILUFSMeter;                                // Integrated loudness meter
+                    dspu::ILUFSMeter    sLLUFSMeter;                                // Long-term LUFS meter
+                    dspu::ILUFSMeter    sILUFSMeter;                                // Integrated loudness meter for an infinite period
                     dspu::Correlometer  sCorrMeter;                                 // Corellometer
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
@@ -342,7 +344,7 @@ namespace lsp
                 plug::IPort        *pFltSel;                                    // Filter selector
                 plug::IPort        *pFltSplit[meta::referencer::FLT_SPLITS];    // Filter split frequencies
                 plug::IPort        *pMaxTime;                                   // Maximum time on the graph
-                plug::IPort        *pILUFSTime;                                 // Integrated LUFS time
+                plug::IPort        *pLLUFSTime;                                 // Integrated LUFS time
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pWaveformMesh;                              // Waveform mesh
                 plug::IPort        *pFrameLength;                               // Waveform frame length

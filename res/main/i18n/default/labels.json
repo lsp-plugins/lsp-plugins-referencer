@@ -2,6 +2,7 @@
 	"referencer": {
 		"goniometer": "Goniometer",
 		"ilufs": "I",
+		"llufs": "L",
 		"mlufs": "M",
 		"monitoring_mode": "Monitoring Mode",
 		"peak": "PK",
