@@ -1256,10 +1256,39 @@ namespace lsp
             // Compute the initial offset to start from
             offset              = (rb->position() + limit - length - offset) % limit;
 
-            for (size_t i=0; i<dst_len; ++i)
+            if (length > dst_len)
             {
-                size_t first    = (i * length) / dst_len;
-                dst[i]          = src[(first + offset) % limit];
+                for (size_t i=0; i<dst_len; ++i)
+                {
+                    size_t first    = (i * length) / dst_len;
+                    size_t last     = ((i + 1) * length) / dst_len;
+                    if (first < last)
+                    {
+                        first           = (first + offset) % limit;
+                        last            = (last + offset) % limit;
+
+                        if (first > last)
+                        {
+                            const float a   = dsp::sign_max(&src[first], limit - first);
+                            const float b   = dsp::sign_max(&src[0], last);
+                            dst[i]          = (fabsf(a) >= fabsf(b)) ? a : b;
+                        }
+                        else
+                            dst[i]          = dsp::sign_max(&src[first], last - first);
+                    }
+                    else if (first < length)
+                        dst[i]          = src[(first + offset) % limit];
+                    else
+                        dst[i]          = 0.0f;
+                }
+            }
+            else
+            {
+                for (size_t i=0; i<dst_len; ++i)
+                {
+                    size_t first    = (i * length) / dst_len;
+                    dst[i]          = src[(first + offset) % limit];
+                }
             }
         }
 
