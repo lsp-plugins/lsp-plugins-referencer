@@ -266,13 +266,18 @@ namespace lsp
             /* graph display maximum time */ \
             CONTROL("maxtime", "Graph display maximum time", "Max time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
-            CONTROL("ilufsit", "Integrated LUFS integration period", "ILUFS period", U_SEC, referencer::ILUFS_TIME), \
+            CONTROL("llufsit", "Long-term LUFS integration period", "LLUFS period", U_SEC, referencer::ILUFS_TIME), \
+            TRIGGER("rspk", "Reset peak measured value", "Reset peak"), \
+            TRIGGER("rstp", "Reset true peak measured value", "Reset TP"), \
+            TRIGGER("rsllufs", "Reset L-LUFS measured value", "Reset L-LUFS"), \
+            TRIGGER("rsilufs", "Reset I-LUFS measured value", "Reset I-LUFS"), \
             SWITCH("lmpk", "Peak graph visible", "Show peak", 0), \
             SWITCH("lmtp", "True peak graph visible", "Show TP", 1), \
             SWITCH("lmrms", "RMS graph visible", "Show RMS", 0), \
             SWITCH("lmmlufs", "Momentary LUFS graph visible", "Show M-LUFS", 0), \
             SWITCH("lmslufs", "Short-term LUFS graph visible", "Show S-LUFS", 1), \
-            SWITCH("lmilufs", "Integrated LUFS graph visible", "Show I-LUFS", 0), \
+            SWITCH("lmllufs", "Long-term LUFS graph visible", "Show L-LUFS", 1), \
+            SWITCH("lmilufs", "Integrated LUFS graph visible", "Show I-LUFS", 1), \
             /* PSR (dynamics) metering */ \
             CONTROL("psrtime", "PSR measurement time period", "PSR period", U_SEC, referencer::PSR_PERIOD), \
             LOG_CONTROL("psrthr", "PSR measurement threshold", "PSR thresh", U_GAIN_AMP, referencer::PSR_THRESH), \
@@ -305,12 +310,18 @@ namespace lsp
             METER("rms_" id, name " RMS meter", U_GAIN_AMP, referencer::LOUD_METER), \
             METER("mlufs_" id, name " Momentary LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
             METER("slufs_" id, name " Short-Term LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("llufs_" id, name " Long-Term LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
             METER("ilufs_" id, name " Integrated LUFS meter", U_GAIN_AMP, referencer::LOUD_METER), \
             METER("psr_" id, name " PSR meter", U_GAIN_AMP, referencer::PSR_METER)
 
+        #define REF_COMMON_PEAK_METERS(id, name) \
+            METER("tpk_" id, name " Triggered Peak meter", U_GAIN_AMP, referencer::LOUD_METER), \
+            METER("ttp_" id, name " Triggered True Peak meter", U_GAIN_AMP, referencer::LOUD_METER)
+
         #define REF_COMMON_METERS_MONO(id, name) \
             REF_COMMON_METERS(id, name), \
-            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
+            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST), \
+            REF_COMMON_PEAK_METERS(id, name)
 
         #define REF_COMMON_METERS_STEREO(id, name) \
             STREAM("gon_" id, name " goniometer stream buffer", 3, 128, 0x8000), \
@@ -318,10 +329,11 @@ namespace lsp
             METER("corr_" id, name " correlation meter", U_NONE, referencer::CORRELATION), \
             METER("pan_" id, name " panorama meter", U_NONE, referencer::PANOMETER), \
             METER("msbal_" id, name " mid/side balance meter", U_NONE, referencer::MSBALANCE), \
-            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST)
+            METER("psrpc_" id, name " PSR hystogram percentage above threshold", U_GAIN_AMP, referencer::PSR_HYST), \
+            REF_COMMON_PEAK_METERS(id, name)
 
         #define REF_COMMON_MONO \
-            MESH("dmmesh", "Dynamics display mesh", 15, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("dmmesh", "Dynamics display mesh", 17, referencer::DYNA_MESH_SIZE + 4), \
             MESH("wfmesh", "Waveform mesh", 3, referencer::WAVE_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 3, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftming", "FFT minimum extremum mesh", 3, referencer::SPC_MESH_SIZE + 4), \
@@ -338,7 +350,7 @@ namespace lsp
             SWITCH("right_v", "Visibilty of FFT/waveform analysis for right channel", "Show FFT R", 0), \
             SWITCH("mid_v", "Visibilty of FFT/waveform analysis for middle channel", "Show FFT M", 1), \
             SWITCH("side_v", "Visibilty of FFT/waveform analysis for side channel", "Show FFT S", 0), \
-            MESH("dmmesh", "Dynamics display mesh", 21, referencer::DYNA_MESH_SIZE + 4), \
+            MESH("dmmesh", "Dynamics display mesh", 23, referencer::DYNA_MESH_SIZE + 4), \
             MESH("wfmesh", "Waveform mesh", 9, referencer::WAVE_MESH_SIZE + 4), \
             MESH("fftgr", "FFT Analysis mesh", 15, referencer::SPC_MESH_SIZE + 4), \
             MESH("fftming", "FFT minimum extremum mesh", 15, referencer::SPC_MESH_SIZE + 4), \

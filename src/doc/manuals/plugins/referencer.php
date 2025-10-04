@@ -172,6 +172,7 @@ section allows to quickly switch to the desired tab.</p>
 	<li><b>RMS (RMS)</b> - the RMS value of the signal.</li>
 	<li><b>Momentary LUFS (M)</b> - the momentary LUFS value as defined by BS.1770-5 specification.</li>
 	<li><b>Short-Term LUFS (S)</b> - the short-term LUFS value as defined by BS.1770-5 specification.</li>
+	<li><b>Long-Term LUFS (S)</b> - the integrated LUFS value (with gating) as defined by BS.1770-5 specification for the integration period.</li>
 	<li><b>Integrated LUFS (I)</b> - the integrated LUFS value (with gating) as defined by BS.1770-5 specification.</li>
 </ul>
 <p>The <b>Loudness</b> tabs contains following controls:</p>
@@ -181,8 +182,9 @@ section allows to quickly switch to the desired tab.</p>
 	<li><b>RMS</b> - the button that enables time graph with RMS measurements.</li>
 	<li><b>Momentary LUFS</b> - the button that enables time graph with momentary LUFS measurements..</li>
 	<li><b>Short-Term LUFS</b> - the button that enables time graph with short-term LUFS measurements.</li>
+	<li><b>Long-Term LUFS</b> - the button that enables time graph with long-term LUFS measurements.</li>
 	<li><b>Integrated LUFS</b> - the button that enables time graph with integrated LUFS measurements.</li>
-	<li><b>Integration</b> - the fader that allows to control the integration period for the integrated LUFS.</li>
+	<li><b>Integration</b> - the fader that allows to control the integration period for the Long-Term LUFS.</li>
 </ul>
 
 <p>The <b>Waveform</b> tab contains graphs with waveform analysis of the signal:</p>
