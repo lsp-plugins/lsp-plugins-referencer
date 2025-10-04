@@ -267,6 +267,10 @@ namespace lsp
             CONTROL("maxtime", "Graph display maximum time", "Max time", U_SEC, referencer::DYNA_TIME), \
             /* Loudness metering */ \
             CONTROL("llufsit", "Long-term LUFS integration period", "LLUFS period", U_SEC, referencer::ILUFS_TIME), \
+            TRIGGER("rspk", "Reset peak measured value", "Reset peak"), \
+            TRIGGER("rstp", "Reset true peak measured value", "Reset TP"), \
+            TRIGGER("rsllufs", "Reset L-LUFS measured value", "Reset L-LUFS"), \
+            TRIGGER("rsilufs", "Reset I-LUFS measured value", "Reset I-LUFS"), \
             SWITCH("lmpk", "Peak graph visible", "Show peak", 0), \
             SWITCH("lmtp", "True peak graph visible", "Show TP", 1), \
             SWITCH("lmrms", "RMS graph visible", "Show RMS", 0), \

@@ -356,6 +356,10 @@ namespace lsp
                 plug::IPort        *pFltSplit[meta::referencer::FLT_SPLITS];    // Filter split frequencies
                 plug::IPort        *pMaxTime;                                   // Maximum time on the graph
                 plug::IPort        *pLLUFSTime;                                 // Integrated LUFS time
+                plug::IPort        *pResetPK;                                   // Reset Peak value
+                plug::IPort        *pResetTP;                                   // Reset True Peak value
+                plug::IPort        *pResetLLufs;                                // Reset L-LUFS value
+                plug::IPort        *pResetILufs;                                // Reset I-LUFS value
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pWaveformMesh;                              // Waveform mesh
                 plug::IPort        *pFrameLength;                               // Waveform frame length

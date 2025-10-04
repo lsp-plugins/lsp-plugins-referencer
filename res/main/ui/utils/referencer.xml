@@ -243,8 +243,8 @@
 									<vbox>
 										<grid rows="3" cols="3" fill="true" spacing="4" padding="4" vreduce="true" bg.color="bg_schema">
 											<ui:with font.size="16">
-												<label text="labels.referencer.peak" />
-												<label text="labels.referencer.true_peak" />
+												<button id="rspk" text="labels.referencer.peak" ui:group="" />
+												<button id="rstp" text="labels.referencer.true_peak" ui:group="" />
 												<label text="labels.referencer.rms" />
 											</ui:with>
 											
@@ -263,8 +263,8 @@
 											<ui:with font.size="16">
 												<label text="labels.referencer.mlufs" />
 												<label text="labels.referencer.slufs" />
-												<label text="labels.referencer.llufs" />
-												<label text="labels.referencer.ilufs" />
+												<button id="rsllufs" text="labels.referencer.llufs" ui:group="" />
+												<button id="rsilufs" text="labels.referencer.ilufs" ui:group="" />
 											</ui:with>
 											
 											<ui:with color="reference_mix_1" detailed="false" font.size="16" precision="1">
@@ -1445,8 +1445,8 @@
 				<cell cols="7">
 					<grid rows="3" cols="3" fill="true" spacing="4" padding="4" vreduce="true" bg.color="bg_schema">
 						<ui:with font.size="16">
-							<label text="labels.referencer.peak" />
-							<label text="labels.referencer.true_peak" />
+							<button id="rspk" text="labels.referencer.peak" />
+							<button id="rstp" text="labels.referencer.true_peak" />
 							<label text="labels.referencer.rms" />
 						</ui:with>
 						
@@ -1467,8 +1467,8 @@
 						<ui:with font.size="16">
 							<label text="labels.referencer.mlufs" />
 							<label text="labels.referencer.slufs" />
-							<label text="labels.referencer.llufs" />
-							<label text="labels.referencer.ilufs" />
+							<button id="rsllufs" text="labels.referencer.llufs" />
+							<button id="rsilufs" text="labels.referencer.ilufs" />
 						</ui:with>
 						
 						<ui:with color="reference_mix_1" detailed="false" font.size="16" precision="1">

@@ -185,6 +185,10 @@ namespace lsp
 
             pMaxTime            = NULL;
             pLLUFSTime          = NULL;
+            pResetPK            = NULL;
+            pResetTP            = NULL;
+            pResetLLufs         = NULL;
+            pResetILufs         = NULL;
             pDynaMesh           = NULL;
 
             pWaveformMesh       = NULL;
@@ -546,6 +550,10 @@ namespace lsp
 
             // Loudness graph parameters
             BIND_PORT(pLLUFSTime);
+            BIND_PORT(pResetPK);
+            BIND_PORT(pResetTP);
+            BIND_PORT(pResetLLufs);
+            BIND_PORT(pResetILufs);
             SKIP_PORT("Peak graph visible");
             SKIP_PORT("True Peak graph visible");
             SKIP_PORT("RMS graph visible");
@@ -1098,6 +1106,10 @@ namespace lsp
             const size_t psr_period = dspu::seconds_to_samples(fSampleRate, pPsrPeriod->value());
             nPsrMode                = pPsrDisplay->value();
             const float psr_th      = dspu::gain_to_db(pPsrThreshold->value());
+            const bool reset_pk     = pResetPK->value() >= 0.5f;
+            const bool reset_tp     = pResetTP->value() >= 0.5f;
+            const bool reset_llufs  = pResetLLufs->value() >= 0.5f;
+            const bool reset_ilufs  = pResetILufs->value() >= 0.5f;
 
             nPsrThresh              = (psr_th * meta::referencer::PSR_MESH_SIZE) / (meta::referencer::PSR_MAX_LEVEL - meta::referencer::PSR_MIN_LEVEL);
             lsp_trace("psr_th = %f, nPsrThresh = %d", psr_th, int(nPsrThresh));
@@ -1106,11 +1118,18 @@ namespace lsp
             {
                 dyna_meters_t *dm       = &vDynaMeters[i];
                 for (size_t j=0; j<DM_TOTAL; ++j)
-                {
                     dm->vGraphs[j].set_period(period);
-                    dm->sLLUFSMeter.set_integration_period(llufs_time);
-                    dm->sPSRStats.set_period(psr_period);
-                }
+
+                dm->sLLUFSMeter.set_integration_period(llufs_time);
+                dm->sPSRStats.set_period(psr_period);
+                if (reset_pk)
+                    dm->vPeaks[PK_PEAK].clear();
+                if (reset_tp)
+                    dm->vPeaks[PK_TRUE_PEAK].clear();
+                if (reset_llufs)
+                    dm->sLLUFSMeter.clear();
+                if (reset_ilufs)
+                    dm->sILUFSMeter.clear();
             }
 
             // Apply FFT analysis settings
@@ -2791,6 +2810,8 @@ namespace lsp
             v->writev("pFltSplit", pFltSplit, meta::referencer::FLT_SPLITS);
             v->write("pMaxTime", pMaxTime);
             v->write("pLLUFSTime", pLLUFSTime);
+            v->write("pResetILufs", pResetILufs);
+            v->write("pResetLLufs", pResetLLufs);
             v->write("pDynaMesh", pDynaMesh);
             v->write("pWaveformMesh", pWaveformMesh);
             v->write("pFrameLength", pFrameLength);
