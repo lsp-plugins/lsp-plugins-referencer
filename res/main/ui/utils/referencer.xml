@@ -1599,11 +1599,18 @@
 
 					<vbox vexpand="true" bg.color="bg_schema">
 						<label font.name="lsp-icons" font.size="12" font.antialias="true" text="icons.main.zoom" color="text_icon" pad.b="4" pad.t="4"/>
-						<fader id="wfscmax" angle="1" hreduce="true" vexpand="true" bg.inherit="true" flat="true"/>
-						<value id="wfscmax" angle="1" hreduce="true" width="40"/>
-						<hsep pad.v="2" bg.color="bg" vreduce="true"/>
-						<ui:with bright="(:wflog) ? 1.0 : 0.75" bg.bright="(:wflog) ? 1.0 : :const_bg_darken">
-							<fader id="wfscmin" angle="1" hreduce="true" vexpand="true" bg.inherit="true" flat="true" pad.t="4" scolor="(:wflog) ? 'kscale' : 'cycle_inactive'"/>
+						<ui:with visibility="!:wflog">
+							<fader id="wfscmax" angle="1" hreduce="true" vexpand="true" bg.inherit="true" flat="true"/>
+							<value id="wfscmax" angle="1" hreduce="true" width="40"/>
+							<hsep pad.v="2" bg.color="bg" vreduce="true"/>
+						</ui:with>
+						<ui:with visibility=":wflog">
+							<range
+								begin.id="wfscmin" end.id="wfscmax"
+								distance="12"
+								angle="1" hreduce="true" vexpand="true"
+								bg.inherit="true" flat="true"/>
+							<value id="wfscmax" angle="1" hreduce="true" width="40"/>
 							<value id="wfscmin" angle="1" hreduce="true" width="40"/>
 						</ui:with>
 					</vbox>
