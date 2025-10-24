@@ -6,6 +6,7 @@
 * Improved display of measured loudness/peak values.
 * Added support of integrated loudness metering.
 * Reverted waveform rendering issues.
+* Updated build scripts and dependencies.
 
 === 1.0.3 ===
 * Updated waveform graph rendering.
