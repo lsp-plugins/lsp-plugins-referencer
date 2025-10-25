@@ -2,13 +2,21 @@
 	"referencer": {
 		"goniometer": "Гониометр",
 		"ilufs": "I",
+		"ilufs_full": "I_LUFS",
+		"llufs": "L",
+		"llufs_full": "L_LUFS",
 		"mlufs": "M",
+		"mlufs_full": "M_LUFS",
 		"monitoring_mode": "Режим прослушивания",
-		"peak": "PK",
+		"peak": "Пик",
+		"peak_full": "Пик",
 		"psr" : "PSR",
 		"rms": "СКЗ",
+		"rms_full": "СКЗ",
 		"sample_loop_matrix": "Матрица сэмплов и лупов",
 		"slufs": "S",
-		"true_peak": "TP"
+		"slufs_full": "S-LUFS",
+		"true_peak": "ИП",
+		"true_peak_full": "True Peak"
 	}
 }

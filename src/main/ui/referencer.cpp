@@ -451,29 +451,6 @@ namespace lsp
             {
                 float log_min           = (wf->pZoomMin != NULL) ? wf->pZoomMin->value() : meta::referencer::WAVE_SMIN_SCALE_DFL;
                 float log_max           = (wf->pZoomMax != NULL) ? wf->pZoomMax->value() : meta::referencer::WAVE_SMAX_SCALE_DFL;
-                float delta             = log_max - log_min;
-
-                if ((flags & ui::PORT_USER_EDIT) && (delta < meta::referencer::WAVE_SRANGE_DIFF_MIN))
-                {
-                    if (port == wf->pZoomMin)
-                    {
-                        log_max             = log_min + meta::referencer::WAVE_SRANGE_DIFF_MIN;
-                        if (wf->pZoomMax != NULL)
-                        {
-                            wf->pZoomMax->set_value(log_max);
-                            wf->pZoomMax->notify_all(ui::PORT_USER_EDIT);
-                        }
-                    }
-                    else
-                    {
-                        log_min             = log_max - meta::referencer::WAVE_SRANGE_DIFF_MIN;
-                        if (wf->pZoomMin != NULL)
-                        {
-                            wf->pZoomMin->set_value(log_min);
-                            wf->pZoomMin->notify_all(ui::PORT_USER_EDIT);
-                        }
-                    }
-                }
 
                 if ((log_min != wf->fScaleMin) || (log_max != wf->fScaleMax))
                 {

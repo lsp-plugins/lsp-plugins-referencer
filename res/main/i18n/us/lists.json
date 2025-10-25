@@ -9,6 +9,7 @@
 		"dynamics": {
 			"all": "All values",
 			"ilufs": "Integrated LUFS",
+			"llufs": "Long-term LUFS",
 			"mlufs": "Momentary LUFS",
 			"peak": "Peak",
 			"psr" : "PSR",

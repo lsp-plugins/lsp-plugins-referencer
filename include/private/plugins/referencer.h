@@ -29,6 +29,7 @@
 #include <lsp-plug.in/dsp-units/meters/LoudnessMeter.h>
 #include <lsp-plug.in/dsp-units/meters/Panometer.h>
 #include <lsp-plug.in/dsp-units/meters/TruePeakMeter.h>
+#include <lsp-plug.in/dsp-units/meters/PeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/dsp-units/stat/QuantizedCounter.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
@@ -96,6 +97,7 @@ namespace lsp
                     DM_RMS,                                                         // RMS value
                     DM_M_LUFS,                                                      // Momentary LUFS value
                     DM_S_LUFS,                                                      // Short-term LUFS value
+                    DM_L_LUFS,                                                      // Long-term LUFS value
                     DM_I_LUFS,                                                      // Integrated LUFS value
                     DM_PSR,                                                         // PSR (True Peak / LUFS) value
                     DM_CORR,                                                        // Correlation (stereo only)
@@ -105,6 +107,14 @@ namespace lsp
                     DM_TOTAL,
                     DM_STEREO = DM_TOTAL,
                     DM_MONO = DM_CORR
+                };
+
+                enum peak_t
+                {
+                    PK_PEAK,                                                        // Peak meter
+                    PK_TRUE_PEAK,                                                   // True peak meter
+
+                    PK_TOTAL
                 };
 
                 enum fgraph_t
@@ -259,13 +269,15 @@ namespace lsp
                     dspu::LoudnessMeter sAutogainMeter;                             // Short-term LUFS meter for Autogain matching
                     dspu::LoudnessMeter sMLUFSMeter;                                // Momentary LUFS meter
                     dspu::LoudnessMeter sSLUFSMeter;                                // Short-term LUFS meter
-                    dspu::ILUFSMeter    sILUFSMeter;                                // Integrated loudness meter
+                    dspu::ILUFSMeter    sLLUFSMeter;                                // Long-term LUFS meter
+                    dspu::ILUFSMeter    sILUFSMeter;                                // Integrated loudness meter for an infinite period
                     dspu::Correlometer  sCorrMeter;                                 // Corellometer
                     dspu::Panometer     sPanometer;                                 // Panometer
                     dspu::Panometer     sMsBalance;                                 // Mid/Side balance
                     dspu::QuantizedCounter  sPSRStats;                              // PSR statistics
                     dspu::RawRingBuffer vWaveform[WF_TOTAL];                        // Waveform history (capture)
                     dspu::ScaledMeterGraph  vGraphs[DM_TOTAL];                      // Output graphs
+                    dspu::PeakMeter     vPeaks[PK_TOTAL];                           // Peak meters
 
                     float              *vLoudness;                                  // Measured short-term loudness
                     float               fGain;                                      // Current gain
@@ -273,6 +285,7 @@ namespace lsp
                     uint32_t            nGonioStrobe;                               // Counter for strobe signal of goniometer
 
                     plug::IPort        *pMeters[DM_TOTAL];                          // Output meters
+                    plug::IPort        *pPeaks[PK_TOTAL];                           // Output peak meters
                     plug::IPort        *pGoniometer;                                // Goniometer stream
                     plug::IPort        *pPsrPcValue;                                // PSR value in percents (over threshold)
                 } dyna_meters_t;
@@ -342,7 +355,11 @@ namespace lsp
                 plug::IPort        *pFltSel;                                    // Filter selector
                 plug::IPort        *pFltSplit[meta::referencer::FLT_SPLITS];    // Filter split frequencies
                 plug::IPort        *pMaxTime;                                   // Maximum time on the graph
-                plug::IPort        *pILUFSTime;                                 // Integrated LUFS time
+                plug::IPort        *pLLUFSTime;                                 // Integrated LUFS time
+                plug::IPort        *pResetPK;                                   // Reset Peak value
+                plug::IPort        *pResetTP;                                   // Reset True Peak value
+                plug::IPort        *pResetLLufs;                                // Reset L-LUFS value
+                plug::IPort        *pResetILufs;                                // Reset I-LUFS value
                 plug::IPort        *pDynaMesh;                                  // Mesh for dynamics output
                 plug::IPort        *pWaveformMesh;                              // Waveform mesh
                 plug::IPort        *pFrameLength;                               // Waveform frame length
