@@ -1157,11 +1157,11 @@ namespace lsp
             if (pFftReset->value() >= 0.5f)
                 reset_fft();
 
+            const float fft_csize   = fft_size >> 1;
             if (bUpdFft)
             {
                 const float norm        = logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN) / (meta::referencer::SPC_MESH_SIZE - 1);
                 const float scale       = float(fft_size) / float(fSampleRate);
-                const float fft_csize   = fft_size >> 1;
 
                 for (size_t i=0; i<meta::referencer::SPC_MESH_SIZE; ++i)
                 {
@@ -1190,7 +1190,11 @@ namespace lsp
             if (nFftEnvelope != fft_env)
             {
                 nFftEnvelope            = fft_env;
-                dspu::envelope::reverse_noise(vBuffer, fft_size + 1, dspu::envelope::envelope_t(nFftEnvelope));
+                dspu::envelope::reverse_noise_lin(
+                    vBuffer,
+                    0.0f, fSampleRate * 0.5f, SPEC_FREQ_CENTER,
+                    fft_csize + 1,
+                    dspu::envelope::envelope_t(nFftEnvelope));
                 reduce_spectrum(vFftEnvelope, vBuffer);
                 dsp::mul_k2(vFftEnvelope, GAIN_AMP_P_12_DB / fft_size, meta::referencer::SPC_MESH_SIZE);
             }
