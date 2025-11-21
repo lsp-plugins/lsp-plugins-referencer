@@ -64,6 +64,10 @@ namespace lsp
 
         status_t referencer::AFLoader::run()
         {
+            dsp::context_t ctx;
+            dsp::start(&ctx);
+            lsp_finally { dsp::finish(&ctx); };
+
             return pLink->load_file(pFile);
         };
 
