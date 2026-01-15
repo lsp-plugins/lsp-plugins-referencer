@@ -190,7 +190,12 @@ namespace lsp
 
             public:
                 explicit referencer_ui(const meta::plugin_t *meta);
+                referencer_ui(const referencer_ui &) = delete;
+                referencer_ui(referencer_ui &&) = delete;
                 virtual ~referencer_ui() override;
+
+                referencer_ui & operator = (const referencer_ui &) = delete;
+                referencer_ui & operator = (referencer_ui &&) = delete;
 
                 virtual status_t    post_init() override;
 
