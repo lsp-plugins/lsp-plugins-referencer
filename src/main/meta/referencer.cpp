@@ -395,7 +395,7 @@ namespace lsp
             "Referencer",
             B_UTILITIES,
             "jWO6FrCrbdw",
-            "Referencer plugin allows you to load your preferred reference files and compare them with your mix"
+            "Referencer plugin allows you to load your preferred reference files and compare their various characteristics with your mix."
         };
 
         const plugin_t referencer_mono =
