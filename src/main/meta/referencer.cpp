@@ -422,7 +422,7 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_FILE_PREVIEW,
             referencer_mono_ports,
-            "utils/referencer.xml",
+            "plugins/utils/referencer.xml",
             NULL,
             mono_plugin_port_groups,
             &referencer_bundle
@@ -453,7 +453,7 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_FILE_PREVIEW,
             referencer_stereo_ports,
-            "utils/referencer.xml",
+            "plugins/utils/referencer.xml",
             NULL,
             stereo_plugin_port_groups,
             &referencer_bundle
