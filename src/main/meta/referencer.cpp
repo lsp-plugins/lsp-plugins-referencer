@@ -425,7 +425,8 @@ namespace lsp
             "plugins/utils/referencer.xml",
             NULL,
             mono_plugin_port_groups,
-            &referencer_bundle
+            &referencer_bundle,
+            2
         };
         LSP_REGISTER_METADATA(referencer_mono);
 
@@ -456,12 +457,10 @@ namespace lsp
             "plugins/utils/referencer.xml",
             NULL,
             stereo_plugin_port_groups,
-            &referencer_bundle
+            &referencer_bundle,
+            1
         };
         LSP_REGISTER_METADATA(referencer_stereo);
 
     } /* namespace meta */
 } /* namespace lsp */
-
-
-
