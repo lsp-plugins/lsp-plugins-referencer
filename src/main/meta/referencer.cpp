@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -21,12 +21,13 @@
 
 #include <lsp-plug.in/common/status.h>
 #include <lsp-plug.in/plug-fw/meta/ports.h>
+#include <lsp-plug.in/plug-fw/meta/registry.h>
 #include <lsp-plug.in/shared/meta/developers.h>
 #include <private/meta/referencer.h>
 
 #define LSP_PLUGINS_REFERENCER_VERSION_MAJOR       1
 #define LSP_PLUGINS_REFERENCER_VERSION_MINOR       0
-#define LSP_PLUGINS_REFERENCER_VERSION_MICRO       6
+#define LSP_PLUGINS_REFERENCER_VERSION_MICRO       7
 
 #define LSP_PLUGINS_REFERENCER_VERSION  \
     LSP_MODULE_VERSION( \
@@ -394,7 +395,7 @@ namespace lsp
             "Referencer",
             B_UTILITIES,
             "jWO6FrCrbdw",
-            "Referencer plugin allows you to load your preferred reference files and compare them with your mix"
+            "Referencer plugin allows you to load your preferred reference files and compare their various characteristics with your mix."
         };
 
         const plugin_t referencer_mono =
@@ -421,11 +422,13 @@ namespace lsp
             clap_features_mono,
             E_DUMP_STATE | E_FILE_PREVIEW,
             referencer_mono_ports,
-            "utils/referencer.xml",
+            "plugins/utils/referencer.xml",
             NULL,
             mono_plugin_port_groups,
-            &referencer_bundle
+            &referencer_bundle,
+            2
         };
+        LSP_REGISTER_METADATA(referencer_mono);
 
         const plugin_t referencer_stereo =
         {
@@ -451,13 +454,13 @@ namespace lsp
             clap_features_stereo,
             E_DUMP_STATE | E_FILE_PREVIEW,
             referencer_stereo_ports,
-            "utils/referencer.xml",
+            "plugins/utils/referencer.xml",
             NULL,
             stereo_plugin_port_groups,
-            &referencer_bundle
+            &referencer_bundle,
+            1
         };
+        LSP_REGISTER_METADATA(referencer_stereo);
+
     } /* namespace meta */
 } /* namespace lsp */
-
-
-

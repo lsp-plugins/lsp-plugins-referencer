@@ -1,7 +1,11 @@
 {
 	"referencer": {
-		"name": "Referencer",
-		"description": "Referencer plugin allows you to load your preferred reference files and compare them with your mix"
-	}
+		"description": "Referencer plugin allows you to load your preferred reference files\nand compare their various characteristics with your mix.",
+		"name": "Referencer"
+	},
+    "launcher": {
+        "referencer_mono": "Mono",
+        "referencer_stereo": "Stereo"
+    }
 }
 

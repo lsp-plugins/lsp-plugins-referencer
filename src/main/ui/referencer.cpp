@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -557,7 +557,7 @@ namespace lsp
                     expr::Parameters params;
                     tk::prop::String schannel;
                     LSPString text;
-                    schannel.bind(ver_text->style(), pDisplay->dictionary());
+                    schannel.bind(ver_text->style(), display()->dictionary());
                     SET_LOCALE_SCOPED(LC_NUMERIC, "C");
 
                     // Channels
