@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -901,10 +901,12 @@ namespace lsp
         {
             switch (mode)
             {
-                case 0: return dspu::EQM_IIR;
-                case 1: return dspu::EQM_FIR;
-                case 2: return dspu::EQM_FFT;
-                case 3: return dspu::EQM_SPM;
+                case meta::referencer::EQM_IIR: return dspu::EQM_IIR;
+                case meta::referencer::EQM_FIR: return dspu::EQM_FIR;
+                case meta::referencer::EQM_FFT_LP: return dspu::EQM_FFT_LP;
+                case meta::referencer::EQM_SPM_LP: return dspu::EQM_SPM_LP;
+                case meta::referencer::EQM_FFT_MP: return dspu::EQM_FFT_MP;
+                case meta::referencer::EQM_SPM_MP: return dspu::EQM_SPM_MP;
                 default:
                     break;
             }

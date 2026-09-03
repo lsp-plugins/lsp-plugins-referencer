@@ -3,7 +3,7 @@
 *******************************************************************************
 
 === 1.0.13 ===
-
+* Added minimum phase SPM and FFT mode for filter.
 
 === 1.0.12 ===
 * Updated build scripts and dependencies.

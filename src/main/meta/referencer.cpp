@@ -144,10 +144,12 @@ namespace lsp
 
         static const port_item_t filter_modes[] =
         {
-            { "IIR",            "eq.type.iir"                       },
-            { "FIR",            "eq.type.fir"                       },
-            { "FFT",            "eq.type.fft"                       },
-            { "SPM",            "eq.type.spm"                       },
+            { "IIR",                    "eq.type.iir",          },
+            { "FIR",                    "eq.type.fir",          },
+            { "Linear phase (FFT)",     "eq.type.fft_lp",       },
+            { "Linear phase (SPM)",     "eq.type.spm_lp",       },
+            { "Minimum phase (FFT)",    "eq.type.fft_mp",       },
+            { "Minimum phase (SPM)",    "eq.type.spm_mp",       },
             { NULL, NULL }
         };
 
