@@ -902,7 +902,8 @@ namespace lsp
             switch (mode)
             {
                 case meta::referencer::EQM_IIR: return dspu::EQM_IIR;
-                case meta::referencer::EQM_FIR: return dspu::EQM_FIR;
+                case meta::referencer::EQM_FIR_LP: return dspu::EQM_FIR_LP;
+                case meta::referencer::EQM_FIR_MP: return dspu::EQM_FIR_MP;
                 case meta::referencer::EQM_FFT_LP: return dspu::EQM_FFT_LP;
                 case meta::referencer::EQM_SPM_LP: return dspu::EQM_SPM_LP;
                 case meta::referencer::EQM_FFT_MP: return dspu::EQM_FFT_MP;

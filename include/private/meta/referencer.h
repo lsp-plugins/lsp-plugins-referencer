@@ -254,9 +254,10 @@ namespace lsp
             enum eq_mode_t
             {
                 EQM_IIR,
-                EQM_FIR,
+                EQM_FIR_LP,
                 EQM_FFT_LP,
                 EQM_SPM_LP,
+                EQM_FIR_MP,
                 EQM_FFT_MP,
                 EQM_SPM_MP,
             };
