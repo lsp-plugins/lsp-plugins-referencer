@@ -212,7 +212,32 @@ namespace lsp
             { NULL, NULL }
         };
 
-
+        const port_item_t fft_windows[] =
+        {
+            { "Hann",                   "fft.wnd.hann" },
+            { "Hamming",                "fft.wnd.hamming" },
+            { "Blackman",               "fft.wnd.blackman" },
+            { "Lanczos",                "fft.wnd.lanczos" },
+            { "Gaussian",               "fft.wnd.gauss" },
+            { "Poisson",                "fft.wnd.poisson" },
+            { "Parzen",                 "fft.wnd.parzen" },
+            { "Tukey",                  "fft.wnd.tukey" },
+            { "Welch",                  "fft.wnd.welch" },
+            { "Nuttall",                "fft.wnd.nuttall" },
+            { "Blackman-Nuttall",       "fft.wnd.blackman_nuttall" },
+            { "Blackman-Harris",        "fft.wnd.blackman_harris" },
+            { "Hann-Poisson",           "fft.wnd.hann_poisson" },
+            { "Bartlett-Hann",          "fft.wnd.bartlett_hann" },
+            { "Bartlett-Fejer",         "fft.wnd.bartlett_fejer" },
+            { "Triangular",             "fft.wnd.triangular" },
+            { "Rectangular",            "fft.wnd.rectangular" },
+            { "Flat top",               "fft.wnd.flat_top" },
+            { "Cosine",                 "fft.wnd.cosine" },
+            { "Squared Cosine",         "fft.wnd.sqr_cosine" },
+            { "Cubic",                  "fft.wnd.cubic" },
+            { "Kaiser",                 "fft.wnd.kaiser" },
+            { NULL, NULL }
+        };
 
         #define REF_LOOP(id, name, alias) \
             CONTROL("lb" id, name " start", "Loop start" alias, U_SEC, referencer::LOOP_BEGIN), \
