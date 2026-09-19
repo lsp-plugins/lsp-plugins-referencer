@@ -4,7 +4,7 @@
 
 === 1.0.13 ===
 * Added minimum phase SPM, FIR and FFT mode for filter.
-* Added Kaiser window for analysis.
+* Added Kaiser and Kaiser-Bessel Derived windows for analysis.
 
 === 1.0.12 ===
 * Updated build scripts and dependencies.
