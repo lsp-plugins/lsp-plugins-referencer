@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -363,13 +363,16 @@ namespace lsp
                 c->vPreFilters[0].construct();
                 c->vPreFilters[1].construct();
                 c->sPostFilter.construct();
+                c->vPreConv[0].construct();
+                c->vPreConv[1].construct();
+                c->sPostConv.construct();
 
                 // Initialize DSP processors
-                if (!c->vPreFilters[0].init(1, meta::referencer::EQ_RANK))
+                if (!c->vPreFilters[0].init(1, meta::referencer::EQ_RANK, &c->vPreConv[0]))
                     return;
-                if (!c->vPreFilters[1].init(1, meta::referencer::EQ_RANK))
+                if (!c->vPreFilters[1].init(1, meta::referencer::EQ_RANK, &c->vPreConv[1]))
                     return;
-                if (!c->sPostFilter.init(1, meta::referencer::EQ_RANK))
+                if (!c->sPostFilter.init(1, meta::referencer::EQ_RANK, &c->sPostConv))
                     return;
                 c->vPreFilters[0].set_smooth(true);
                 c->vPreFilters[1].set_smooth(true);
@@ -737,6 +740,9 @@ namespace lsp
                     c->vPreFilters[0].destroy();
                     c->vPreFilters[1].destroy();
                     c->sPostFilter.destroy();
+                    c->vPreConv[0].destroy();
+                    c->vPreConv[1].destroy();
+                    c->sPostConv.destroy();
                 }
                 vChannels   = NULL;
             }
@@ -901,10 +907,13 @@ namespace lsp
         {
             switch (mode)
             {
-                case 0: return dspu::EQM_IIR;
-                case 1: return dspu::EQM_FIR;
-                case 2: return dspu::EQM_FFT;
-                case 3: return dspu::EQM_SPM;
+                case meta::referencer::EQM_IIR: return dspu::EQM_IIR;
+                case meta::referencer::EQM_FIR_LP: return dspu::EQM_FIR_LP;
+                case meta::referencer::EQM_FIR_MP: return dspu::EQM_FIR_MP;
+                case meta::referencer::EQM_FFT_LP: return dspu::EQM_FFT_LP;
+                case meta::referencer::EQM_SPM_LP: return dspu::EQM_SPM_LP;
+                case meta::referencer::EQM_FFT_MP: return dspu::EQM_FFT_MP;
+                case meta::referencer::EQM_SPM_MP: return dspu::EQM_SPM_MP;
                 default:
                     break;
             }
@@ -2658,6 +2667,8 @@ namespace lsp
                     v->write_object("sBypass", &c->sBypass);
                     v->write_object_array("vPreFilters", c->vPreFilters, 2);
                     v->write_object("sPostFilter", &c->sPostFilter);
+                    v->write_object_array("vPreConv", c->vPreConv, 2);
+                    v->write_object("sPostConv", &c->sPostConv);
 
                     v->write("vIn", c->vIn);
                     v->write("vOut", c->vOut);

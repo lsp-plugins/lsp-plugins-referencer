@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins-referencer
  * Created on: 16 окт 2024 г.
@@ -32,6 +32,7 @@
 #include <lsp-plug.in/dsp-units/meters/PeakMeter.h>
 #include <lsp-plug.in/dsp-units/sampling/Sample.h>
 #include <lsp-plug.in/dsp-units/stat/QuantizedCounter.h>
+#include <lsp-plug.in/dsp-units/util/Convolver.h>
 #include <lsp-plug.in/dsp-units/util/Delay.h>
 #include <lsp-plug.in/dsp-units/util/RawRingBuffer.h>
 #include <lsp-plug.in/dsp-units/util/ScaledMeterGraph.h>
@@ -234,6 +235,8 @@ namespace lsp
                     dspu::Bypass        sBypass;                                    // Bypass
                     dspu::Equalizer     vPreFilters[2];                             // Pre-filters for mix and reference
                     dspu::Equalizer     sPostFilter;                                // Post-filter
+                    dspu::Convolver     vPreConv[2];                                // Convolver for pre-processing
+                    dspu::Convolver     sPostConv;                                  // Convolver for post-processing
 
                     float              *vIn;                                        // Input buffer
                     float              *vOut;                                       // Output buffer

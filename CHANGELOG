@@ -2,6 +2,11 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.13 ===
+* Added minimum phase SPM, FIR and FFT mode for filter.
+* Added Kaiser and Kaiser-Bessel Derived windows for analysis.
+* Updated build scripts and dependencies.
+
 === 1.0.12 ===
 * Updated build scripts and dependencies.
 
